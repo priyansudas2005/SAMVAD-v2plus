@@ -41,13 +41,13 @@ class QuestionAnswering:
                 "deepset/minilm-uncased-squad2",
                 "distilbert-base-cased-distilled-squad"
             ]
-            device_idx = 0 if torch.cuda.is_available() else -1
             for model_name in qa_models:
                 try:
                     logger.info(f"[{datetime.now().isoformat()}] [QuestionAnswering._load_model] Attempting to load QA model: {model_name}...")
-                    self.qa_pipeline = pipeline("question-answering", model=model_name, device=device_idx)
+                    self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+                    self.qa_model = AutoModelForQuestionAnswering.from_pretrained(model_name)
+                    self.qa_model.to(self.device)
                     self.model_name = model_name
-                    self.tokenizer = self.qa_pipeline.tokenizer
                     self.model_loaded = True
                     logger.info(f"[{datetime.now().isoformat()}] [QuestionAnswering._load_model] QA model loaded successfully: {model_name}")
                     return True
@@ -199,7 +199,7 @@ class QuestionAnswering:
                     inputs = {k: v.to("cuda") for k, v in inputs.items()}
                     
                 with torch.no_grad():
-                    outputs = self.qa_pipeline.model(**inputs)
+                    outputs = self.qa_model(**inputs)
                     
                 start_logits = outputs.start_logits[0]
                 end_logits = outputs.end_logits[0]

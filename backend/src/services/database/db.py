@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 # Determine SQLite path
-DB_DIR = "backend/data/database"
+DB_DIR = os.environ.get("SAMVAD_DB_DIR", "backend/data/database")
 os.makedirs(DB_DIR, exist_ok=True)
 DB_PATH = os.path.join(DB_DIR, "transcripts.db")
 
