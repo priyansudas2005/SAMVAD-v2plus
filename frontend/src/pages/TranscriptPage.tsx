@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, 
   Download, 
@@ -36,10 +36,27 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     setScrollTop(e.currentTarget.scrollTop);
   };
   
-  // Processing settings
+  // Processing settings state
   const [modelSize, setModelSize] = useState('base');
   const [language, setLanguage] = useState('auto');
   const [vadEnabled, setVadEnabled] = useState(true);
+
+  // Load saved default settings from database on mount
+  useEffect(() => {
+    const loadSavedSettings = async () => {
+      try {
+        const saved = await api.getSettings();
+        if (saved) {
+          setModelSize(saved.model_size || 'base');
+          setLanguage(saved.default_language || 'auto');
+          setVadEnabled(saved.vad_enabled !== undefined ? saved.vad_enabled : true);
+        }
+      } catch (err) {
+        console.error('Failed to load default settings:', err);
+      }
+    };
+    loadSavedSettings();
+  }, []);
 
   const handleProcess = async () => {
     setProcessing(true);

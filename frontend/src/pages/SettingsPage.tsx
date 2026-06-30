@@ -66,7 +66,8 @@ export const SettingsPage: React.FC = () => {
     setError(null);
     setSuccess(false);
     try {
-      await api.updateSettings(settings);
+      const updated = await api.updateSettings(settings);
+      setSettings(updated);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
