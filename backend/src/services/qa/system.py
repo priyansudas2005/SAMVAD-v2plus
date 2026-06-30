@@ -12,7 +12,12 @@ logger = get_logger(__name__)
 
 def chunk_transcript(transcript: str, tokenizer=None) -> List[Dict[str, Any]]:
     config = QAConfig()
-    return SentenceAwareChunker.chunk_transcript(transcript, tokenizer, chunk_size=config.chunk_size)
+    return SentenceAwareChunker.chunk_transcript(
+        transcript, 
+        tokenizer, 
+        chunk_size=config.chunk_size, 
+        overlap_sentences=config.chunk_overlap
+    )
 
 class QuestionAnswering:
     def __init__(self):

@@ -3,10 +3,10 @@ from typing import List, Dict, Any
 
 class SentenceAwareChunker:
     @staticmethod
-    def chunk_transcript(transcript: str, tokenizer=None, chunk_size: int = 400) -> List[Dict[str, Any]]:
+    def chunk_transcript(transcript: str, tokenizer=None, chunk_size: int = 400, overlap_sentences: int = 2) -> List[Dict[str, Any]]:
         """
-        Split transcript into token-count aware chunks.
-        Restores exact original baseline chunking logic for 100% functional parity.
+        Split transcript into sentence-boundary safe chunks with token-count limits.
+        Supports customizable sentence overlap.
         """
         if not transcript or len(transcript.strip()) < 10:
             return []
@@ -30,8 +30,13 @@ class SentenceAwareChunker:
                         "text": " ".join(current_chunk),
                         "chunk_index": len(chunks)
                     })
-                # Slide back by 2 sentences
-                current_chunk = current_chunk[-2:]
+                # Safely slide back by configured overlap sentences
+                slide_back = max(0, min(overlap_sentences, len(current_chunk)))
+                if slide_back > 0:
+                    current_chunk = current_chunk[-slide_back:]
+                else:
+                    current_chunk = []
+                    
                 if tokenizer:
                     current_length = sum(len(tokenizer.encode(s, add_special_tokens=False)) for s in current_chunk)
                 else:
