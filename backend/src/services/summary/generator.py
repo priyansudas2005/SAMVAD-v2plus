@@ -84,73 +84,65 @@ class MemoGenerator:
         
         # 2. Check if Ollama is running
         ollama_run = await check_ollama_available(ollama_url)
-        if not ollama_run:
-            logger.error(f"[{datetime.now().isoformat()}] [MemoGenerator.generate_memo] Ollama is not running at {ollama_url}. Summary generation unavailable.")
-            return {
-                "meeting_id": meeting_id,
-                "summary": "Ollama service unavailable. Please start Ollama and retry.",
-                "action_items": [],
-                "decisions": [],
-                "key_points": [],
-                "generated_at": datetime.now().isoformat(),
-                "confidence": 0.0
-            }
+        if ollama_run:
+            # 3. Call Ollama for meeting minutes
+            prompt = f"""
+            You are an AI meeting assistant. Analyze the following meeting transcript and extract:
+            1. An executive summary (under 150 words)
+            2. Action items/todos (list of strings)
+            3. Decisions made (list of strings)
+            4. Key discussion points (list of strings)
+
+            Return the result strictly as a JSON object with the following schema:
+            {{
+              "summary": "string",
+              "action_items": ["string"],
+              "decisions": ["string"],
+              "key_points": ["string"]
+            }}
+
+            Transcript:
+            {transcript}
+            """
             
-        # 3. Call Ollama for meeting minutes
-        prompt = f"""
-        You are an AI meeting assistant. Analyze the following meeting transcript and extract:
-        1. An executive summary (under 150 words)
-        2. Action items/todos (list of strings)
-        3. Decisions made (list of strings)
-        4. Key discussion points (list of strings)
-
-        Return the result strictly as a JSON object with the following schema:
-        {{
-          "summary": "string",
-          "action_items": ["string"],
-          "decisions": ["string"],
-          "key_points": ["string"]
-        }}
-
-        Transcript:
-        {transcript}
-        """
-        
-        try:
-            # Fetch available models
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                models_res = await client.get(f"{ollama_url}/api/tags")
-                models_data = models_res.json()
-                models = [m["name"] for m in models_data.get("models", [])]
-                model_name = models[0] if models else "llama3"
+            try:
+                # Fetch available models
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    models_res = await client.get(f"{ollama_url}/api/tags")
+                    models_data = models_res.json()
+                    models = [m["name"] for m in models_data.get("models", [])]
+                    model_name = models[0] if models else "llama3"
+                    
+                logger.info(f"Querying Ollama model '{model_name}' for meeting summary...")
                 
-            logger.info(f"Querying Ollama model '{model_name}' for meeting summary...")
-            
-            async with httpx.AsyncClient(timeout=45.0) as client:
-                ollama_res = await client.post(
-                    f"{ollama_url}/api/generate",
-                    json={
-                        "model": model_name,
-                        "prompt": prompt,
-                        "stream": False,
-                        "format": "json"
+                async with httpx.AsyncClient(timeout=45.0) as client:
+                    ollama_res = await client.post(
+                        f"{ollama_url}/api/generate",
+                        json={
+                            "model": model_name,
+                            "prompt": prompt,
+                            "stream": False,
+                            "format": "json"
+                        }
+                    )
+                    res_data = ollama_res.json()
+                    response_text = res_data.get("response", "")
+                    
+                    parsed = json.loads(response_text)
+                    return {
+                        "meeting_id": meeting_id,
+                        "summary": parsed.get("summary", "No summary generated."),
+                        "action_items": parsed.get("action_items", []),
+                        "decisions": parsed.get("decisions", []),
+                        "key_points": parsed.get("key_points", []),
+                        "generated_at": datetime.now().isoformat(),
+                        "confidence": 0.95
                     }
-                )
-                res_data = ollama_res.json()
-                response_text = res_data.get("response", "")
-                
-                parsed = json.loads(response_text)
-                return {
-                    "meeting_id": meeting_id,
-                    "summary": parsed.get("summary", "No summary generated."),
-                    "action_items": parsed.get("action_items", []),
-                    "decisions": parsed.get("decisions", []),
-                    "key_points": parsed.get("key_points", []),
-                    "generated_at": datetime.now().isoformat(),
-                    "confidence": 0.95
-                }
-        except Exception as e:
-            logger.error(f"[{datetime.now().isoformat()}] [MemoGenerator.generate_memo] Ollama query failed: {e}. Falling back to Hugging Face pipeline.")
+            except Exception as e:
+                logger.error(f"[{datetime.now().isoformat()}] [MemoGenerator.generate_memo] Ollama query failed: {e}. Falling back to Hugging Face pipeline.")
+        else:
+            logger.warning(f"[{datetime.now().isoformat()}] [MemoGenerator.generate_memo] Ollama is not running at {ollama_url}. Using local Hugging Face fallback pipeline.")
+
             
         # 4. Fallback to Local Hugging Face pipeline
         summary = ""
