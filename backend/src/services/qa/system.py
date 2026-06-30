@@ -68,6 +68,34 @@ class QuestionAnswering:
                 return s_clean
         return answer
 
+    def _query_ollama(self, question: str, context: str) -> Optional[str]:
+        """Query local Ollama instance for synthesis answering."""
+        if not self.config.ollama_enabled:
+            return None
+        import urllib.request
+        import urllib.error
+        url = f"{self.config.ollama_url.rstrip('/')}/api/generate"
+        prompt = f"Context from meeting transcript:\n{context}\n\nQuestion: {question}\n\nAnswer the question concisely using the context provided. If the answer cannot be found in the context, say 'I couldn't find evidence for that'."
+        payload = {
+            "model": self.config.ollama_model,
+            "prompt": prompt,
+            "stream": False
+        }
+        try:
+            req = urllib.request.Request(
+                url, 
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=2.0) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                ans = res_data.get("response", "").strip()
+                if ans:
+                    return ans
+        except Exception as e:
+            logger.warning(f"Ollama local RAG query failed, falling back to extractive: {e}")
+        return None
+
     def answer_question(self, meeting_id: str, question: str, transcript: str) -> Dict[str, Any]:
         """Orchestrate chunking, semantic retrieval, extractive QA, and fallbacks."""
         if not transcript or len(transcript.strip()) < 10:
@@ -149,6 +177,27 @@ class QuestionAnswering:
             
         if not candidates:
             return self.retriever.fallback_keyword_search(question, transcript)
+
+        # Check and route via Ollama if enabled
+        if self.config.ollama_enabled:
+            full_context = " ".join([c["text"] for c in candidates])
+            ollama_ans = self._query_ollama(question, full_context)
+            if ollama_ans and "evidence" not in ollama_ans.lower():
+                QAAnalytics.log_query(
+                    meeting_id=meeting_id,
+                    question=question,
+                    answer=ollama_ans,
+                    confidence=1.0,
+                    source_snippet=full_context[:300]
+                )
+                return {
+                    "answer": ollama_ans,
+                    "confidence": 1.0,
+                    "confidence_label": "Very High",
+                    "source_snippet": full_context[:300],
+                    "chunk_index": -1,
+                    "found": True
+                }
 
         # Build consolidated contexts
         self.answerer.load_model()
