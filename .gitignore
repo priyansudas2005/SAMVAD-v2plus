@@ -31,8 +31,11 @@ ENV/
 env/
 .env
 
-# Models (too large for GitHub)
+# Models (downloaded ML model weights — too large for GitHub)
 models/
+# But DO track Python source code in src/models/
+!src/models/
+!src/models/**
 
 # Local databases and data files
 data/
