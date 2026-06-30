@@ -360,7 +360,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
         <div className="flex items-center gap-2 px-2 text-[10.5px] text-slate-500 font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 status-ring-ready flex-shrink-0" />
+          <span className="relative w-2 h-2 rounded-full bg-emerald-500 status-ring-ready flex-shrink-0" />
           <span>Local Engine Active</span>
         </div>
       </div>
