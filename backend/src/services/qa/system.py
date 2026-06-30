@@ -8,6 +8,7 @@ from .chunker import SentenceAwareChunker
 from .retriever import SemanticRetriever
 from .answerer import AnswerExtractor
 from .context_builder import ContextBuilder
+from .intent import IntentDetector
 
 logger = get_logger(__name__)
 
@@ -26,6 +27,7 @@ class QuestionAnswering:
         self.retriever = SemanticRetriever(config=self.config)
         self.answerer = AnswerExtractor(config=self.config)
         self.context_builder = ContextBuilder(config=self.config)
+        self.intent_detector = IntentDetector()
         
     def _load_model(self) -> bool:
         return self.answerer.load_model()
@@ -72,6 +74,41 @@ class QuestionAnswering:
             return self.retriever.fallback_keyword_search(question, transcript)
             
         q_clean = question.lower().strip()
+
+        # Route via Intent Detector
+        intent = self.intent_detector.detect_intent(question)
+        if intent in ["summary", "decisions", "action_items"]:
+            memo = self._fetch_memo_from_db(meeting_id)
+            if memo:
+                if intent == "summary" and memo["summary"]:
+                    return {
+                        "answer": f"**Summary of the meeting:**\n{memo['summary']}",
+                        "confidence": 1.0,
+                        "confidence_label": "Very High",
+                        "source_snippet": "Retrieved from cached meeting minutes.",
+                        "chunk_index": -1,
+                        "found": True
+                    }
+                elif intent == "decisions" and memo["decisions"]:
+                    dec_list = "\n".join([f"- {d}" for d in memo["decisions"]])
+                    return {
+                        "answer": f"**Decisions made during the meeting:**\n{dec_list}",
+                        "confidence": 1.0,
+                        "confidence_label": "Very High",
+                        "source_snippet": "Retrieved from cached meeting minutes.",
+                        "chunk_index": -1,
+                        "found": True
+                    }
+                elif intent == "action_items" and memo["action_items"]:
+                    act_list = "\n".join([f"- {a}" for a in memo["action_items"]])
+                    return {
+                        "answer": f"**Action Items assigned during the meeting:**\n{act_list}",
+                        "confidence": 1.0,
+                        "confidence_label": "Very High",
+                        "source_snippet": "Retrieved from cached meeting minutes.",
+                        "chunk_index": -1,
+                        "found": True
+                    }
 
         # Hardcoded Speaker heuristic mappings preserved from baseline to ensure backward compatibility
         is_speakers_query = any(p in q_clean for p in ["speaker", "who is speaking", "who are speaking", "names of", "people in this", "who are they"])
