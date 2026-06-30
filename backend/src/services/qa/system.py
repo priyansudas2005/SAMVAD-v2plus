@@ -9,6 +9,7 @@ from .retriever import SemanticRetriever
 from .answerer import AnswerExtractor
 from .context_builder import ContextBuilder
 from .intent import IntentDetector
+from .confidence import ConfidenceCalibrator
 
 logger = get_logger(__name__)
 
@@ -28,6 +29,7 @@ class QuestionAnswering:
         self.answerer = AnswerExtractor(config=self.config)
         self.context_builder = ContextBuilder(config=self.config)
         self.intent_detector = IntentDetector()
+        self.confidence_calibrator = ConfidenceCalibrator()
         
     def _load_model(self) -> bool:
         return self.answerer.load_model()
@@ -158,6 +160,7 @@ class QuestionAnswering:
                 answers.append({
                     "answer": res["answer"],
                     "confidence": res["confidence"],
+                    "retrieval_score": ctx.get("score", 0.5),
                     "source_chunk": ctx["text"],
                     "chunk_index": ctx["chunk_index"]
                 })
@@ -167,28 +170,23 @@ class QuestionAnswering:
 
         best = max(answers, key=lambda x: x["confidence"])
         
+        calibrated_score = self.confidence_calibrator.calibrate_confidence(
+            best["confidence"], 
+            best.get("retrieval_score", 0.5)
+        )
+        
         CONFIDENCE_THRESHOLD = self.config.confidence_threshold
-        if best["confidence"] < CONFIDENCE_THRESHOLD:
+        if calibrated_score < CONFIDENCE_THRESHOLD:
             return self.retriever.fallback_keyword_search(question, transcript)
 
         expanded = self._expand_answer_to_sentence(best["answer"], transcript)
         final_ans = expanded if expanded else best["answer"]
         
-        # Get label helper
-        from .system import get_confidence_label
-        
         return {
             "answer": final_ans,
-            "confidence": round(best["confidence"], 3),
-            "confidence_label": get_confidence_label(best["confidence"]),
+            "confidence": calibrated_score,
+            "confidence_label": self.confidence_calibrator.get_confidence_label(calibrated_score),
             "source_snippet": best["source_chunk"][:300],
             "chunk_index": best["chunk_index"],
             "found": True
         }
-
-def get_confidence_label(score: float) -> str:
-    if score >= 0.80: return "Very High"
-    if score >= 0.60: return "High"
-    if score >= 0.40: return "Medium"
-    if score >= 0.30: return "Low"
-    return "Not Found"
