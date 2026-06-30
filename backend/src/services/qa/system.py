@@ -10,15 +10,15 @@ from .answerer import AnswerExtractor
 
 logger = get_logger(__name__)
 
-# Re-expose helper methods to maintain exact backward compatibility with conftest/api imports
 def chunk_transcript(transcript: str, tokenizer=None) -> List[Dict[str, Any]]:
-    return SentenceAwareChunker.chunk_transcript(transcript, tokenizer)
+    config = QAConfig()
+    return SentenceAwareChunker.chunk_transcript(transcript, tokenizer, chunk_size=config.chunk_size)
 
 class QuestionAnswering:
     def __init__(self):
         self.config = QAConfig()
-        self.retriever = SemanticRetriever()
-        self.answerer = AnswerExtractor()
+        self.retriever = SemanticRetriever(config=self.config)
+        self.answerer = AnswerExtractor(config=self.config)
         
     def _load_model(self) -> bool:
         return self.answerer.load_model()

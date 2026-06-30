@@ -6,20 +6,23 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 
 class AnswerExtractor:
-    def __init__(self):
+    def __init__(self, config=None):
+        from .config import QAConfig
+        self.config = config or QAConfig()
         self.tokenizer = None
         self.qa_model = None
         self.model_loaded = False
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model_name = "deepset/roberta-base-squad2"
+        self.model_name = self.config.model
 
     def load_model(self) -> bool:
         if not self.model_loaded:
-            qa_models = [
+            qa_models = [self.config.model] + [
                 "deepset/roberta-base-squad2",
                 "deepset/minilm-uncased-squad2",
                 "distilbert-base-cased-distilled-squad"
             ]
+
             for model_name in qa_models:
                 try:
                     logger.info(f"Loading QA model: {model_name}...")
@@ -40,7 +43,7 @@ class AnswerExtractor:
             return {}
             
         try:
-            inputs = self.tokenizer(question, context, return_tensors="pt", truncation=True, max_length=512)
+            inputs = self.tokenizer(question, context, return_tensors="pt", truncation=True, max_length=self.config.max_context_length)
             if self.device == "cuda":
                 inputs = {k: v.to("cuda") for k, v in inputs.items()}
                 

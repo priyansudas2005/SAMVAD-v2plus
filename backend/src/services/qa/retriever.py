@@ -8,15 +8,18 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 
 class SemanticRetriever:
-    def __init__(self):
+    def __init__(self, config=None):
+        from .config import QAConfig
+        self.config = config or QAConfig()
         # Lazy load SentenceTransformer to save cold start memory
         self._model = None
         
     @property
     def model(self):
         if self._model is None:
-            logger.info("Lazy loading SentenceTransformer all-MiniLM-L6-v2...")
-            self._model = SentenceTransformer("all-MiniLM-L6-v2")
+            model_name = self.config.embedding_model
+            logger.info(f"Lazy loading SentenceTransformer {model_name}...")
+            self._model = SentenceTransformer(model_name)
         return self._model
 
     def index_transcript(self, meeting_id: Any, chunks: List[Dict[str, Any]] = None, db = None) -> None:
@@ -55,7 +58,7 @@ class SemanticRetriever:
         if close_db:
             db.close()
 
-    def retrieve(self, meeting_id: str, question: str = None, top_k: int = 3) -> List[Dict[str, Any]]:
+    def retrieve(self, meeting_id: str, question: str = None, top_k: int = None) -> List[Dict[str, Any]]:
         """Retrieve top relevant chunks from SQLite cache."""
         from src.services.database.db import SessionLocal, DBTranscriptEmbedding
         
@@ -63,6 +66,10 @@ class SemanticRetriever:
         if question is None:
             question = meeting_id
             meeting_id = "meeting-prof"
+
+        if top_k is None:
+            top_k = self.config.top_k
+
 
         db = SessionLocal()
         try:
