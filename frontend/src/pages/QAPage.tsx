@@ -73,115 +73,117 @@ const QABubble: React.FC<QABubbleProps> = ({ entry, meetingId, onUpdateFeedback 
       </motion.div>
 
       {/* Assistant Bubble */}
-      <motion.div 
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2, delay: 0.08 }}
-        className="flex gap-3"
-      >
-        <div className="w-8 h-8 bg-slate-950 border border-slate-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold">
-          <Bot className="w-4 h-4 text-sky-400" />
-        </div>
-        <div className={`flex-1 rounded-2xl rounded-tl-sm p-5 border shadow-xl flex flex-col gap-4 max-w-[80%] ${
-          isNotFound 
-            ? 'bg-rose-500/5 border-rose-500/15 text-slate-300' 
-            : 'bg-slate-950 border-slate-850 text-slate-200'
-        }`}>
-          {/* Top Row */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Local Assistant</span>
-            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full font-sans uppercase tracking-wider ${badge.bg}`}>
-              {badge.label}
-            </span>
+      {entry.answer && (
+        <motion.div 
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.08 }}
+          className="flex gap-3"
+        >
+          <div className="w-8 h-8 bg-slate-950 border border-slate-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold">
+            <Bot className="w-4 h-4 text-sky-400" />
           </div>
+          <div className={`flex-1 rounded-2xl rounded-tl-sm p-5 border shadow-xl flex flex-col gap-4 max-w-[80%] ${
+            isNotFound 
+              ? 'bg-rose-500/5 border-rose-500/15 text-slate-300' 
+              : 'bg-slate-950 border-slate-850 text-slate-200'
+          }`}>
+            {/* Top Row */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Local Assistant</span>
+              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full font-sans uppercase tracking-wider ${badge.bg}`}>
+                {badge.label}
+              </span>
+            </div>
 
-          {/* Answer Area */}
-          {isNotFound ? (
-            <div className="flex gap-3 items-start bg-rose-500/5 border border-rose-500/10 p-3.5 rounded-xl">
-              <SearchX className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
-              <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold text-slate-250 leading-relaxed">
-                  {entry.answer}
-                </span>
-                <span className="text-[10.5px] text-slate-400 font-medium">
-                  Try rephrasing or ask about a specific topic from the meeting.
-                </span>
+            {/* Answer Area */}
+            {isNotFound ? (
+              <div className="flex gap-3 items-start bg-rose-500/5 border border-rose-500/10 p-3.5 rounded-xl">
+                <SearchX className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-slate-250 leading-relaxed">
+                    {entry.answer}
+                  </span>
+                  <span className="text-[10.5px] text-slate-400 font-medium">
+                    Try rephrasing or ask about a specific topic from the meeting.
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs font-semibold leading-relaxed whitespace-pre-line text-slate-200">
+                {entry.answer}
+              </div>
+            )}
+
+            {/* Source Snippet Collapsible (Accordion) */}
+            {!isNotFound && entry.source_snippet && (
+              <div className="border border-slate-850 rounded-xl overflow-hidden bg-slate-900/10">
+                <button
+                  type="button"
+                  onClick={() => setExpanded(!expanded)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-900/30 text-[10.5px] font-bold text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  <span>Source from transcript</span>
+                  {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+                {expanded && (
+                  <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-[11px] font-mono text-slate-400 leading-relaxed whitespace-pre-line max-h-48 overflow-y-auto">
+                    {(() => {
+                      const ans = entry.answer || "";
+                      const snippet = entry.source_snippet || "";
+                      if (ans && snippet.toLowerCase().includes(ans.toLowerCase())) {
+                        const idx = snippet.toLowerCase().indexOf(ans.toLowerCase());
+                        const before = snippet.substring(0, idx);
+                        const match = snippet.substring(idx, idx + ans.length);
+                        const after = snippet.substring(idx + ans.length);
+                        return (
+                          <>
+                            {before}
+                            <span className="text-sky-400 font-bold bg-sky-500/5 px-0.5 rounded">{match}</span>
+                            {after}
+                          </>
+                        );
+                      }
+                      return snippet;
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Bottom Feedback Area */}
+            <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-900/40 flex-wrap">
+              <span className="text-[10px] text-slate-500 font-medium">Was this response helpful?</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={feedbackLoading}
+                  onClick={() => handleFeedback(true)}
+                  className={`p-1.5 rounded-lg border transition-all hover:scale-105 flex items-center justify-center ${
+                    entry.was_helpful === 1
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                      : 'bg-slate-900/45 border-slate-850 text-slate-500 hover:text-slate-400 hover:border-slate-800'
+                  }`}
+                >
+                  <ThumbsUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={feedbackLoading}
+                  onClick={() => handleFeedback(false)}
+                  className={`p-1.5 rounded-lg border transition-all hover:scale-105 flex items-center justify-center ${
+                    entry.was_helpful === 0
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                      : 'bg-slate-900/45 border-slate-850 text-slate-500 hover:text-rose-400 hover:border-slate-800'
+                  }`}
+                >
+                  <ThumbsDown className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="text-xs font-semibold leading-relaxed whitespace-pre-line text-slate-200">
-              {entry.answer}
-            </div>
-          )}
-
-          {/* Source Snippet Collapsible (Accordion) */}
-          {!isNotFound && entry.source_snippet && (
-            <div className="border border-slate-850 rounded-xl overflow-hidden bg-slate-900/10">
-              <button
-                type="button"
-                onClick={() => setExpanded(!expanded)}
-                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-900/30 text-[10.5px] font-bold text-slate-400 hover:text-slate-200 transition-colors"
-              >
-                <span>Source from transcript</span>
-                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
-              {expanded && (
-                <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-[11px] font-mono text-slate-400 leading-relaxed whitespace-pre-line max-h-48 overflow-y-auto">
-                  {(() => {
-                    const ans = entry.answer || "";
-                    const snippet = entry.source_snippet || "";
-                    if (ans && snippet.toLowerCase().includes(ans.toLowerCase())) {
-                      const idx = snippet.toLowerCase().indexOf(ans.toLowerCase());
-                      const before = snippet.substring(0, idx);
-                      const match = snippet.substring(idx, idx + ans.length);
-                      const after = snippet.substring(idx + ans.length);
-                      return (
-                        <>
-                          {before}
-                          <span className="text-sky-400 font-bold bg-sky-500/5 px-0.5 rounded">{match}</span>
-                          {after}
-                        </>
-                      );
-                    }
-                    return snippet;
-                  })()}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Bottom Feedback Area */}
-          <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-900/40 flex-wrap">
-            <span className="text-[10px] text-slate-500 font-medium">Was this response helpful?</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={feedbackLoading}
-                onClick={() => handleFeedback(true)}
-                className={`p-1.5 rounded-lg border transition-all hover:scale-105 flex items-center justify-center ${
-                  entry.was_helpful === 1
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                    : 'bg-slate-900/45 border-slate-850 text-slate-500 hover:text-slate-400 hover:border-slate-800'
-                }`}
-              >
-                <ThumbsUp className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                disabled={feedbackLoading}
-                onClick={() => handleFeedback(false)}
-                className={`p-1.5 rounded-lg border transition-all hover:scale-105 flex items-center justify-center ${
-                  entry.was_helpful === 0
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                    : 'bg-slate-900/45 border-slate-850 text-slate-500 hover:text-rose-400 hover:border-slate-800'
-                }`}
-              >
-                <ThumbsDown className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };
@@ -200,7 +202,11 @@ export const QAPage: React.FC<QAPageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
+  const [optimisticHistory, setOptimisticHistory] = useState<QAEntry[]>([]);
+  const loadingTimeoutRef = useRef<any>(null);
+
   const qaHistory = currentMeeting.qa_history || [];
+  const displayHistory = [...qaHistory, ...optimisticHistory];
 
   const suggestedQuestions = [
     "What decisions were made?",
@@ -212,15 +218,32 @@ export const QAPage: React.FC<QAPageProps> = ({
   // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [qaHistory, loading]);
+  }, [qaHistory, optimisticHistory, loading]);
 
   const handleSubmit = async (qText: string) => {
     const trimmed = qText.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed) return;
 
-    setLoading(true);
     setError(null);
     setQuestion('');
+
+    // Append optimistic user question bubble immediately
+    const tempId = -Math.floor(Math.random() * 100000);
+    const optimisticEntry: QAEntry = {
+      id: tempId,
+      meeting_id: currentMeeting.meeting_id,
+      question: trimmed,
+      answer: "", // empty answer tells QABubble to only render the user bubble
+      timestamp: new Date().toISOString(),
+      confidence: 1.0
+    };
+    setOptimisticHistory(prev => [...prev, optimisticEntry]);
+
+    // Show loading spinner only if request takes longer than 300ms
+    if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+    loadingTimeoutRef.current = setTimeout(() => {
+      setLoading(true);
+    }, 300);
 
     try {
       // Execute the QA API request
@@ -233,10 +256,14 @@ export const QAPage: React.FC<QAPageProps> = ({
         qa_history: updatedHistory
       };
       onUpdateMeeting(updatedMeeting);
+      setOptimisticHistory(prev => prev.filter(item => item.id !== tempId));
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to retrieve answer from local RAG engine.');
+      // Remove failed optimistic entry
+      setOptimisticHistory(prev => prev.filter(item => item.id !== tempId));
     } finally {
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
       setLoading(false);
     }
   };
@@ -304,7 +331,7 @@ export const QAPage: React.FC<QAPageProps> = ({
           ) : (
             /* Conversation bubbles */
             <div className="space-y-6">
-              {qaHistory.map((entry, idx) => (
+              {displayHistory.map((entry, idx) => (
                 <QABubble 
                   key={entry.id ?? idx}
                   entry={entry}

@@ -97,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-80 bg-slate-950/45 backdrop-blur-xl border-r border-slate-900/40 flex flex-col h-screen select-none z-10">
+    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10">
       {/* Brand Section */}
       <div className="p-6 border-b border-slate-900/40 flex items-center gap-3">
         <div className="relative">
@@ -137,32 +137,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Recording Controls */}
           {recordingState === 'idle' && (
-            <button 
+            <motion.button 
               onClick={startRecording}
-              className="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/10 hover:scale-[1.01]"
+              whileTap={{ scale: 0.97 }}
+              className="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/10 hover:scale-[1.01]"
             >
               <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
               Start Recording
-            </button>
+            </motion.button>
           )}
 
           {recordingState === 'recording' && (
             <div className="flex gap-2">
-              <button 
+              <motion.button 
                 onClick={pauseRecording}
-                className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1"
+                whileTap={{ scale: 0.97 }}
+                className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1"
               >
                 <Pause className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
                 Pause
-              </button>
+              </motion.button>
               <motion.button 
                 onClick={stopRecording}
+                whileTap={{ scale: 0.97 }}
                 animate={{ boxShadow: [
                   "0 0 0 0px rgba(239,68,68,0.4)",
                   "0 0 0 12px rgba(239,68,68,0)",
                 ]}}
                 transition={{ duration: 1.2, repeat: Infinity }}
-                className="flex-1 py-2 bg-rose-500 hover:bg-rose-455 text-white font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1 focus:outline-none"
+                className="flex-1 py-2 bg-rose-500 hover:bg-rose-455 text-white font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1 focus:outline-none"
               >
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
@@ -179,21 +182,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {recordingState === 'paused' && (
             <div className="flex gap-2">
-              <button 
+              <motion.button 
                 onClick={resumeRecording}
-                className="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1"
+                whileTap={{ scale: 0.97 }}
+                className="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1"
               >
                 <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
                 Resume
-              </button>
+              </motion.button>
               <motion.button 
                 onClick={stopRecording}
+                whileTap={{ scale: 0.97 }}
                 animate={{ boxShadow: [
                   "0 0 0 0px rgba(239,68,68,0.4)",
                   "0 0 0 12px rgba(239,68,68,0)",
                 ]}}
                 transition={{ duration: 1.2, repeat: Infinity }}
-                className="flex-1 py-2 bg-rose-500 hover:bg-rose-455 text-white font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1 focus:outline-none"
+                className="flex-1 py-2 bg-rose-500 hover:bg-rose-455 text-white font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1 focus:outline-none"
               >
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
@@ -218,20 +223,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-sky-400 font-semibold"
               />
               <div className="flex gap-2">
-                <button 
+                <motion.button 
                   onClick={discardRecording}
+                  whileTap={{ scale: 0.97 }}
                   disabled={uploading}
-                  className="flex-1 py-1.5 bg-slate-900 border border-slate-800 text-slate-400 text-[10.5px] font-bold rounded-lg"
+                  className="flex-1 py-1.5 bg-slate-900 border border-slate-800 text-slate-400 text-[10.5px] font-bold rounded-lg btn-interactive"
                 >
                   Discard
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
                   onClick={saveRecording}
+                  whileTap={{ scale: 0.97 }}
                   disabled={uploading}
-                  className="flex-1 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 text-[10.5px] font-bold rounded-lg flex items-center justify-center gap-1"
+                  className="flex-1 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 text-[10.5px] font-bold rounded-lg flex items-center justify-center gap-1 btn-interactive"
                 >
                   {uploading ? 'Saving...' : 'Save'}
-                </button>
+                </motion.button>
               </div>
             </div>
           )}
@@ -256,18 +263,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               const Icon = item.icon;
               const isActive = activePage === item.id;
               return (
-                <button
+                <motion.button
                   key={item.id}
                   onClick={() => setActivePage(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  whileTap={{ scale: 0.97 }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive ${
                     isActive
-                      ? 'bg-sky-500/10 text-sky-400 border-l-2 border-sky-400 pl-2.5'
+                      ? 'hero-gradient-btn text-sky-400 pl-2.5 font-bold shadow-elevation-md'
                       : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
                   {item.label}
-                </button>
+                </motion.button>
               );
             })}
           </nav>
@@ -288,21 +296,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
               const Icon = item.icon;
               const isActive = activePage === item.id;
               return (
-                <button
+                <motion.button
                   key={item.id}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  whileTap={item.disabled ? undefined : { scale: 0.97 }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive ${
                     item.disabled
                       ? 'text-slate-600 cursor-not-allowed opacity-50'
                       : isActive
-                      ? 'bg-sky-500/10 text-sky-400 border-l-2 border-sky-400 pl-2.5'
+                      ? 'hero-gradient-btn text-sky-400 pl-2.5 font-bold shadow-elevation-md'
                       : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive && !item.disabled ? 'text-sky-400' : 'text-slate-500'}`} />
                   {item.label}
-                </button>
+                </motion.button>
               );
             })}
           </nav>

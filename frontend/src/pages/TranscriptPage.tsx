@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Search, 
   Download, 
@@ -28,6 +28,13 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+
+  const [scrollTop, setScrollTop] = useState(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
   
   // Processing settings
   const [modelSize, setModelSize] = useState('base');
@@ -77,6 +84,20 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       </span>
     );
   };
+
+  const filtered = getFilteredSegments();
+  const isVirtual = filtered.length > 50;
+  
+  const itemHeight = 88; 
+  const containerHeight = 600; 
+  const buffer = 5;
+
+  const startIndex = isVirtual ? Math.max(0, Math.floor(scrollTop / itemHeight) - buffer) : 0;
+  const endIndex = isVirtual ? Math.min(filtered.length, Math.ceil((scrollTop + containerHeight) / itemHeight) + buffer) : filtered.length;
+
+  const visibleSegments = filtered.slice(startIndex, endIndex);
+  const paddingTop = isVirtual ? startIndex * itemHeight : 0;
+  const paddingBottom = isVirtual ? (filtered.length - endIndex) * itemHeight : 0;
 
   const hasTranscript = currentMeeting.transcript && currentMeeting.transcript.length > 0;
 
@@ -258,32 +279,43 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
             </div>
 
             {/* Scrollable list of segments */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {getFilteredSegments().map((segment, index) => (
-                <motion.div 
-                  key={segment.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(10, index) * 0.05 }}
-                  whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                  className="flex gap-4 p-4 rounded-xl hover:bg-slate-900/30 border border-transparent hover:border-slate-800/30 group transition-all"
-                >
-                  {/* Timestamp indicator */}
-                  <div className="flex-shrink-0 flex items-start mt-0.5">
-                    <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10.5px] text-sky-400 font-mono font-semibold">
-                      {segment.start}
-                    </span>
-                  </div>
-                  {/* Text panel */}
-                  <div className="flex-1">
-                    <div className="text-xs font-bold text-slate-400 mb-1">Speaker {segment.id % 2 === 0 ? 'B' : 'A'}</div>
-                    <p className="text-sm text-slate-200 leading-relaxed font-medium">
-                      {highlightText(segment.text, searchQuery)}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-              {getFilteredSegments().length === 0 && (
+            <div 
+              ref={containerRef}
+              onScroll={isVirtual ? handleScroll : undefined}
+              className="flex-1 overflow-y-auto p-6"
+            >
+              {isVirtual && <div style={{ height: `${paddingTop}px` }} />}
+              <div className="space-y-6">
+                {visibleSegments.map((segment, idx) => {
+                  const absoluteIndex = startIndex + idx;
+                  return (
+                    <motion.div 
+                      key={segment.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(absoluteIndex * 0.03, 0.3) }}
+                      whileHover={{ y: -2, transition: { duration: 0.15 } }}
+                      className="flex gap-4 p-4 rounded-xl hover:bg-slate-900/30 border border-transparent hover:border-slate-800/30 group transition-all"
+                    >
+                      {/* Timestamp indicator */}
+                      <div className="flex-shrink-0 flex items-start mt-0.5">
+                        <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10.5px] text-sky-400 font-mono font-semibold">
+                          {segment.start}
+                        </span>
+                      </div>
+                      {/* Text panel */}
+                      <div className="flex-1">
+                        <div className="text-xs font-bold text-slate-400 mb-1">Speaker {segment.id % 2 === 0 ? 'B' : 'A'}</div>
+                        <p className="text-sm text-slate-200 leading-relaxed font-medium">
+                          {highlightText(segment.text, searchQuery)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+              {isVirtual && <div style={{ height: `${paddingBottom}px` }} />}
+              {filtered.length === 0 && (
                 <div className="py-12 text-center text-slate-500 font-medium">
                   No matching text found.
                 </div>

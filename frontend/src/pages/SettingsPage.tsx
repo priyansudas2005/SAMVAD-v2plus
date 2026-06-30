@@ -91,9 +91,13 @@ export const SettingsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 bg-slate-950 p-8 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-400 text-sm mt-4 font-medium">Loading config settings...</p>
+      <div className="flex-1 bg-slate-950 p-8 space-y-8 max-w-3xl mx-auto w-full animate-pulse">
+        <div className="h-8 bg-slate-900 rounded-lg w-1/3"></div>
+        <div className="space-y-6">
+          <div className="h-40 bg-slate-900 rounded-2xl"></div>
+          <div className="h-48 bg-slate-900 rounded-2xl"></div>
+          <div className="h-32 bg-slate-900 rounded-2xl"></div>
+        </div>
       </div>
     );
   }

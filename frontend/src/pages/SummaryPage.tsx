@@ -122,7 +122,7 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting }) => {
                   key={index}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: Math.min(index * 0.03, 0.3) }}
                   whileHover={{ y: -2, transition: { duration: 0.15 } }}
                   onClick={() => toggleCheck(index)}
                   className={`p-3 border rounded-xl flex gap-3 cursor-pointer select-none transition-all ${
@@ -157,7 +157,7 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting }) => {
                   key={index} 
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: Math.min(index * 0.03, 0.3) }}
                   whileHover={{ y: -1, transition: { duration: 0.15 } }}
                   className="flex gap-3 text-xs font-semibold text-slate-300 bg-slate-900/20 border border-slate-800/40 p-3 rounded-xl hover:text-white transition-colors"
                 >

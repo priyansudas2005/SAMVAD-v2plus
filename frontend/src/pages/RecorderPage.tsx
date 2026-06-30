@@ -65,8 +65,16 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      const draw = () => {
+      let lastTime = 0;
+      const draw = (now: number) => {
         animationFrameRef.current = requestAnimationFrame(draw);
+        
+        // Limit state updates to ~30fps (33ms interval)
+        if (now - lastTime < 33) {
+          return;
+        }
+        lastTime = now;
+
         analyser.getByteFrequencyData(dataArray);
 
         const nextBars = [];
@@ -84,7 +92,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         setBarValues(nextBars);
       };
 
-      draw();
+      animationFrameRef.current = requestAnimationFrame(draw);
 
       return () => {
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);

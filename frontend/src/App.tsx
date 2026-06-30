@@ -1,16 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { DashboardPage } from './pages/DashboardPage';
 import { RecorderPage } from './pages/RecorderPage';
 import { TranscriptPage } from './pages/TranscriptPage';
 import { SummaryPage } from './pages/SummaryPage';
-import { QAPage } from './pages/QAPage';
-import { AnalyticsPage } from './pages/AnalyticsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { Meeting } from './types';
 import { api } from './services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+
+const TabSkeleton = () => (
+  <div className="flex-1 bg-slate-950 p-8 space-y-6 animate-pulse w-full h-screen overflow-hidden">
+    <div className="h-8 bg-slate-900 rounded-lg w-1/4"></div>
+    <div className="h-48 bg-slate-900 rounded-2xl"></div>
+    <div className="h-32 bg-slate-900 rounded-2xl"></div>
+  </div>
+);
 
 // Initial theme check before first render to prevent flashing (Fix 2C/3)
 const initialTheme = localStorage.getItem('samvad-theme') || 'cosmic';
@@ -18,9 +27,9 @@ document.documentElement.className = '';
 document.documentElement.classList.add(`theme-${initialTheme}`);
 
 const pageVariants = {
-  initial: { opacity: 0, y: 16, filter: "blur(4px)" },
-  animate: { opacity: 1, y: 0,  filter: "blur(0px)" },
-  exit:    { opacity: 0, y: -16, filter: "blur(4px)" }
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit:    { opacity: 0, y: -8 }
 };
 
 function App() {
@@ -289,7 +298,7 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
               <DashboardPage 
@@ -308,7 +317,7 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
               <RecorderPage 
@@ -336,7 +345,7 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
               <HistoryPage 
@@ -355,7 +364,7 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
               <TranscriptPage 
@@ -372,7 +381,7 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
               <SummaryPage 
@@ -388,13 +397,15 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
-              <QAPage 
-                currentMeeting={currentMeeting}
-                onUpdateMeeting={handleUpdateCurrentMeeting}
-              />
+              <Suspense fallback={<TabSkeleton />}>
+                <QAPage 
+                  currentMeeting={currentMeeting}
+                  onUpdateMeeting={handleUpdateCurrentMeeting}
+                />
+              </Suspense>
             </motion.div>
           )}
 
@@ -405,10 +416,12 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
-              <AnalyticsPage />
+              <Suspense fallback={<TabSkeleton />}>
+                <AnalyticsPage />
+              </Suspense>
             </motion.div>
           )}
 
@@ -419,7 +432,7 @@ function App() {
               animate="animate"
               exit="exit"
               variants={pageVariants}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col min-h-0"
             >
               <SettingsPage />
