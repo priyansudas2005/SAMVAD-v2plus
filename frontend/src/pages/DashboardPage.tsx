@@ -158,8 +158,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               disabled={uploading}
             />
             {uploading ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex flex-col items-center gap-4 py-4">
+                <div className="audio-wave-container mb-2">
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                  <div className="audio-wave-bar"></div>
+                </div>
                 <h4 className="text-lg font-bold text-white">Uploading audio...</h4>
                 <p className="text-sm text-slate-400">Storing recording file in local SQLite meeting database.</p>
               </div>
