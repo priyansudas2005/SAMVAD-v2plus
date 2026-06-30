@@ -7,6 +7,7 @@ from .config import QAConfig
 from .chunker import SentenceAwareChunker
 from .retriever import SemanticRetriever
 from .answerer import AnswerExtractor
+from .context_builder import ContextBuilder
 
 logger = get_logger(__name__)
 
@@ -24,6 +25,7 @@ class QuestionAnswering:
         self.config = QAConfig()
         self.retriever = SemanticRetriever(config=self.config)
         self.answerer = AnswerExtractor(config=self.config)
+        self.context_builder = ContextBuilder(config=self.config)
         
     def _load_model(self) -> bool:
         return self.answerer.load_model()
@@ -108,18 +110,19 @@ class QuestionAnswering:
         if not candidates:
             return self.retriever.fallback_keyword_search(question, transcript)
 
+        # Build consolidated contexts
+        self.answerer.load_model()
+        consolidated = self.context_builder.build_context(candidates, self.answerer.tokenizer)
+        
         answers = []
-        for candidate in candidates:
-            if candidate["score"] < 0.05:
-                continue
-                
-            res = self.answerer.extract_answer(question, candidate["text"])
+        for ctx in consolidated:
+            res = self.answerer.extract_answer(question, ctx["text"])
             if res:
                 answers.append({
                     "answer": res["answer"],
                     "confidence": res["confidence"],
-                    "source_chunk": candidate["text"],
-                    "chunk_index": candidate["chunk_index"]
+                    "source_chunk": ctx["text"],
+                    "chunk_index": ctx["chunk_index"]
                 })
 
         if not answers:
