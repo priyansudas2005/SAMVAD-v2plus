@@ -33,39 +33,33 @@ def _is_torch_available() -> bool:
 
 if not _is_torch_available():
     # ── Mock: torch ──────────────────────────────────────────────────────────
-    torch_mock = types.ModuleType("torch")
-    torch_mock.cuda = MagicMock()
-    torch_mock.cuda.is_available = MagicMock(return_value=False)
-    torch_mock.no_grad = MagicMock(return_value=MagicMock(__enter__=MagicMock(return_value=None), __exit__=MagicMock(return_value=False)))
-    torch_mock.tensor = MagicMock(return_value=MagicMock())
-    torch_mock.softmax = MagicMock(return_value=MagicMock())
-    torch_mock.argmax = MagicMock(return_value=MagicMock(item=MagicMock(return_value=0)))
+    torch_mock = MagicMock(name="torch")
+    torch_mock.cuda.is_available.return_value = False
     torch_mock.float32 = "float32"
+    torch_mock.no_grad.return_value.__enter__ = MagicMock(return_value=None)
+    torch_mock.no_grad.return_value.__exit__ = MagicMock(return_value=False)
     sys.modules["torch"] = torch_mock
+    sys.modules["torch.cuda"] = torch_mock.cuda
 
-    # ── Mock: transformers ───────────────────────────────────────────────────
-    transformers_mock = types.ModuleType("transformers")
-    transformers_mock.AutoTokenizer = MagicMock()
-    transformers_mock.AutoModelForQuestionAnswering = MagicMock()
-    transformers_mock.pipeline = MagicMock()
+    # ── Mock: transformers (catch-all — ANY attribute returns a MagicMock) ───
+    # Using MagicMock as the module means any `from transformers import X`
+    # will succeed regardless of what X is.
+    transformers_mock = MagicMock(name="transformers")
     sys.modules["transformers"] = transformers_mock
+    sys.modules["transformers.pipelines"] = MagicMock(name="transformers.pipelines")
 
     # ── Mock: sentence_transformers ──────────────────────────────────────────
-    st_mock = types.ModuleType("sentence_transformers")
-    st_util = types.ModuleType("sentence_transformers.util")
-    st_util.cos_sim = MagicMock(return_value=MagicMock(__getitem__=MagicMock(return_value=MagicMock(topk=MagicMock(return_value=MagicMock(indices=[]))))))
-    st_mock.SentenceTransformer = MagicMock()
-    st_mock.util = st_util
+    st_mock = MagicMock(name="sentence_transformers")
     sys.modules["sentence_transformers"] = st_mock
-    sys.modules["sentence_transformers.util"] = st_util
+    sys.modules["sentence_transformers.util"] = MagicMock(name="sentence_transformers.util")
 
     # ── Mock: faster_whisper ─────────────────────────────────────────────────
-    fw_mock = types.ModuleType("faster_whisper")
-    fw_mock.WhisperModel = MagicMock()
+    fw_mock = MagicMock(name="faster_whisper")
     sys.modules["faster_whisper"] = fw_mock
 
-    # ── Mock: sounddevice, soundfile, librosa (audio) ────────────────────────
-    for audio_pkg in ("sounddevice", "soundfile", "librosa", "scipy", "numpy"):
-        if audio_pkg not in sys.modules:
-            m = types.ModuleType(audio_pkg)
-            sys.modules[audio_pkg] = m
+    # ── Mock: audio/numerical libraries ─────────────────────────────────────
+    for pkg in ("sounddevice", "soundfile", "librosa", "scipy",
+                "scipy.signal", "scipy.io", "scipy.io.wavfile",
+                "numpy", "pyaudio", "torchaudio", "torchvision"):
+        if pkg not in sys.modules:
+            sys.modules[pkg] = MagicMock(name=pkg)
