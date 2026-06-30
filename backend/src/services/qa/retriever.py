@@ -87,7 +87,17 @@ class SemanticRetriever:
             scores = util.cos_sim(q_emb, np.array(embeddings))[0].tolist()
             
             results = []
+            seen_texts = set()
             for i, score in enumerate(scores):
+                # Filter by similarity_threshold
+                if score < self.config.similarity_threshold:
+                    continue
+                
+                text_clean = chunk_texts[i].strip()
+                if text_clean in seen_texts:
+                    continue
+                seen_texts.add(text_clean)
+                
                 results.append({
                     "text": chunk_texts[i],
                     "score": float(score),
@@ -100,6 +110,7 @@ class SemanticRetriever:
             if db:
                 db.close()
             return []
+
 
 
     @staticmethod
