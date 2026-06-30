@@ -10,6 +10,7 @@ from .answerer import AnswerExtractor
 from .context_builder import ContextBuilder
 from .intent import IntentDetector
 from .confidence import ConfidenceCalibrator
+from .analytics import QAAnalytics
 
 logger = get_logger(__name__)
 
@@ -181,6 +182,15 @@ class QuestionAnswering:
 
         expanded = self._expand_answer_to_sentence(best["answer"], transcript)
         final_ans = expanded if expanded else best["answer"]
+        
+        # Log to diagnostic log files via QAAnalytics
+        QAAnalytics.log_query(
+            meeting_id=meeting_id,
+            question=question,
+            answer=final_ans,
+            confidence=calibrated_score,
+            source_snippet=best["source_chunk"][:300]
+        )
         
         return {
             "answer": final_ans,
