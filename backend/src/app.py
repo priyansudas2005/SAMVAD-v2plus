@@ -39,6 +39,15 @@ app.include_router(qa.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 
+# Optional recording API (WebSocket + SSE + REST device listing)
+# Registered with try/except so a missing sounddevice does not crash startup
+try:
+    from src.api import recording as recording_api
+    app.include_router(recording_api.router)
+    logger.info("Recording API router registered (/api/audio)")
+except Exception as _rec_err:
+    logger.warning(f"Recording API router not registered: {_rec_err}")
+
 # Mount recordings static folder so browser can stream play WAV audio
 RECORDINGS_DIR = Path("backend/data/recordings")
 RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)

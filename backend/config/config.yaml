@@ -13,10 +13,17 @@ paths:
   logs_dir: "logs"
 
 audio:
-  sample_rate: 16000
-  channels: 1
-  chunk_size: 1024
-  format: "pyaudio.paInt16"
+  sample_rate: 16000          # Default capture rate (Hz). Choose from allowed_sample_rates.
+  channels: 1                 # 1=mono, 2=stereo
+  chunk_size: 1024            # Kept for legacy callers; sounddevice manages internally.
+  bit_depth: 16               # Default bit depth. Supported: 16, 24, 32.
+  allowed_sample_rates:       # Hardware validation: only these rates are permitted.
+    - 16000
+    - 44100
+    - 48000
+  low_volume_threshold: 0.01  # RMS below this triggers a "too quiet" warning.
+  clip_threshold: 0.95        # RMS above this (fraction of full scale) flags clipping.
+  device_index: null          # null = system default input device.
 
 faster_whisper:
   model_size: "base" # tiny, base, small, medium, large
