@@ -198,7 +198,16 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         raw_segments = transcribe_result[0] if transcribe_result else []
         segments = TimestampGenerator.add_timestamps(raw_segments)
         
-        # 3. Store transcript segments
+        # 3. Speaker Diarization execution
+        try:
+            from src.services.diarization import DiarizationEngine
+            diar_engine = DiarizationEngine()
+            segments = diar_engine.diarize(active_audio_path, segments)
+            logger.info("Speaker diarization completed successfully for meeting.")
+        except Exception as diar_err:
+            logger.warning(f"Speaker diarization failed: {diar_err}. Continuing with fallback labels.")
+            
+        # 4. Store transcript segments
         # Clear existing
         db.query(DBTranscriptSegment).filter(DBTranscriptSegment.meeting_id == meeting_id).delete()
         
@@ -212,7 +221,9 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
                 start_seconds=seg.get("start_seconds"),
                 end_seconds=seg.get("end_seconds"),
                 text=seg.get("text", ""),
-                words_json=json.dumps(seg.get("words", []))
+                words_json=json.dumps(seg.get("words", [])),
+                speaker_label=seg.get("speaker_label", "UNKNOWN"),
+                speaker_confidence=seg.get("speaker_confidence", 1.0)
             )
             db.add(db_seg)
             

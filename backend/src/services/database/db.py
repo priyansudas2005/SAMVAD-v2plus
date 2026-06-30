@@ -50,6 +50,8 @@ class DBTranscriptSegment(Base):
     end_seconds = Column(Float, nullable=True)
     text = Column(Text, nullable=False)
     words_json = Column("words", Text, nullable=True, default="[]")
+    speaker_label = Column(String, nullable=True, default="UNKNOWN")
+    speaker_confidence = Column(Float, nullable=True, default=1.0)
 
     meeting = relationship("DBMeeting", back_populates="transcript")
 
