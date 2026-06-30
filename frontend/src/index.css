@@ -209,3 +209,62 @@
   animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
   opacity: 0.75;
 }
+
+/* Global Theme Mappings to override hardcoded Tailwind utility classes (Fix 2A) */
+.bg-slate-950, .bg-\[\#020617\] {
+  background-color: var(--bg-primary) !important;
+}
+
+.bg-slate-900, 
+.bg-slate-900\/40, 
+.bg-slate-900\/30,
+.bg-slate-900\/20,
+.bg-slate-900\/60,
+.bg-\[\#020617\]\/50,
+.bg-slate-950\/40,
+.bg-slate-950\/80 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.border-slate-800,
+.border-slate-850,
+.border-slate-900,
+.border-slate-800\/60 {
+  border-color: var(--border-color) !important;
+}
+
+.text-sky-400,
+.text-sky-500,
+.hover\:text-sky-400:hover,
+.hover\:text-sky-500:hover {
+  color: var(--accent-primary) !important;
+}
+
+.border-sky-400,
+.border-sky-500,
+.focus\:border-sky-400:focus,
+.hover\:border-sky-400:hover {
+  border-color: var(--accent-primary) !important;
+}
+
+.bg-sky-400,
+.bg-sky-500,
+.hover\:bg-sky-500:hover,
+.hover\:bg-sky-600:hover {
+  background-color: var(--accent-primary) !important;
+}
+
+/* Specific text color overrides to ensure text changes dynamically with themes */
+.text-white {
+  color: var(--text-primary) !important;
+}
+
+.text-slate-100, .text-slate-200, .text-slate-300 {
+  color: var(--text-primary) !important;
+  opacity: 0.95;
+}
+
+.text-slate-400, .text-slate-500 {
+  color: var(--text-secondary) !important;
+}
+
