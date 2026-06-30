@@ -25,6 +25,37 @@ audio:
   clip_threshold: 0.95        # RMS above this (fraction of full scale) flags clipping.
   device_index: null          # null = system default input device.
 
+audio_enhancement:
+  enabled: true
+  pipeline:
+    volume_normalization:
+      enabled: true
+      mode: "peak"              # peak, rms
+      target_db: -20.0
+    noise_reduction:
+      enabled: true
+      method: "auto"            # auto, rnnoise, spectral_subtraction
+    echo_cancellation:
+      enabled: false            # requires reference channel
+    dereverberation:
+      enabled: true
+      decay_coeff: 0.4
+    vad:
+      enabled: true
+      method: "silero"          # silero, energy
+      threshold: 0.5
+    silence_trimming:
+      enabled: true
+      keep_silence_ms: 300      # preserve window size
+      threshold: 0.5
+    speech_enhancement:
+      enabled: true
+      highpass_cutoff: 80.0
+    compression:
+      enabled: true
+      threshold_db: -12.0
+      ratio: 4.0
+
 faster_whisper:
   model_size: "base" # tiny, base, small, medium, large
   device: "auto" # auto, cuda, cpu

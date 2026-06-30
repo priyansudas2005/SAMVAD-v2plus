@@ -1,55 +1,56 @@
 """
 recorder_exceptions.py
-Domain-specific exception hierarchy for the SAMVAD audio recording subsystem.
-
-All exceptions derive from AudioRecorderError so callers can catch the
-entire family with a single except clause when fine-grained handling is
-not required.
+Custom exceptions for the SAMVAD V2.0 audio recording and validation subsystem.
 """
 
+class AudioSubsystemError(Exception):
+    """Base exception for all errors in the audio subsystem."""
+    pass
 
-class AudioRecorderError(Exception):
-    """Base exception for all audio recorder errors."""
+class InvalidSampleRateError(AudioSubsystemError):
+    """Raised when the sample rate is invalid."""
+    pass
 
+class InvalidBitDepthError(AudioSubsystemError):
+    """Raised when the bit depth is invalid."""
+    pass
 
-class SoundDeviceUnavailableError(AudioRecorderError):
-    """Raised when the sounddevice library is not installed or cannot be imported."""
+class BitDepthNotSupportedError(AudioSubsystemError):
+    """Raised when the requested bit depth is not supported."""
+    pass
 
+class SoundDeviceUnavailableError(AudioSubsystemError):
+    """Raised when sounddevice is not available."""
+    pass
 
-class DeviceNotFoundError(AudioRecorderError):
-    """Raised when the requested device index or name does not exist."""
+class DeviceNotFoundError(AudioSubsystemError):
+    """Raised when the specified microphone cannot be found or is disconnected."""
+    pass
 
+class DeviceDisconnectedError(AudioSubsystemError):
+    """Raised when the active audio device is unplugged mid-recording."""
+    pass
 
-class DeviceDisconnectedError(AudioRecorderError):
-    """Raised when a recording device is removed during an active recording session."""
+class StreamError(AudioSubsystemError):
+    """Raised when the audio stream fails to open or initialize."""
+    pass
 
+class ValidationError(AudioSubsystemError):
+    """Base class for validation failures."""
+    pass
 
-class RecordingAlreadyActiveError(AudioRecorderError):
-    """Raised when start_recording() is called while a recording is already in progress."""
+class InvalidAudioFormatError(ValidationError):
+    """Raised when the audio file format or header is invalid."""
+    pass
 
+class CorruptedAudioError(ValidationError):
+    """Raised when audio frames contain NaNs, infinite values, or are corrupted."""
+    pass
 
-class NoAudioDataError(AudioRecorderError):
-    """Raised when stop_recording() is called but no audio frames were captured."""
+class SilenceDetectedError(ValidationError):
+    """Raised when an audio file contains only silence."""
+    pass
 
-
-class InvalidSampleRateError(AudioRecorderError):
-    """Raised when the requested sample rate is not in the allowed set or not
-    supported by the selected device."""
-
-
-class InvalidBitDepthError(AudioRecorderError):
-    """Raised when the requested bit depth is not in {16, 24, 32}."""
-
-
-class BitDepthNotSupportedError(AudioRecorderError):
-    """
-    Raised when the selected device cannot record at the requested bit depth.
-    The recorder will catch this internally and fall back to 16-bit PCM,
-    logging a warning.  Callers that need to react to the fallback can check
-    get_recording_status()['effective_bit_depth'].
-    """
-
-
-class MetadataStorageError(AudioRecorderError):
-    """Raised when saving metadata to disk or SQLite fails.  Non-fatal — the
-    WAV file is preserved even if metadata cannot be written."""
+class ClippingDetectedError(ValidationError):
+    """Raised when severe digital clipping is detected in the input signal."""
+    pass
