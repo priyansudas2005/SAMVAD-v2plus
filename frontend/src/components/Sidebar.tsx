@@ -100,12 +100,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10">
       {/* Brand Section */}
       <div className="p-6 border-b border-slate-900/40 flex items-center gap-3">
-        <div className="relative">
-          <div className="w-10 h-10 bg-gradient-to-tr from-sky-400 to-indigo-500 rounded-xl flex items-center justify-content-center shadow-lg shadow-sky-500/20">
-            <Mic className="w-5 h-5 text-slate-950 font-bold" />
+        <div className="relative flex items-center justify-center">
+          {/* Pulsing ambient glow backplane */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-sky-400 to-indigo-500 rounded-xl blur-md opacity-45 animate-pulse pointer-events-none" />
+          {/* Premium Logo Box Container */}
+          <div className="relative w-11 h-11 bg-slate-950/60 border border-slate-800/40 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden group">
+            {/* Top corner gradient shine */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-70" />
+            {/* Bottom accent glow strip */}
+            <div className="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-sky-400 to-indigo-500" />
+            
+            {/* Stylish Audio/Speaker Waves Icon */}
+            <Volume2 className="w-5.5 h-5.5 text-sky-400 group-hover:scale-108 transition-transform duration-300" />
           </div>
           {recordingState === 'recording' && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full status-ring-error" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full status-ring-error z-20" />
           )}
         </div>
         <div>
