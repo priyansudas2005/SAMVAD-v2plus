@@ -106,3 +106,30 @@ logging:
   format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
   rotation: "10 MB"
   retention: "10 days"
+
+transcript_processing:
+  enabled: true
+  grammar: true
+  spellcheck: true
+  vocabulary: true
+  entities: true
+  meeting_intelligence: true
+  keywords: true
+  topics: true
+  searchable_text: true
+  quality_metrics: true
+  vocabulary:
+    samvad: "SAMVAD"
+    whisper: "Whisper"
+    github: "GitHub"
+    openai: "OpenAI"
+    api: "API"
+    rag: "RAG"
+    llm: "LLM"
+    gpu: "GPU"
+    cpu: "CPU"
+    drdo: "DRDO"
+    ollama: "Ollama"
+  meeting_metadata:
+    action_item_keywords: ["action", "todo", "task", "assign", "follow up"]
+    decision_keywords: ["decided", "agree", "conclude", "settle"]

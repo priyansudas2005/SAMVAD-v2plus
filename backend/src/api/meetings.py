@@ -207,13 +207,33 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         except Exception as diar_err:
             logger.warning(f"Speaker diarization failed: {diar_err}. Continuing with fallback labels.")
             
-        # 4. Store transcript segments
+        # 4. Intelligent Transcript Processing execution
+        try:
+            from src.services.transcript import TranscriptProcessorPipeline
+            pipeline = TranscriptProcessorPipeline()
+            segments, meta = pipeline.process_transcript(meeting_id, segments)
+            logger.info("Intelligent transcript processing completed successfully.")
+        except Exception as proc_err:
+            logger.warning(f"Intelligent transcript processing failed: {proc_err}. Skipping enhancements.")
+            meta = {}
+            
+        # 5. Store transcript segments
         # Clear existing
         db.query(DBTranscriptSegment).filter(DBTranscriptSegment.meeting_id == meeting_id).delete()
         
         full_text_list = []
         for seg in segments:
             full_text_list.append(seg.get("text", ""))
+            
+            # Pack parsed segment metadata
+            seg_meta = {
+                "entities": seg.get("entities", []),
+                "action_items": seg.get("action_items", []),
+                "decisions": seg.get("decisions", []),
+                "questions": seg.get("questions", []),
+                "keywords": seg.get("keywords", [])
+            }
+            
             db_seg = DBTranscriptSegment(
                 meeting_id=meeting_id,
                 start=seg.get("start"),
@@ -223,7 +243,9 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
                 text=seg.get("text", ""),
                 words_json=json.dumps(seg.get("words", [])),
                 speaker_label=seg.get("speaker_label", "UNKNOWN"),
-                speaker_confidence=seg.get("speaker_confidence", 1.0)
+                speaker_confidence=seg.get("speaker_confidence", 1.0),
+                searchable_text=seg.get("searchable_text", ""),
+                metadata_json=json.dumps(seg_meta)
             )
             db.add(db_seg)
             
