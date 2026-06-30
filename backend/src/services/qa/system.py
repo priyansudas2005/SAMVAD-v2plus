@@ -109,6 +109,117 @@ class QuestionAnswering:
         if not question or len(question.strip()) < 3:
             return no_answer_response(question)
             
+        # Heuristics: 1. Extract speaker names and map them (e.g. "who are the speakers", "names of speakers")
+        q_clean = question.lower().strip()
+        
+        # Check for speakers queries
+        is_speakers_query = any(p in q_clean for p in ["speaker", "who is speaking", "who are speaking", "names of", "people in this", "who are they"])
+        if is_speakers_query and not any(p in q_clean for p in ["say", "what did", "ask", "question"]):
+            # Extract names from transcript
+            speaker_turns = re.findall(r'(Speaker\s+[A-Z\d]+)', transcript)
+            unique_speakers = sorted(list(set(speaker_turns)))
+            
+            # Extract introduced names
+            intro_names = []
+            matches = re.findall(r'\b(?:my name is|this is|colleague[s]?|introduced|call me|i am|for)\s+([A-Z][a-z]+)', transcript)
+            for m in matches:
+                if m not in intro_names and m.lower() not in ["everyone", "someone", "today", "the", "how", "what", "speaker"]:
+                    intro_names.append(m)
+                    
+            if intro_names:
+                ans = f"Based on the transcript, the introduced speakers/names are: **{', '.join(intro_names)}**."
+                if unique_speakers:
+                    ans += f" (Transcript uses labels: {', '.join(unique_speakers)})"
+                return {
+                    "answer": ans,
+                    "confidence": 1.0,
+                    "confidence_label": "Very High",
+                    "source_snippet": "Extracted from introductions in the transcript.",
+                    "chunk_index": -1,
+                    "found": True
+                }
+
+        # Check for "what did X say" / "what did X discuss" / "what did X talk about"
+        speech_match = re.search(r'what\s+did\s+([A-Za-z]+)\s+(say|discuss|talk|tell|speak|explain)', q_clean)
+        if speech_match:
+            target_name = speech_match.group(1).lower()
+            turns = re.split(r'(Speaker\s+[A-Z\d]+)', transcript)
+            mapped_speaker = None
+            
+            # Try to find which speaker says "my name is target_name" or "this is target_name"
+            for i in range(1, len(turns), 2):
+                spk_label = turns[i]
+                spk_text = turns[i+1] if i+1 < len(turns) else ""
+                if re.search(r'\b(my name is|this is|i am|here)\s+' + target_name, spk_text, re.IGNORECASE):
+                    mapped_speaker = spk_label
+                    break
+                    
+            # If no direct intro found, check general presence
+            if not mapped_speaker:
+                for i in range(1, len(turns), 2):
+                    spk_label = turns[i]
+                    spk_text = turns[i+1] if i+1 < len(turns) else ""
+                    if target_name in spk_text.lower():
+                        mapped_speaker = spk_label
+                        break
+            
+            if mapped_speaker:
+                spk_statements = []
+                for i in range(1, len(turns), 2):
+                    if turns[i] == mapped_speaker:
+                        text_val = turns[i+1].strip()
+                        if text_val:
+                            # Clean timestamps
+                            text_val = re.sub(r'\b\d+:\d+:\d+\b', '', text_val)
+                            # Remove double spaces
+                            text_val = re.sub(r'\s+', ' ', text_val)
+                            spk_statements.append(text_val)
+                            
+                full_spk_text = " ".join(spk_statements)
+                sentences = re.split(r'(?<=[.!?])\s+', full_spk_text)
+                sentences_cleaned = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 10]
+                
+                if sentences_cleaned:
+                    summary_text = f"**{target_name.capitalize()} ({mapped_speaker})** discussed several points in the meeting:\n\n"
+                    summary_text += "\n".join([f"• {s}" for s in sentences_cleaned[:5]])
+                    if len(sentences_cleaned) > 5:
+                        summary_text += f"\n\n*(And {len(sentences_cleaned) - 5} more statements in the transcript)*"
+                    return {
+                        "answer": summary_text,
+                        "confidence": 0.95,
+                        "confidence_label": "High",
+                        "source_snippet": full_spk_text[:300],
+                        "chunk_index": -1,
+                        "found": True
+                    }
+
+        # Check for "question for X"
+        q_for_match = re.search(r'(?:question|ask)\s+(?:for|to)\s+([A-Za-z]+)', q_clean)
+        if q_for_match:
+            target_name = q_for_match.group(1).lower()
+            sentences = re.split(r'(?<=[.!?])\s+', transcript)
+            found_idx = -1
+            for idx, s in enumerate(sentences):
+                if re.search(r'\b(?:question|ask)\s+(?:for|to)\s+' + target_name, s, re.IGNORECASE):
+                    found_idx = idx
+                    break
+                    
+            if found_idx != -1:
+                # Capture the question header and the actual question (next 2 sentences)
+                captured = sentences[found_idx : min(len(sentences), found_idx + 3)]
+                clean_captured = " ".join([c.strip() for c in captured])
+                # Clean timestamp markers
+                clean_captured = re.sub(r'\b\d+:\d+:\d+\b', '', clean_captured)
+                clean_captured = re.sub(r'\s+', ' ', clean_captured)
+                return {
+                    "answer": clean_captured,
+                    "confidence": 0.98,
+                    "confidence_label": "Very High",
+                    "source_snippet": clean_captured[:300],
+                    "chunk_index": -1,
+                    "found": True
+                }
+
         # 1. Advanced Routing: Route to memo database for high-level semantic summaries
         q_type = detect_question_type(question)
         if q_type != "general":
