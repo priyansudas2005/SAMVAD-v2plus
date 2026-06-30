@@ -1,4 +1,7 @@
-# Transcription service package
-from src.services.transcription.faster_whisper import FasterWhisperSTT
+# Transcription package
+from .engine import TranscriptionEngine
 
-__all__ = ["FasterWhisperSTT"]
+# Backward compatibility alias
+FasterWhisperSTT = TranscriptionEngine
+
+__all__ = ["TranscriptionEngine", "FasterWhisperSTT"]

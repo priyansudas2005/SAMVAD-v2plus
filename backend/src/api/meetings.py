@@ -10,7 +10,7 @@ from typing import List
 from src.services.database.db import get_db, DBMeeting, DBTranscriptSegment, DBMemo, DBQAHistory
 from src.models.schemas import MeetingResponse, ProcessRequest, MeetingTitleUpdate
 from src.services.audio.processor import AudioProcessor
-from src.services.transcription.faster_whisper import FasterWhisperSTT
+from src.services.transcription import FasterWhisperSTT
 from src.services.summary.generator import MemoGenerator
 from src.services.export.engine import ExportEngine
 from src.services.transcript.timestamp import TimestampGenerator
