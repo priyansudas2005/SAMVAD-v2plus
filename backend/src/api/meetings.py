@@ -58,7 +58,8 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "answer": q.answer,
             "timestamp": q.timestamp,
             "confidence": getattr(q, 'confidence', 0.0),
-            "was_helpful": getattr(q, 'was_helpful', None)
+            "was_helpful": getattr(q, 'was_helpful', None),
+            "source_snippet": getattr(q, 'source_snippet', "")
         })
 
     return {

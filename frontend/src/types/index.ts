@@ -32,6 +32,9 @@ export interface QAEntry {
   question: string;
   answer: string;
   timestamp: string;
+  confidence?: number;
+  was_helpful?: number | null;
+  source_snippet?: string;
 }
 
 export interface Meeting {

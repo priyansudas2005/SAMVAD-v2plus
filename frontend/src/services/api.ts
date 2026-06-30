@@ -70,6 +70,16 @@ export const api = {
     return res.json();
   },
 
+  async submitQAFeedback(meetingId: string, qaId: number, wasHelpful: boolean | null): Promise<QAEntry> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/qa/${qaId}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ was_helpful: wasHelpful }),
+    });
+    if (!res.ok) throw new Error('Failed to submit Q&A feedback');
+    return res.json();
+  },
+
   // Settings API
   async getSettings(): Promise<SystemSettings> {
     const res = await fetch(`${API_BASE}/settings`);

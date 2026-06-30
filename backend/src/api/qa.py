@@ -37,7 +37,8 @@ def ask_meeting_question(meeting_id: str, payload: QAHistoryCreate, db: Session 
             question=payload.question,
             answer=qa_result.get("answer", ""),
             timestamp=datetime.now().isoformat(),
-            confidence=qa_result.get("confidence", 0.0)
+            confidence=qa_result.get("confidence", 0.0),
+            source_snippet=qa_result.get("source_snippet", "")
         )
         db.add(db_qa)
         db.commit()

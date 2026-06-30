@@ -6,11 +6,185 @@ import {
   User, 
   MessageSquare,
   AlertTriangle,
-  Bot
+  Bot,
+  ThumbsUp,
+  ThumbsDown,
+  ChevronDown,
+  ChevronUp,
+  SearchX
 } from 'lucide-react';
 import { Meeting, QAEntry } from '../types';
 import { api } from '../services/api';
 import { motion } from 'framer-motion';
+
+interface QABubbleProps {
+  entry: QAEntry;
+  meetingId: string;
+  onUpdateFeedback: (qaId: number, wasHelpful: number | null) => void;
+}
+
+const QABubble: React.FC<QABubbleProps> = ({ entry, meetingId, onUpdateFeedback }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+
+  const getBadgeDetails = (conf: number) => {
+    if (conf >= 0.80) return { label: "Very High", bg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" };
+    if (conf >= 0.60) return { label: "High", bg: "bg-sky-500/10 text-sky-400 border border-sky-500/20" };
+    if (conf >= 0.40) return { label: "Medium", bg: "bg-amber-500/10 text-amber-400 border border-amber-500/20" };
+    if (conf >= 0.30) return { label: "Low", bg: "bg-orange-500/10 text-orange-400 border border-orange-500/20" };
+    return { label: "Not Found", bg: "bg-rose-500/10 text-rose-400 border border-rose-500/20" };
+  };
+
+  const confidenceScore = entry.confidence ?? 0.0;
+  const badge = getBadgeDetails(confidenceScore);
+  const isNotFound = confidenceScore < 0.30;
+
+  const handleFeedback = async (helpful: boolean) => {
+    if (feedbackLoading || !entry.id) return;
+    setFeedbackLoading(true);
+    
+    // Toggle: 1 is Up, 0 is Down
+    const newHelpful = entry.was_helpful === (helpful ? 1 : 0) ? null : (helpful ? 1 : 0);
+    try {
+      await api.submitQAFeedback(meetingId, entry.id, newHelpful === null ? null : newHelpful === 1);
+      onUpdateFeedback(entry.id, newHelpful);
+    } catch (err) {
+      console.error("Feedback error", err);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* User Bubble */}
+      <motion.div 
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="flex gap-3 justify-end"
+      >
+        <div className="bg-sky-500/10 border border-sky-500/20 text-sky-200 text-xs font-semibold px-4 py-3 rounded-2xl rounded-tr-sm max-w-[80%] shadow-lg">
+          {entry.question}
+        </div>
+        <div className="w-8 h-8 bg-sky-500/20 text-sky-400 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold">
+          <User className="w-4 h-4" />
+        </div>
+      </motion.div>
+
+      {/* Assistant Bubble */}
+      <motion.div 
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.08 }}
+        className="flex gap-3"
+      >
+        <div className="w-8 h-8 bg-slate-950 border border-slate-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold">
+          <Bot className="w-4 h-4 text-sky-400" />
+        </div>
+        <div className={`flex-1 rounded-2xl rounded-tl-sm p-5 border shadow-xl flex flex-col gap-4 max-w-[80%] ${
+          isNotFound 
+            ? 'bg-rose-500/5 border-rose-500/15 text-slate-300' 
+            : 'bg-slate-950 border-slate-850 text-slate-200'
+        }`}>
+          {/* Top Row */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Local Assistant</span>
+            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full font-sans uppercase tracking-wider ${badge.bg}`}>
+              {badge.label}
+            </span>
+          </div>
+
+          {/* Answer Area */}
+          {isNotFound ? (
+            <div className="flex gap-3 items-start bg-rose-500/5 border border-rose-500/10 p-3.5 rounded-xl">
+              <SearchX className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-slate-250 leading-relaxed">
+                  {entry.answer}
+                </span>
+                <span className="text-[10.5px] text-slate-400 font-medium">
+                  Try rephrasing or ask about a specific topic from the meeting.
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs font-semibold leading-relaxed whitespace-pre-line text-slate-200">
+              {entry.answer}
+            </div>
+          )}
+
+          {/* Source Snippet Collapsible (Accordion) */}
+          {!isNotFound && entry.source_snippet && (
+            <div className="border border-slate-850 rounded-xl overflow-hidden bg-slate-900/10">
+              <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-900/30 text-[10.5px] font-bold text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                <span>Source from transcript</span>
+                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+              {expanded && (
+                <div className="p-4 border-t border-slate-850 bg-slate-950/40 text-[11px] font-mono text-slate-400 leading-relaxed whitespace-pre-line max-h-48 overflow-y-auto">
+                  {(() => {
+                    const ans = entry.answer || "";
+                    const snippet = entry.source_snippet || "";
+                    if (ans && snippet.toLowerCase().includes(ans.toLowerCase())) {
+                      const idx = snippet.toLowerCase().indexOf(ans.toLowerCase());
+                      const before = snippet.substring(0, idx);
+                      const match = snippet.substring(idx, idx + ans.length);
+                      const after = snippet.substring(idx + ans.length);
+                      return (
+                        <>
+                          {before}
+                          <span className="text-sky-400 font-bold bg-sky-500/5 px-0.5 rounded">{match}</span>
+                          {after}
+                        </>
+                      );
+                    }
+                    return snippet;
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Bottom Feedback Area */}
+          <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-900/40 flex-wrap">
+            <span className="text-[10px] text-slate-500 font-medium">Was this response helpful?</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={feedbackLoading}
+                onClick={() => handleFeedback(true)}
+                className={`p-1.5 rounded-lg border transition-all hover:scale-105 flex items-center justify-center ${
+                  entry.was_helpful === 1
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                    : 'bg-slate-900/45 border-slate-850 text-slate-500 hover:text-slate-400 hover:border-slate-800'
+                }`}
+              >
+                <ThumbsUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={feedbackLoading}
+                onClick={() => handleFeedback(false)}
+                className={`p-1.5 rounded-lg border transition-all hover:scale-105 flex items-center justify-center ${
+                  entry.was_helpful === 0
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                    : 'bg-slate-900/45 border-slate-850 text-slate-500 hover:text-rose-400 hover:border-slate-800'
+                }`}
+              >
+                <ThumbsDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 interface QAPageProps {
   currentMeeting: Meeting;
@@ -129,39 +303,22 @@ export const QAPage: React.FC<QAPageProps> = ({
             </div>
           ) : (
             /* Conversation bubbles */
-            <div className="space-y-4">
+            <div className="space-y-6">
               {qaHistory.map((entry, idx) => (
-                <div key={idx} className="space-y-4">
-                  {/* User Bubble */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 }}
-                    className="flex gap-3 justify-end"
-                  >
-                    <div className="bg-sky-500/10 border border-sky-500/20 text-sky-200 text-xs font-medium px-4 py-3 rounded-2xl rounded-tr-sm max-w-[80%] shadow-lg">
-                      {entry.question}
-                    </div>
-                    <div className="w-8 h-8 bg-sky-500/20 text-sky-400 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold">
-                      <User className="w-4 h-4" />
-                    </div>
-                  </motion.div>
-
-                  {/* Assistant Bubble */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="flex gap-3"
-                  >
-                    <div className="w-8 h-8 bg-slate-950 border border-slate-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold">
-                      <Bot className="w-4 h-4 text-sky-400" />
-                    </div>
-                    <div className="bg-slate-950 border border-slate-850 text-slate-200 text-xs font-medium px-4 py-3 rounded-2xl rounded-tl-sm max-w-[80%] leading-relaxed shadow-lg whitespace-pre-line">
-                      {entry.answer}
-                    </div>
-                  </motion.div>
-                </div>
+                <QABubble 
+                  key={entry.id ?? idx}
+                  entry={entry}
+                  meetingId={currentMeeting.meeting_id}
+                  onUpdateFeedback={(qaId, wasHelpful) => {
+                    const updatedHistory = qaHistory.map(item => 
+                      item.id === qaId ? { ...item, was_helpful: wasHelpful } : item
+                    );
+                    onUpdateMeeting({
+                      ...currentMeeting,
+                      qa_history: updatedHistory
+                    });
+                  }}
+                />
               ))}
             </div>
           )}

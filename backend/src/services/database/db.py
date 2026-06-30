@@ -74,6 +74,7 @@ class DBQAHistory(Base):
     timestamp = Column(String, nullable=False)
     confidence = Column(Float, nullable=True, default=0.0)
     was_helpful = Column(Integer, nullable=True) # 1: Up, 0: Down, null: none
+    source_snippet = Column(Text, nullable=True)
 
     meeting = relationship("DBMeeting", back_populates="qa_history")
 
@@ -97,6 +98,11 @@ def init_db():
         pass
     try:
         db.execute("ALTER TABLE qa_history ADD COLUMN was_helpful INTEGER")
+        db.commit()
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE qa_history ADD COLUMN source_snippet TEXT")
         db.commit()
     except Exception:
         pass
