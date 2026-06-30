@@ -180,7 +180,7 @@ class QuestionAnswering:
 
         candidates = retriever.retrieve(question, top_k=3)
         if not candidates:
-            return no_answer_response(question)
+            return self._fallback_qa_dict(question, transcript)
 
         # 3. Candidate Scoring via QA Pipeline
         self._load_model()
@@ -189,7 +189,8 @@ class QuestionAnswering:
 
         answers = []
         for candidate in candidates:
-            if candidate["score"] < 0.25:
+            # Lowered pre-filter to 0.05 to allow matching chunks through
+            if candidate["score"] < 0.05:
                 continue
                 
             try:
@@ -229,15 +230,17 @@ class QuestionAnswering:
             except Exception as e:
                 logger.error(f"QA Inference failed on chunk: {e}")
 
+        # If no ML answers extracted, run the keyword search fallback
         if not answers:
-            return no_answer_response(question)
+            return self._fallback_qa_dict(question, transcript)
 
-        # 4. Pick best answer above threshold
+        # 4. Pick best answer
         best = max(answers, key=lambda x: x["confidence"])
         
-        CONFIDENCE_THRESHOLD = 0.30
+        # Lowered threshold to 0.01 since SQUAD multiplication scores are naturally low (e.g. 0.1 * 0.1 = 0.01)
+        CONFIDENCE_THRESHOLD = 0.01
         if best["confidence"] < CONFIDENCE_THRESHOLD:
-            return no_answer_response(question)
+            return self._fallback_qa_dict(question, transcript)
 
         expanded = self._expand_answer_to_sentence(best["answer"], transcript)
         final_ans = expanded if expanded else best["answer"]
@@ -250,6 +253,7 @@ class QuestionAnswering:
             "chunk_index": best["chunk_index"],
             "found": True
         }
+
 
     def _fallback_qa_dict(self, question: str, transcript: str) -> dict:
         """Fallback keyword-based sentence search returns dict."""
