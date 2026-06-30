@@ -76,7 +76,7 @@ def test_meetings_and_qa_endpoints():
     assert response.json()["title"] == "Test Meeting Title"
 
     # Test Q&A asking question
-    payload = {"question": "What decisions were made?"}
+    payload = {"question": "What did they say about marketing budgets?"}
     response = client.post("/api/meetings/test-meeting-123/qa", json=payload)
     assert response.status_code == 200
     qa_data = response.json()

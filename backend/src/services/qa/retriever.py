@@ -7,7 +7,25 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+def levenshtein_distance(s1: str, s2: str) -> int:
+    if len(s1) < len(s2):
+        return levenshtein_distance(s2, s1)
+    if len(s2) == 0:
+        return len(s1)
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+    return previous_row[-1]
+
 class SemanticRetriever:
+    # Existing init and methods...
+
     def __init__(self, config=None):
         from .config import QAConfig
         self.config = config or QAConfig()
@@ -115,10 +133,15 @@ class SemanticRetriever:
 
     @staticmethod
     def fallback_keyword_search(question: str, transcript: str) -> Dict[str, Any]:
-        """Perform exact keyword-based sentence extraction."""
+        """Perform fuzzy keyword-based sentence extraction."""
         sentences = re.split(r'(?<=[.!?])\s+', transcript)
         question_words = set(re.findall(r'\b\w+\b', question.lower()))
-        stop_words = {"what", "who", "when", "where", "how", "why", "the", "a", "is", "was", "did", "say", "discuss", "talk", "to", "for", "in", "of", "and"}
+        stop_words = {
+            "what", "who", "when", "where", "how", "why", "the", "a", "an", "is", "was", "are", "were", 
+            "did", "do", "does", "say", "discuss", "talk", "to", "for", "in", "of", "and", "or", "about", 
+            "they", "them", "their", "this", "that", "these", "those", "we", "us", "our", "you", "your", 
+            "he", "him", "his", "she", "her", "it", "its"
+        }
         query_words = question_words - stop_words
         
         if not query_words:
@@ -132,7 +155,16 @@ class SemanticRetriever:
             if not s_clean:
                 continue
             words = set(re.findall(r'\b\w+\b', s_clean.lower()))
-            overlap = len(query_words.intersection(words))
+            
+            overlap = 0
+            for qw in query_words:
+                if len(qw) <= 3:
+                    if qw in words:
+                        overlap += 1
+                else:
+                    if any(levenshtein_distance(qw, sw) <= 2 for sw in words):
+                        overlap += 1
+                        
             if overlap > best_score:
                 best_score = overlap
                 best_sentence = s_clean
