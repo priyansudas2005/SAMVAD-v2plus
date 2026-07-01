@@ -1,53 +1,40 @@
 # Git
 .git
 .gitignore
+.gitattributes
 
-# Docker
+# Docker (don't send Dockerfiles into the build context recursively)
 .dockerignore
-Dockerfile
-docker-compose*.yml
 
-# Python
+# Python bytecode & virtual environments
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
 *.egg-info/
-.installed.cfg
 *.egg
-venv/
-.venv/
+backend/venv/
+backend/.venv/
+.pytest_cache/
 
-# Data directories (mounted as volumes)
-data/
-uploads/
-instance/
-exports/
-auto-process/
+# Data directories (mounted as named volumes at runtime)
+backend/data/database/
+backend/data/recordings/
+logs/
+
+# Models (downloaded at runtime, persisted in volumes)
+models/
 
 # Non-runtime directories
-temp/
 docs/
 site/
 plan/
-unraid/
-tests/
-.claude/
-.migrate/
+scratch/
+deployment/
+.forgejo/
 .github/
+.claude/
 
 # IDE and editor files
 .idea/
@@ -58,6 +45,13 @@ tests/
 # Logs and misc
 *.log
 *.md
-!requirements*.txt
+!backend/requirements.txt
 LICENSE
-CLAUDE.md
+CLA.md
+
+# Frontend build artifacts (only needed in frontend Dockerfile)
+frontend/node_modules/
+frontend/dist/
+
+# Testing (included in backend image for CI, excluded from frontend)
+backend/tests/__pycache__/

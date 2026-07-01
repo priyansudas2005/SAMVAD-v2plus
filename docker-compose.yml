@@ -1,24 +1,49 @@
-version: '3.8'
+###############################################################################
+# SAMVAD V2.0 — Docker Compose
+# Run: docker compose up --build
+# Access: http://localhost:3000
+###############################################################################
 
 services:
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    container_name: samvad-backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/data:/app/backend/data
-      - ./backend/logs:/app/logs
-      - ./backend/models:/app/models
-    restart: always
+      # Persistent data (survives container rebuilds)
+      - samvad-db:/app/data/database
+      - samvad-recordings:/app/data/recordings
+      - samvad-models:/app/models
+      - samvad-logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - SAMVAD_DB_DIR=/app/data/database
+      - HF_HOME=/app/models/huggingface
+      - TORCH_HOME=/app/models/hub
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    container_name: samvad-frontend
     ports:
       - "3000:3000"
     depends_on:
-      - backend
-    restart: always
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  samvad-db:
+  samvad-recordings:
+  samvad-models:
+  samvad-logs:
