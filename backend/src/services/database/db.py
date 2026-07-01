@@ -54,6 +54,8 @@ class DBMeetingIntelligence(Base):
     entities_json = Column(Text, nullable=True, default="{}")
     topics_json = Column(Text, nullable=True, default="[]")
     timeline_json = Column(Text, nullable=True, default="{}")
+    analytics_json = Column(Text, nullable=True, default="{}")
+    knowledge_graph_json = Column(Text, nullable=True, default="{}")
     analysis_time_s = Column(Float, nullable=True)
 
     meeting = relationship("DBMeeting", back_populates="intelligence")

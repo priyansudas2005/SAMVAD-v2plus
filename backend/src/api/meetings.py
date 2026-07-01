@@ -272,6 +272,8 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
                 entities_json=json.dumps(intel_report.get("entities", {})),
                 topics_json=json.dumps(intel_report.get("topics", [])),
                 timeline_json=json.dumps(intel_report.get("timeline", {})),
+                analytics_json=json.dumps(intel_report.get("analytics", {})),
+                knowledge_graph_json=json.dumps(intel_report.get("knowledge_graph", {})),
                 analysis_time_s=intel_report.get("analysis_time_s", 0.0)
             )
             db.add(db_intel)
