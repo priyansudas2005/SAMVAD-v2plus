@@ -85,8 +85,8 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             sum += dataArray[i * step + j] || 0;
           }
           const avg = sum / step;
-          // Map 0-255 to scaleY factor (min 0.125 for 4px height, max 6.0)
-          const scaled = 0.125 + (avg / 255) * 5.875;
+          // Limit max scale to 2.2 so bars never exceed container box height
+          const scaled = 0.125 + (avg / 255) * 2.075;
           nextBars.push(scaled);
         }
         setBarValues(nextBars);
@@ -148,7 +148,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         </div>
 
         {/* Audio Visualizer (16 bars) (Fix 1B) */}
-        <div className="w-full max-w-md bg-[#020617]/50 rounded-2xl border border-slate-900 px-6 py-8 my-4 shadow-inner flex items-end justify-center gap-2 h-28">
+        <div className="w-full max-w-md bg-[#020617]/50 rounded-2xl border border-slate-900 px-6 py-8 my-4 shadow-inner flex items-end justify-center gap-2 h-28 overflow-hidden">
           {barValues.map((val, idx) => (
             <motion.div
               key={idx}

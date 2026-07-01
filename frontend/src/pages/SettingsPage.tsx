@@ -186,6 +186,86 @@ export const SettingsPage: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Dynamic UI customizers (Fix Phase 9 Settings) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-900">
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">UI Density</label>
+            <select 
+              value={localStorage.getItem('samvad-density') || 'comfortable'}
+              onChange={e => {
+                localStorage.setItem('samvad-density', e.target.value);
+                document.documentElement.setAttribute('data-density', e.target.value);
+                setToastMessage(`UI Density: ${e.target.value}`);
+                setTimeout(() => setToastMessage(null), 3000);
+              }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400 font-semibold"
+            >
+              <option value="comfortable">Comfortable (Standard)</option>
+              <option value="compact">Compact (Power User)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Font Scaling</label>
+            <select 
+              value={localStorage.getItem('samvad-font-scale') || 'medium'}
+              onChange={e => {
+                localStorage.setItem('samvad-font-scale', e.target.value);
+                document.documentElement.setAttribute('data-font-scale', e.target.value);
+                setToastMessage(`Font Scale: ${e.target.value}`);
+                setTimeout(() => setToastMessage(null), 3000);
+              }}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-400 font-semibold"
+            >
+              <option value="small">Small (12px base)</option>
+              <option value="medium">Medium (14px base)</option>
+              <option value="large">Large (16px base)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between col-span-1 md:col-span-2 pt-2">
+            <div>
+              <span className="text-xs font-semibold text-slate-200">Enable Interface Animations</span>
+              <p className="text-[10px] text-slate-500 mt-0.5 leading-normal">
+                Applies smooth framer-motion transitions. Turn off to reduce GPU load on low-resource machines.
+              </p>
+            </div>
+            <input 
+              type="checkbox" 
+              checked={(localStorage.getItem('samvad-animations') || 'true') === 'true'}
+              onChange={e => {
+                const val = e.target.checked ? 'true' : 'false';
+                localStorage.setItem('samvad-animations', val);
+                document.documentElement.setAttribute('data-animations', val);
+                setToastMessage(e.target.checked ? 'Animations Enabled' : 'Animations Disabled');
+                setTimeout(() => setToastMessage(null), 3000);
+              }}
+              className="w-4 h-4 accent-sky-400 border border-slate-850 rounded"
+            />
+          </div>
+
+          <div className="flex items-center justify-between col-span-1 md:col-span-2 pt-2">
+            <div>
+              <span className="text-xs font-semibold text-slate-200">Glassmorphic Blur Effect</span>
+              <p className="text-[10px] text-slate-500 mt-0.5 leading-normal">
+                Applies glass reflections and blur filters to application cards. Disable to optimize styling performance.
+              </p>
+            </div>
+            <input 
+              type="checkbox" 
+              checked={(localStorage.getItem('samvad-glass') || 'true') === 'true'}
+              onChange={e => {
+                const val = e.target.checked ? 'true' : 'false';
+                localStorage.setItem('samvad-glass', val);
+                document.documentElement.setAttribute('data-glass', val);
+                setToastMessage(e.target.checked ? 'Glassmorphic effects enabled' : 'Solid backgrounds applied');
+                setTimeout(() => setToastMessage(null), 3000);
+              }}
+              className="w-4 h-4 accent-sky-400 border border-slate-850 rounded"
+            />
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
