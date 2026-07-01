@@ -370,7 +370,10 @@ def export_meeting(meeting_id: str, format_type: str, db: Session = Depends(get_
             "srt": "text/plain",
             "vtt": "text/vtt",
             "pdf": "application/pdf",
-            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "html": "text/html",
+            "csv": "text/csv",
+            "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         }
         
         return Response(
@@ -381,3 +384,64 @@ def export_meeting(meeting_id: str, format_type: str, db: Session = Depends(get_
     except Exception as exp_err:
         logger.error(f"Export failure: {exp_err}")
         raise HTTPException(status_code=500, detail=f"Failed to generate export file: {str(exp_err)}")
+
+@router.post("/export/batch")
+def export_meetings_batch(payload: dict, db: Session = Depends(get_db)):
+    import zipfile
+    import io
+    from src.services.database.db import DBMeetingIntelligence
+    from src.services.export import ExportEngine
+    
+    meeting_ids = payload.get("meeting_ids", [])
+    fmt = payload.get("format_type", "zip").lower().strip()
+    
+    if not meeting_ids:
+        raise HTTPException(status_code=400, detail="No meeting IDs provided")
+        
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+        for mid in meeting_ids:
+            m = db.query(DBMeeting).filter(DBMeeting.meeting_id == mid).first()
+            if not m:
+                continue
+                
+            data = serialize_meeting(m)
+            
+            # Retrieve intelligence report if available
+            intel_report = {}
+            db_intel = db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == mid).first()
+            if db_intel:
+                try:
+                    intel_report = {
+                        "action_items": json.loads(db_intel.action_items_json or "[]"),
+                        "decisions": json.loads(db_intel.decisions_json or "[]"),
+                        "risks": json.loads(db_intel.risks_json or "[]"),
+                        "blockers": json.loads(db_intel.blockers_json or "[]"),
+                        "followups": json.loads(db_intel.followups_json or "[]"),
+                        "questions": json.loads(db_intel.questions_json or "[]"),
+                        "entities": json.loads(db_intel.entities_json or "{}"),
+                        "topics": json.loads(db_intel.topics_json or "[]"),
+                        "timeline": json.loads(db_intel.timeline_json or "{}"),
+                    }
+                except Exception:
+                    pass
+
+            try:
+                content = ExportEngine.export(
+                    fmt=fmt,
+                    meeting_title=data["title"],
+                    date_str=data["date"],
+                    segments=data["transcript"],
+                    memo=data.get("memo"),
+                    intelligence=intel_report
+                )
+                zip_file.writestr(f"{mid}.{fmt}", content)
+            except Exception as e:
+                logger.warning(f"Failed to include meeting {mid} in batch zip: {e}")
+
+    zip_buffer.seek(0)
+    return Response(
+        content=zip_buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=samvad_batch_export.zip"}
+    )

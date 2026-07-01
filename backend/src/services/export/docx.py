@@ -1,10 +1,11 @@
 """
 docx.py
 Microsoft Word DOCX/HTML compatible exporter for SAMVAD V2.0.
-Generates an OpenXML HTML/MHTML formatted file that Microsoft Word opens natively.
+Generates styled markup formatted natively for Microsoft Word and LibreOffice Writer.
 """
 from typing import Dict, Any
 from .base import BaseExporter
+from src.utils.config import load_config
 
 class DocxExporter(BaseExporter):
     """
@@ -12,24 +13,37 @@ class DocxExporter(BaseExporter):
     """
 
     def export(self, meeting_title: str, date_str: str, segments: list, memo: Dict[str, Any] = None, intelligence: Dict[str, Any] = None) -> bytes:
+        cfg = load_config()
+        exp_cfg = cfg.get("export", {})
+        
+        company = exp_cfg.get("company_name", "SAMVAD Enterprise")
+        theme = exp_cfg.get("theme", "corporate")
+        font_family = exp_cfg.get("font_family", "Arial")
+
+        primary_color = "#1e3a8a" if theme == "corporate" else "#0f172a"
+        secondary_color = "#0d9488" if theme == "corporate" else "#475569"
+
         html = []
+        html.append("<html xmlns:o='urn:schemas-microsoft-com:office:office'")
         html.append("xmlns:w='urn:schemas-microsoft-com:office:word'")
-        html.append("<html>")
+        html.append("xmlns='http://www.w3.org/TR/REC-html40'>")
         html.append("<head>")
         html.append("<meta charset='utf-8'>")
         html.append("<style>")
-        html.append("body { font-family: 'Arial', sans-serif; line-height: 1.6; margin: 40px; color: #333333; }")
-        html.append("h1 { color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }")
-        html.append("h2 { color: #0d9488; margin-top: 24px; }")
-        html.append("table { width: 100%; border-collapse: collapse; margin-top: 12px; }")
-        html.append("th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }")
-        html.append("th { background-color: #f8fafc; color: #1e293b; }")
-        html.append(".timestamp { font-weight: bold; color: #475569; }")
-        html.append(".speaker { font-style: italic; color: #0f766e; }")
+        html.append(f"body {{ font-family: '{font_family}', sans-serif; line-height: 1.6; margin: 40px; color: #333333; }}")
+        html.append(f"h1 {{ color: {primary_color}; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; font-size: 24pt; }}")
+        html.append(f"h2 {{ color: {secondary_color}; margin-top: 24px; font-size: 16pt; }}")
+        html.append("table { width: 100%; border-collapse: collapse; margin-top: 15px; }")
+        html.append("th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }")
+        html.append("th { background-color: #f8fafc; color: #1e293b; font-weight: bold; }")
+        html.append(".timestamp { font-weight: bold; color: #64748b; }")
+        html.append(".speaker { font-weight: bold; color: #0f766e; }")
         html.append("</style>")
         html.append("</head>")
         html.append("<body>")
 
+        # Title / branding
+        html.append(f"<p style='color: #64748b; font-size: 10pt;'>{company} — Confidential Report</p>")
         html.append(f"<h1>🎙️ Meeting Memo: {meeting_title}</h1>")
         html.append(f"<p><strong>Date:</strong> {date_str}</p>")
 
@@ -55,6 +69,25 @@ class DocxExporter(BaseExporter):
                     text = dec.get("text") if isinstance(dec, dict) else str(dec)
                     html.append(f"<li>{text}</li>")
                 html.append("</ul>")
+
+            risks = intelligence.get("risks", [])
+            if risks:
+                html.append("<h2>⚠️ Risks</h2>")
+                html.append("<ul>")
+                for rsk in risks:
+                    text = rsk.get("text") if isinstance(rsk, dict) else str(rsk)
+                    html.append(f"<li>{text}</li>")
+                html.append("</ul>")
+
+            # Meeting stats table for Office compatibility
+            analytics = intelligence.get("analytics", {})
+            if analytics:
+                html.append("<h2>📊 Meeting Statistics</h2>")
+                html.append("<table>")
+                html.append(f"<tr><td>Productivity Score</td><td>{analytics.get('productivity_score', 0)}/100</td></tr>")
+                html.append(f"<tr><td>Participation Balance</td><td>{analytics.get('participation_score', 0)}/100</td></tr>")
+                html.append(f"<tr><td>Total Questions</td><td>{analytics.get('question_count', 0)}</td></tr>")
+                html.append("</table>")
 
         html.append("<h2>📝 Detailed Transcript</h2>")
         for seg in segments:

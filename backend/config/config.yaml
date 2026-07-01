@@ -133,3 +133,36 @@ transcript_processing:
   meeting_metadata:
     action_item_keywords: ["action", "todo", "task", "assign", "follow up"]
     decision_keywords: ["decided", "agree", "conclude", "settle"]
+
+meeting_intelligence:
+  enabled: true
+  confidence_threshold: 0.5
+  topic_similarity: 0.6
+  entity_frequency_threshold: 1
+  merge_threshold: 0.7
+  analytics: true
+  knowledge_graph: true
+  timeline: true
+  priority_rules:
+    high: ["urgent", "critical", "asap", "immediately", "blocker", "important", "must"]
+    low: ["eventually", "nice to have", "whenever", "low priority", "optional", "maybe"]
+  deadline_rules:
+    relative: ["tomorrow", "next Monday", "end of month", "next week", "friday", "sprint"]
+
+export:
+  default_format: "pdf"
+  include_audio_metadata: true
+  include_transcript: true
+  include_entities: true
+  include_action_items: true
+  include_decisions: true
+  include_topics: true
+  include_analytics: true
+  include_timeline: true
+  include_confidence: true
+  theme: "corporate"
+  page_size: "A4"
+  orientation: "portrait"
+  font_family: "Helvetica"
+  company_name: "SAMVAD Enterprise"
+  template: "Standard Meeting"
