@@ -60,26 +60,31 @@ class DBMeetingIntelligence(Base):
 
     meeting = relationship("DBMeeting", back_populates="intelligence")
 
+from sqlalchemy import Index
+
 class DBTranscriptSegment(Base):
     __tablename__ = "transcripts"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), nullable=False)
+    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), nullable=False, index=True)
     start = Column(String, nullable=True)
     end = Column(String, nullable=True)
     start_seconds = Column(Float, nullable=True)
     end_seconds = Column(Float, nullable=True)
     text = Column(Text, nullable=False)
     words_json = Column("words", Text, nullable=True, default="[]")
-    speaker_label = Column(String, nullable=True, default="UNKNOWN")
+    speaker_label = Column(String, nullable=True, default="UNKNOWN", index=True)
     speaker_confidence = Column(Float, nullable=True, default=1.0)
     searchable_text = Column(Text, nullable=True)
     metadata_json = Column("metadata", Text, nullable=True, default="{}")
 
     meeting = relationship("DBMeeting", back_populates="transcript")
 
+# Composite covering index for speaker transcript searches
+Index("idx_meeting_speaker_text", DBTranscriptSegment.meeting_id, DBTranscriptSegment.speaker_label)
+
 class DBMemo(Base):
     __tablename__ = "memos"
-    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), primary_key=True)
+    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), primary_key=True, index=True)
     summary = Column(Text, nullable=True)
     action_items_json = Column("action_items", Text, nullable=True, default="[]")
     decisions_json = Column("decisions", Text, nullable=True, default="[]")
@@ -92,7 +97,7 @@ class DBMemo(Base):
 class DBQAHistory(Base):
     __tablename__ = "qa_history"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), nullable=False)
+    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), nullable=False, index=True)
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
     timestamp = Column(String, nullable=False)
@@ -105,7 +110,7 @@ class DBQAHistory(Base):
 class DBTranscriptEmbedding(Base):
     __tablename__ = "transcript_embeddings"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), nullable=False)
+    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), nullable=False, index=True)
     chunk_text = Column(Text, nullable=False)
     embedding_json = Column(Text, nullable=False) # JSON list of floats
 

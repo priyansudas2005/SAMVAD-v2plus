@@ -166,3 +166,21 @@ export:
   font_family: "Helvetica"
   company_name: "SAMVAD Enterprise"
   template: "Standard Meeting"
+
+performance:
+  lazy_loading: true
+  auto_unload_models: true
+  model_idle_timeout: 300
+  cache:
+    l1_max_memory_mb: 256
+    l2_max_disk_mb: 1024
+    ttl_seconds: 3600
+  database:
+    vacuum_interval_days: 7
+    integrity_check_on_startup: true
+  concurrency:
+    thread_pool_size: 4
+    process_pool_size: 2
+  gpu:
+    auto_detect: true
+    precision: "float16"
