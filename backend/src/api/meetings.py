@@ -12,7 +12,7 @@ from src.models.schemas import MeetingResponse, ProcessRequest, MeetingTitleUpda
 from src.services.audio.processor import AudioProcessor
 from src.services.transcription import FasterWhisperSTT
 from src.services.summary.generator import MemoGenerator
-from src.services.export.engine import ExportEngine
+from src.services.export import ExportEngine
 from src.services.transcript.timestamp import TimestampGenerator
 from src.utils.logger import get_logger
 
@@ -321,23 +321,63 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
 
 @router.get("/{meeting_id}/export/{format_type}")
 def export_meeting(meeting_id: str, format_type: str, db: Session = Depends(get_db)):
+    from src.services.database.db import DBMeetingIntelligence
     m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
     if not m:
         raise HTTPException(status_code=404, detail="Meeting not found")
         
     data = serialize_meeting(m)
     
-    if format_type == "txt":
-        content = ExportEngine.to_txt(data["title"], data["transcript"], data["memo"])
-        return Response(content=content, media_type="text/plain", headers={"Content-Disposition": f"attachment; filename={meeting_id}.txt"})
-    elif format_type == "md":
-        content = ExportEngine.to_markdown(data["title"], data["date"], data["transcript"], data["memo"])
-        return Response(content=content, media_type="text/markdown", headers={"Content-Disposition": f"attachment; filename={meeting_id}.md"})
-    elif format_type == "csv":
-        content = ExportEngine.to_csv(data["transcript"])
-        return Response(content=content, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={meeting_id}.csv"})
-    elif format_type == "srt":
-        content = ExportEngine.to_srt(data["transcript"])
-        return Response(content=content, media_type="text/plain", headers={"Content-Disposition": f"attachment; filename={meeting_id}.srt"})
-    else:
-        raise HTTPException(status_code=400, detail="Invalid export format")
+    # Retrieve intelligence report if available
+    intelligence_report = {}
+    db_intel = db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).first()
+    if db_intel:
+        try:
+            intelligence_report = {
+                "action_items": json.loads(db_intel.action_items_json or "[]"),
+                "decisions": json.loads(db_intel.decisions_json or "[]"),
+                "risks": json.loads(db_intel.risks_json or "[]"),
+                "blockers": json.loads(db_intel.blockers_json or "[]"),
+                "followups": json.loads(db_intel.followups_json or "[]"),
+                "questions": json.loads(db_intel.questions_json or "[]"),
+                "entities": json.loads(db_intel.entities_json or "{}"),
+                "topics": json.loads(db_intel.topics_json or "[]"),
+                "timeline": json.loads(db_intel.timeline_json or "{}"),
+            }
+        except Exception:
+            pass
+
+    from src.services.export import ExportEngine
+    
+    fmt = format_type.lower().strip()
+    if fmt not in ExportEngine.get_supported_formats():
+        raise HTTPException(status_code=400, detail=f"Unsupported export format: {format_type}")
+        
+    try:
+        content = ExportEngine.export(
+            fmt=fmt,
+            meeting_title=data["title"],
+            date_str=data["date"],
+            segments=data["transcript"],
+            memo=data.get("memo"),
+            intelligence=intelligence_report
+        )
+        
+        media_types = {
+            "txt": "text/plain",
+            "md": "text/markdown",
+            "json": "application/json",
+            "srt": "text/plain",
+            "vtt": "text/vtt",
+            "pdf": "application/pdf",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        }
+        
+        return Response(
+            content=content,
+            media_type=media_types.get(fmt, "application/octet-stream"),
+            headers={"Content-Disposition": f"attachment; filename={meeting_id}.{fmt}"}
+        )
+    except Exception as exp_err:
+        logger.error(f"Export failure: {exp_err}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate export file: {str(exp_err)}")
