@@ -251,7 +251,35 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
             
         full_transcript = " ".join(full_text_list)
         
-        # 4. Generate structured summary / minutes
+        # 6. Meeting Intelligence Engine
+        intel_report = {}
+        try:
+            from src.services.intelligence import MeetingAnalyzer
+            from src.services.database.db import DBMeetingIntelligence
+            analyzer = MeetingAnalyzer()
+            intel_report = analyzer.analyze(segments, meta.get("topics", []))
+            
+            # Persist structured intelligence
+            db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).delete()
+            db_intel = DBMeetingIntelligence(
+                meeting_id=meeting_id,
+                action_items_json=json.dumps(intel_report.get("action_items", [])),
+                decisions_json=json.dumps(intel_report.get("decisions", [])),
+                risks_json=json.dumps(intel_report.get("risks", [])),
+                blockers_json=json.dumps(intel_report.get("blockers", [])),
+                followups_json=json.dumps(intel_report.get("followups", [])),
+                questions_json=json.dumps(intel_report.get("questions", [])),
+                entities_json=json.dumps(intel_report.get("entities", {})),
+                topics_json=json.dumps(intel_report.get("topics", [])),
+                timeline_json=json.dumps(intel_report.get("timeline", {})),
+                analysis_time_s=intel_report.get("analysis_time_s", 0.0)
+            )
+            db.add(db_intel)
+            logger.info("Meeting intelligence analysis stored successfully.")
+        except Exception as intel_err:
+            logger.warning(f"Meeting intelligence analysis failed: {intel_err}. Continuing.")
+
+        # 7. Generate structured summary / minutes
         memo_generator = MemoGenerator()
         memo_result = await memo_generator.generate_memo(meeting_id, full_transcript)
         
@@ -260,8 +288,8 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         db_memo = DBMemo(
             meeting_id=meeting_id,
             summary=memo_result.get("summary"),
-            action_items_json=json.dumps(memo_result.get("action_items", [])),
-            decisions_json=json.dumps(memo_result.get("decisions", [])),
+            action_items_json=json.dumps(intel_report.get("action_items", memo_result.get("action_items", []))),
+            decisions_json=json.dumps(intel_report.get("decisions", memo_result.get("decisions", []))),
             key_points_json=json.dumps(memo_result.get("key_points", [])),
             generated_at=memo_result.get("generated_at"),
             confidence=memo_result.get("confidence", 1.0)

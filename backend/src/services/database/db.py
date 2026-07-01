@@ -39,6 +39,24 @@ class DBMeeting(Base):
     transcript = relationship("DBTranscriptSegment", back_populates="meeting", cascade="all, delete-orphan")
     memo = relationship("DBMemo", uselist=False, back_populates="meeting", cascade="all, delete-orphan")
     qa_history = relationship("DBQAHistory", back_populates="meeting", cascade="all, delete-orphan")
+    intelligence = relationship("DBMeetingIntelligence", uselist=False, back_populates="meeting", cascade="all, delete-orphan")
+
+class DBMeetingIntelligence(Base):
+    """Stores structured meeting-level intelligence results."""
+    __tablename__ = "meeting_intelligence"
+    meeting_id = Column(String, ForeignKey("meetings.meeting_id", ondelete="CASCADE"), primary_key=True)
+    action_items_json = Column(Text, nullable=True, default="[]")
+    decisions_json = Column(Text, nullable=True, default="[]")
+    risks_json = Column(Text, nullable=True, default="[]")
+    blockers_json = Column(Text, nullable=True, default="[]")
+    followups_json = Column(Text, nullable=True, default="[]")
+    questions_json = Column(Text, nullable=True, default="[]")
+    entities_json = Column(Text, nullable=True, default="{}")
+    topics_json = Column(Text, nullable=True, default="[]")
+    timeline_json = Column(Text, nullable=True, default="{}")
+    analysis_time_s = Column(Float, nullable=True)
+
+    meeting = relationship("DBMeeting", back_populates="intelligence")
 
 class DBTranscriptSegment(Base):
     __tablename__ = "transcripts"
