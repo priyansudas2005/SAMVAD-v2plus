@@ -23,18 +23,33 @@ class TimelineBuilder:
         if not segments:
             return {"phases": [], "speaker_activity": {}, "duration_s": 0.0}
 
+        def to_float(val) -> float:
+            if isinstance(val, (int, float)):
+                return float(val)
+            if isinstance(val, str):
+                parts = val.split(":")
+                try:
+                    if len(parts) == 3:
+                        return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+                    elif len(parts) == 2:
+                        return float(parts[0]) * 60 + float(parts[1])
+                    return float(val)
+                except ValueError:
+                    return 0.0
+            return 0.0
+
         # 1. Calculate meeting duration
-        start_time = min(float(seg.get("start_seconds", seg.get("start", 0.0))) for seg in segments)
-        end_time = max(float(seg.get("end_seconds", seg.get("end", 0.0))) for seg in segments)
-        duration = end_time - start_time
+        start_time = min(to_float(seg.get("start_seconds") if seg.get("start_seconds") is not None else seg.get("start", 0.0)) for seg in segments)
+        end_time = max(to_float(seg.get("end_seconds") if seg.get("end_seconds") is not None else seg.get("end", 0.0)) for seg in segments)
+        duration = max(0.0, end_time - start_time)
 
         # 2. Build speaker activity map
         speaker_activity = {}
         for seg in segments:
             speaker = seg.get("speaker_label", "UNKNOWN")
-            seg_start = float(seg.get("start_seconds", seg.get("start", 0.0)))
-            seg_end = float(seg.get("end_seconds", seg.get("end", 0.0)))
-            seg_duration = seg_end - seg_start
+            seg_start = to_float(seg.get("start_seconds") if seg.get("start_seconds") is not None else seg.get("start", 0.0))
+            seg_end = to_float(seg.get("end_seconds") if seg.get("end_seconds") is not None else seg.get("end", 0.0))
+            seg_duration = max(0.0, seg_end - seg_start)
             if speaker not in speaker_activity:
                 speaker_activity[speaker] = {"total_duration_s": 0.0, "segment_count": 0}
             speaker_activity[speaker]["total_duration_s"] += seg_duration
@@ -52,7 +67,7 @@ class TimelineBuilder:
             # Segments within this phase window
             phase_segments = [
                 s for s in segments
-                if float(s.get("start_seconds", s.get("start", 0.0))) >= phase_start and float(s.get("start_seconds", s.get("start", 0.0))) < phase_end
+                if to_float(s.get("start_seconds") if s.get("start_seconds") is not None else s.get("start", 0.0)) >= phase_start and to_float(s.get("start_seconds") if s.get("start_seconds") is not None else s.get("start", 0.0)) < phase_end
             ]
             if not phase_segments:
                 continue
