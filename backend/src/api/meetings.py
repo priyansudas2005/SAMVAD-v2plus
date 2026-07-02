@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from src.services.database.db import get_db, DBMeeting, DBTranscriptSegment, DBMemo, DBQAHistory
-from src.models.schemas import MeetingResponse, ProcessRequest, MeetingTitleUpdate
+from src.models.schemas import MeetingResponse, ProcessRequest, MeetingTitleUpdate, TranscriptSegmentUpdate
 from src.services.audio.processor import AudioProcessor
 from src.services.transcription import FasterWhisperSTT
 from src.services.summary.generator import MemoGenerator
@@ -34,7 +34,9 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "start_seconds": s.start_seconds,
             "end_seconds": s.end_seconds,
             "text": s.text,
-            "words": json.loads(s.words_json) if s.words_json else []
+            "words": json.loads(s.words_json) if s.words_json else [],
+            "speaker_label": s.speaker_label,
+            "speaker_confidence": s.speaker_confidence
         })
         
     memo_data = None
@@ -445,3 +447,135 @@ def export_meetings_batch(payload: dict, db: Session = Depends(get_db)):
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment; filename=samvad_batch_export.zip"}
     )
+
+@router.patch("/{meeting_id}/transcript/{segment_id}", response_model=MeetingResponse)
+async def update_transcript_segment(
+    meeting_id: str,
+    segment_id: int,
+    payload: TranscriptSegmentUpdate,
+    db: Session = Depends(get_db)
+):
+    from src.services.database.db import DBTranscriptSegment
+    m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+    if not m:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+        
+    seg = db.query(DBTranscriptSegment).filter(
+        DBTranscriptSegment.meeting_id == meeting_id,
+        DBTranscriptSegment.id == segment_id
+    ).first()
+    if not seg:
+        raise HTTPException(status_code=404, detail="Transcript segment not found")
+        
+    # Update text and speaker
+    seg.text = payload.text
+    if payload.speaker_label:
+        seg.speaker_label = payload.speaker_label
+        
+    # Pack edited flags in metadata
+    meta = json.loads(seg.metadata_json or "{}")
+    meta["is_edited"] = True
+    meta["edit_timestamp"] = datetime.now().isoformat()
+    seg.metadata_json = json.dumps(meta)
+    
+    db.commit()
+    
+    # Trigger downstream regenerations synchronously
+    db.refresh(m)
+    await regenerate_downstream_assets(m, db)
+    
+    db.refresh(m)
+    return serialize_meeting(m)
+
+@router.post("/{meeting_id}/regenerate", response_model=MeetingResponse)
+async def force_regenerate_intelligence(meeting_id: str, db: Session = Depends(get_db)):
+    m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+    if not m:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+        
+    await regenerate_downstream_assets(m, db)
+    db.refresh(m)
+    return serialize_meeting(m)
+
+async def regenerate_downstream_assets(m: DBMeeting, db: Session):
+    from src.services.database.db import DBMeetingIntelligence, DBMemo
+    from src.services.intelligence import MeetingAnalyzer
+    
+    meeting_id = m.meeting_id
+    
+    # 1. Rebuild segments list
+    segments = []
+    full_text_list = []
+    for seg in m.transcript:
+        full_text_list.append(seg.text)
+        seg_meta = json.loads(seg.metadata_json or "{}")
+        segments.append({
+            "start": seg.start,
+            "end": seg.end,
+            "start_seconds": seg.start_seconds,
+            "end_seconds": seg.end_seconds,
+            "text": seg.text,
+            "speaker_label": seg.speaker_label,
+            "speaker_confidence": seg.speaker_confidence,
+            "entities": seg_meta.get("entities", []),
+            "action_items": seg_meta.get("action_items", []),
+            "decisions": seg_meta.get("decisions", []),
+            "questions": seg_meta.get("questions", []),
+            "keywords": seg_meta.get("keywords", [])
+        })
+        
+    full_transcript = " ".join(full_text_list)
+    
+    # 2. Regenerate intelligence
+    try:
+        analyzer = MeetingAnalyzer()
+        intel_report = analyzer.analyze(segments, [])
+        
+        db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).delete()
+        db_intel = DBMeetingIntelligence(
+            meeting_id=meeting_id,
+            action_items_json=json.dumps(intel_report.get("action_items", [])),
+            decisions_json=json.dumps(intel_report.get("decisions", [])),
+            risks_json=json.dumps(intel_report.get("risks", [])),
+            blockers_json=json.dumps(intel_report.get("blockers", [])),
+            followups_json=json.dumps(intel_report.get("followups", [])),
+            questions_json=json.dumps(intel_report.get("questions", [])),
+            entities_json=json.dumps(intel_report.get("entities", {})),
+            topics_json=json.dumps(intel_report.get("topics", [])),
+            timeline_json=json.dumps(intel_report.get("timeline", {})),
+            analytics_json=json.dumps(intel_report.get("analytics", {})),
+            knowledge_graph_json=json.dumps(intel_report.get("knowledge_graph", {})),
+            analysis_time_s=intel_report.get("analysis_time_s", 0.0)
+        )
+        db.add(db_intel)
+    except Exception as e:
+        logger.warning(f"Downstream intelligence regeneration failed: {e}")
+        intel_report = {}
+        
+    # 3. Regenerate memo
+    try:
+        memo_generator = MemoGenerator()
+        memo_result = await memo_generator.generate_memo(meeting_id, full_transcript)
+        
+        db.query(DBMemo).filter(DBMemo.meeting_id == meeting_id).delete()
+        db_memo = DBMemo(
+            meeting_id=meeting_id,
+            summary=memo_result.get("summary"),
+            action_items_json=json.dumps(intel_report.get("action_items", memo_result.get("action_items", []))),
+            decisions_json=json.dumps(intel_report.get("decisions", memo_result.get("decisions", []))),
+            key_points_json=json.dumps(memo_result.get("key_points", [])),
+            generated_at=memo_result.get("generated_at"),
+            confidence=memo_result.get("confidence", 1.0)
+        )
+        db.add(db_memo)
+    except Exception as e:
+        logger.warning(f"Downstream summary regeneration failed: {e}")
+        
+    # 4. Reindex for QA QA history
+    try:
+        from src.services.qa.system import index_meeting_transcript
+        index_meeting_transcript(meeting_id, full_transcript, db)
+    except Exception as e:
+        logger.error(f"Downstream reindexing failed: {e}")
+        
+    db.commit()

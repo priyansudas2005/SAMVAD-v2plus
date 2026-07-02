@@ -16,6 +16,8 @@ class TranscriptSegmentSchema(BaseModel):
     end_seconds: Optional[float] = None
     text: str
     words: Optional[List[WordTimestampSchema]] = []
+    speaker_label: Optional[str] = "UNKNOWN"
+    speaker_confidence: Optional[float] = 1.0
 
     class Config:
         from_attributes = True
@@ -98,7 +100,12 @@ class AnalyticsSummarySchema(BaseModel):
     meetings_count: int
     duration_total: float
     words_total: int
-    action_items_total: int
+    avg_duration: float
+    avg_words: float
+    keywords_cloud: List[KeywordStat] = []
     timeline: List[TimelineStat] = []
-    keywords: List[KeywordStat] = []
-    model_distribution: List[ModelStat] = []
+    models_breakdown: List[ModelStat] = []
+
+class TranscriptSegmentUpdate(BaseModel):
+    text: str
+    speaker_label: Optional[str] = None
