@@ -110,6 +110,9 @@ function App() {
     };
   }, [recordingState]);
 
+  // Recording capture source choice ('mic', 'system', 'both')
+  const [captureSource, setCaptureSource] = useState<'mic' | 'system' | 'both'>('mic');
+
   // Global recording controls
   const startRecording = async () => {
     setRecordingError(null);
@@ -117,7 +120,43 @@ function App() {
     setDuration(0);
 
     try {
-      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      let audioStream: MediaStream;
+
+      if (captureSource === 'mic') {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } else if (captureSource === 'system') {
+        const sysStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const audioTracks = sysStream.getAudioTracks();
+        if (audioTracks.length === 0) {
+          sysStream.getTracks().forEach(t => t.stop());
+          throw new Error("No system audio shared. Check the 'Share Audio' option when selecting a tab!");
+        }
+        audioStream = new MediaStream(audioTracks);
+      } else {
+        // Mix microphone and system audio
+        const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const sysStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const sysTracks = sysStream.getAudioTracks();
+        
+        if (sysTracks.length === 0) {
+          micStream.getTracks().forEach(t => t.stop());
+          sysStream.getTracks().forEach(t => t.stop());
+          throw new Error("No system audio shared. Check the 'Share Audio' option when selecting a tab!");
+        }
+
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioContextClass();
+        const dest = ctx.createMediaStreamDestination();
+
+        const micSource = ctx.createMediaStreamSource(micStream);
+        const sysSource = ctx.createMediaStreamSource(new MediaStream(sysTracks));
+
+        micSource.connect(dest);
+        sysSource.connect(dest);
+
+        audioStream = dest.stream;
+      }
+
       setStream(audioStream);
 
       const mediaRecorder = new MediaRecorder(audioStream);
@@ -141,7 +180,7 @@ function App() {
       setActivePage('recorder');
     } catch (err: any) {
       console.error(err);
-      setRecordingError('Microphone access denied. Enable permissions.');
+      setRecordingError(err.message || 'Microphone/System audio access denied.');
       setRecordingState('idle');
     }
   };
@@ -268,6 +307,10 @@ function App() {
         setLanguage={setLanguage}
         vadEnabled={vadEnabled}
         setVadEnabled={setVadEnabled}
+        
+        // Loopback Mixer Capture Source
+        captureSource={captureSource}
+        setCaptureSource={setCaptureSource}
       />
 
       <main className="flex-1 flex flex-col min-w-0 relative">

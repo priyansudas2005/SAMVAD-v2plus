@@ -47,6 +47,10 @@ interface SidebarProps {
   setLanguage: (l: string) => void;
   vadEnabled: boolean;
   setVadEnabled: (v: boolean) => void;
+
+  // Loopback Mixer Capture Source
+  captureSource: 'mic' | 'system' | 'both';
+  setCaptureSource: (s: 'mic' | 'system' | 'both') => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -75,6 +79,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setLanguage,
   vadEnabled,
   setVadEnabled,
+
+  captureSource,
+  setCaptureSource,
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -146,14 +153,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Recording Controls */}
           {recordingState === 'idle' && (
-            <motion.button 
-              onClick={startRecording}
-              whileTap={{ scale: 0.97 }}
-              className="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/10 hover:scale-[1.01]"
-            >
-              <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-              Start Recording
-            </motion.button>
+            <div className="space-y-3">
+              {/* Capture Source Tabs */}
+              <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setCaptureSource('mic')}
+                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
+                    captureSource === 'mic' 
+                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
+                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
+                  }`}
+                >
+                  Mic
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCaptureSource('system')}
+                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
+                    captureSource === 'system' 
+                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
+                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
+                  }`}
+                >
+                  System
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCaptureSource('both')}
+                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
+                    captureSource === 'both' 
+                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
+                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
+                  }`}
+                >
+                  Mix
+                </button>
+              </div>
+
+              <motion.button 
+                onClick={startRecording}
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/10 hover:scale-[1.01]"
+              >
+                <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                Start Recording
+              </motion.button>
+            </div>
           )}
 
           {recordingState === 'recording' && (
