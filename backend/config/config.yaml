@@ -57,7 +57,7 @@ audio_enhancement:
       ratio: 4.0
 
 faster_whisper:
-  model_size: "base" # tiny, base, small, medium, large
+  model_size: "medium" # tiny, base, small, medium, large
   device: "auto" # auto, cuda, cpu
   compute_type: "auto" # auto, float16, int8
   beam_size: 5
