@@ -463,7 +463,7 @@ function App() {
               className="flex-1 flex flex-col min-h-0"
             >
               <Suspense fallback={<TabSkeleton />}>
-                <AnalyticsPage />
+                <AnalyticsPage currentMeeting={currentMeeting} />
               </Suspense>
             </motion.div>
           )}
