@@ -24,15 +24,17 @@ class TimelineBuilder:
             return {"phases": [], "speaker_activity": {}, "duration_s": 0.0}
 
         # 1. Calculate meeting duration
-        start_time = min(seg.get("start", 0.0) for seg in segments)
-        end_time = max(seg.get("end", 0.0) for seg in segments)
+        start_time = min(float(seg.get("start_seconds", seg.get("start", 0.0))) for seg in segments)
+        end_time = max(float(seg.get("end_seconds", seg.get("end", 0.0))) for seg in segments)
         duration = end_time - start_time
 
         # 2. Build speaker activity map
         speaker_activity = {}
         for seg in segments:
             speaker = seg.get("speaker_label", "UNKNOWN")
-            seg_duration = seg.get("end", 0.0) - seg.get("start", 0.0)
+            seg_start = float(seg.get("start_seconds", seg.get("start", 0.0)))
+            seg_end = float(seg.get("end_seconds", seg.get("end", 0.0)))
+            seg_duration = seg_end - seg_start
             if speaker not in speaker_activity:
                 speaker_activity[speaker] = {"total_duration_s": 0.0, "segment_count": 0}
             speaker_activity[speaker]["total_duration_s"] += seg_duration
@@ -50,7 +52,7 @@ class TimelineBuilder:
             # Segments within this phase window
             phase_segments = [
                 s for s in segments
-                if s.get("start", 0.0) >= phase_start and s.get("start", 0.0) < phase_end
+                if float(s.get("start_seconds", s.get("start", 0.0))) >= phase_start and float(s.get("start_seconds", s.get("start", 0.0))) < phase_end
             ]
             if not phase_segments:
                 continue
