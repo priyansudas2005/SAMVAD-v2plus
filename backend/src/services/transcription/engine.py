@@ -49,12 +49,16 @@ class TranscriptionEngine:
         self,
         audio_path: str,
         language: Optional[str] = None,
-        custom_vocabulary: Optional[List[str]] = None
+        custom_vocabulary: Optional[List[str]] = None,
+        vad_filter: Optional[bool] = None
     ) -> Optional[Tuple[List[Dict[str, Any]], str, Any]]:
         """
         Runs full transcription pipeline. Automatically triggers preprocessing
         if the enhanced processed file is missing.
         """
+        if vad_filter is not None:
+            self.config.vad_filter = vad_filter
+            
         try:
             # Phase 3: Enforce preprocessing
             processed_path = audio_path
