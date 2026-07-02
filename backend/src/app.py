@@ -1,5 +1,19 @@
 import os
 import sys
+
+# Limit PyTorch CPU threads to prevent CPU spikes and sudden system restarts/BSODs
+os.environ["OMP_NUM_THREADS"] = "4"
+os.environ["MKL_NUM_THREADS"] = "4"
+os.environ["OPENBLAS_NUM_THREADS"] = "4"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "4"
+os.environ["NUMEXPR_NUM_THREADS"] = "4"
+
+try:
+    import torch
+    torch.set_num_threads(4)
+except ImportError:
+    pass
+
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
