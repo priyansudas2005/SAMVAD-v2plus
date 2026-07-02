@@ -14,6 +14,11 @@ from .analytics import QAAnalytics
 
 logger = get_logger(__name__)
 
+def index_meeting_transcript(meeting_id: str, transcript: str, db):
+    qa_system = MeetingQASystem()
+    chunks = chunk_transcript(transcript)
+    qa_system.retriever.index_transcript(meeting_id, chunks, db)
+
 def chunk_transcript(transcript: str, tokenizer=None) -> List[Dict[str, Any]]:
     config = QAConfig()
     return SentenceAwareChunker.chunk_transcript(
