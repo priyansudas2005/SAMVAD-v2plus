@@ -141,20 +141,28 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
         {hasTranscript && (
           <div className="flex gap-2">
             <a 
+              href={api.getExportUrl(currentMeeting.meeting_id, 'pdf')} 
+              download 
+              className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              PDF
+            </a>
+            <a 
+              href={api.getExportUrl(currentMeeting.meeting_id, 'docx')} 
+              download 
+              className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              DOCX
+            </a>
+            <a 
               href={api.getExportUrl(currentMeeting.meeting_id, 'txt')} 
               download 
               className="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               TXT
-            </a>
-            <a 
-              href={api.getExportUrl(currentMeeting.meeting_id, 'csv')} 
-              download 
-              className="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              CSV
             </a>
             <a 
               href={api.getExportUrl(currentMeeting.meeting_id, 'srt')} 
@@ -285,6 +293,38 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
         ) : (
           /* Active Transcript Viewer Layout */
           <>
+            {/* Speakers Drawer (Speakr Style) */}
+            <div className="px-6 py-4 bg-slate-950/65 border-b border-slate-800/80 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                  Diarized Speakers ({
+                    Array.from(new Set((currentMeeting.transcript || []).map(s => s.speaker_label || 'UNKNOWN'))).length
+                  })
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {Array.from(new Set((currentMeeting.transcript || []).map(s => s.speaker_label || 'UNKNOWN'))).map((spk, idx) => {
+                  const colors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+                  const spkColor = colors[idx % colors.length];
+                  return (
+                    <span 
+                      key={spk} 
+                      className="px-2.5 py-1 text-[10px] font-bold rounded-lg border flex items-center gap-1.5 transition-all cursor-default"
+                      style={{ 
+                        backgroundColor: `${spkColor}0d`, 
+                        borderColor: `${spkColor}2c`, 
+                        color: spkColor 
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: spkColor }} />
+                      {spk}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Search filter bar */}
             <div className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-900/20">
               <div className="relative flex-1">
@@ -314,27 +354,56 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
               <div className="space-y-6">
                 {visibleSegments.map((segment, idx) => {
                   const absoluteIndex = startIndex + idx;
+                  const colors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+                  
+                  // Compute dynamic index based on all unique speaker tags
+                  const allUniqueSpk = Array.from(new Set((currentMeeting.transcript || []).map(s => s.speaker_label || 'UNKNOWN')));
+                  const spkIdx = allUniqueSpk.indexOf(segment.speaker_label || 'UNKNOWN');
+                  const spkColor = colors[spkIdx !== -1 ? spkIdx % colors.length : 0];
+
                   return (
                     <motion.div 
                       key={segment.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(absoluteIndex * 0.03, 0.3) }}
-                      whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                      className="flex gap-4 p-4 rounded-xl hover:bg-slate-900/30 border border-transparent hover:border-slate-800/30 group transition-all"
+                      whileHover={{ y: -1, transition: { duration: 0.1 } }}
+                      className="flex gap-4 p-4 rounded-xl hover:bg-slate-900/20 border border-slate-900/10 hover:border-slate-800/35 transition-all duration-200"
                     >
                       {/* Timestamp indicator */}
                       <div className="flex-shrink-0 flex items-start mt-0.5">
-                        <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10.5px] text-sky-400 font-mono font-semibold">
+                        <span className="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10px] text-sky-400 font-mono font-semibold">
                           {segment.start}
                         </span>
                       </div>
-                      {/* Text panel */}
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-slate-400 mb-1">Speaker {segment.id % 2 === 0 ? 'B' : 'A'}</div>
-                        <p className="text-sm text-slate-200 leading-relaxed font-medium">
-                          {highlightText(segment.text, searchQuery)}
-                        </p>
+                      
+                      {/* Text & Speaker bubble panel (Speakr Style) */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span 
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide"
+                            style={{ 
+                              backgroundColor: `${spkColor}12`, 
+                              color: spkColor 
+                            }}
+                          >
+                            {segment.speaker_label || 'UNKNOWN'}
+                          </span>
+                        </div>
+                        
+                        {/* Segment Text Input (Inline Editor Mode) */}
+                        <EditableSegmentText 
+                          segment={segment} 
+                          meetingId={currentMeeting.meeting_id}
+                          highlightQuery={searchQuery}
+                          highlightText={highlightText}
+                          onUpdated={(newText) => {
+                            const updatedTrans = (currentMeeting.transcript || []).map(s => 
+                              s.id === segment.id ? { ...s, text: newText } : s
+                            );
+                            onUpdateMeeting({ ...currentMeeting, transcript: updatedTrans });
+                          }}
+                        />
                       </div>
                     </motion.div>
                   );
@@ -351,5 +420,85 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
         )}
       </div>
     </div>
+  );
+};
+
+/* Mini Component for Inline Segment Editing with Save & Exit triggers */
+interface EditableSegmentTextProps {
+  segment: any;
+  meetingId: string;
+  highlightQuery: string;
+  highlightText: (t: string, q: string) => React.ReactNode;
+  onUpdated: (t: string) => void;
+}
+
+const EditableSegmentText: React.FC<EditableSegmentTextProps> = ({
+  segment,
+  meetingId,
+  highlightQuery,
+  highlightText,
+  onUpdated
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(segment.text);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (editText.trim() === segment.text.trim()) {
+      setIsEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.updateTranscriptSegment(meetingId, segment.id, {
+        text: editText,
+        speaker_label: segment.speaker_label
+      });
+      onUpdated(editText);
+      setIsEditing(false);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save transcript update.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex flex-col gap-2 mt-1.5">
+        <textarea
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          disabled={saving}
+          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 font-medium focus:outline-none focus:border-sky-400 leading-relaxed min-h-[70px]"
+        />
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => setIsEditing(false)}
+            disabled={saving}
+            className="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-350 text-xs font-semibold rounded-lg transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-3 py-1 bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <p 
+      onClick={() => setIsEditing(true)}
+      className="text-sm text-slate-200 leading-relaxed font-medium mt-1 cursor-text hover:bg-slate-900/40 p-1.5 rounded-lg border border-transparent hover:border-slate-850/50 transition-all"
+    >
+      {highlightText(segment.text, highlightQuery)}
+    </p>
   );
 };

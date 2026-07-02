@@ -14,6 +14,8 @@ export interface TranscriptSegment {
   end_seconds: number;
   text: string;
   words?: WordTimestamp[];
+  speaker_label?: string;
+  speaker_confidence?: number;
 }
 
 export interface Memo {

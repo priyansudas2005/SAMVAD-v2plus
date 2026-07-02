@@ -107,5 +107,15 @@ export const api = {
   // Export URIs
   getExportUrl(id: string, format: string): string {
     return `${API_BASE}/meetings/${id}/export/${format}`;
+  },
+
+  async updateTranscriptSegment(meetingId: string, segmentId: number, payload: { text: string; speaker_label?: string }): Promise<Meeting> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/transcript/${segmentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to update segment');
+    return res.json();
   }
 };
