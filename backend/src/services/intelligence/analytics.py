@@ -41,9 +41,26 @@ class MeetingAnalytics:
         interruptions = 0
         topic_changes = len(timeline.get("phases", []))
 
+        def to_float(val) -> float:
+            if isinstance(val, (int, float)):
+                return float(val)
+            if isinstance(val, str):
+                parts = val.split(":")
+                try:
+                    if len(parts) == 3:
+                        return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+                    elif len(parts) == 2:
+                        return float(parts[0]) * 60 + float(parts[1])
+                    return float(val)
+                except ValueError:
+                    return 0.0
+            return 0.0
+
         for idx, seg in enumerate(segments):
             speaker = seg.get("speaker_label", "UNKNOWN")
-            seg_dur = seg.get("end", 0.0) - seg.get("start", 0.0)
+            seg_start = to_float(seg.get("start_seconds") if seg.get("start_seconds") is not None else seg.get("start", 0.0))
+            seg_end = to_float(seg.get("end_seconds") if seg.get("end_seconds") is not None else seg.get("end", 0.0))
+            seg_dur = max(0.0, seg_end - seg_start)
 
             # Turn-taking dynamics
             if speaker != current_speaker:

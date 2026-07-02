@@ -46,10 +46,31 @@ class TopicModeler:
             dominant_speaker = Counter(speakers).most_common(1)[0][0] if speakers else "UNKNOWN"
 
             # Calculate duration and timeline
-            start_time = min(s.get("start", 0.0) for s in topic_segs)
-            end_time = max(s.get("end", 0.0) for s in topic_segs)
-            duration = end_time - start_time
-            timeline = [(s.get("start", 0.0), s.get("end", 0.0)) for s in topic_segs]
+            def to_float(val) -> float:
+                if isinstance(val, (int, float)):
+                    return float(val)
+                if isinstance(val, str):
+                    parts = val.split(":")
+                    try:
+                        if len(parts) == 3:
+                            return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+                        elif len(parts) == 2:
+                            return float(parts[0]) * 60 + float(parts[1])
+                        return float(val)
+                    except ValueError:
+                        return 0.0
+                return 0.0
+
+            start_time = min(to_float(s.get("start_seconds") if s.get("start_seconds") is not None else s.get("start", 0.0)) for s in topic_segs)
+            end_time = max(to_float(s.get("end_seconds") if s.get("end_seconds") is not None else s.get("end", 0.0)) for s in topic_segs)
+            duration = max(0.0, end_time - start_time)
+            timeline = [
+                (
+                    to_float(s.get("start_seconds") if s.get("start_seconds") is not None else s.get("start", 0.0)),
+                    to_float(s.get("end_seconds") if s.get("end_seconds") is not None else s.get("end", 0.0))
+                )
+                for s in topic_segs
+            ]
 
             topic_item = {
                 "topic": word.title(),
