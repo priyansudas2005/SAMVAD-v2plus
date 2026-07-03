@@ -2,6 +2,7 @@
 engine.py
 Offline Speaker Diarization Subsystem Orchestrator.
 Segments audio, extracts vectors, clusters speakers, and aligns to Whisper transcripts.
+Now uses clustering confidence scores and configurable overlap thresholds.
 """
 import time
 import soundfile as sf
@@ -29,7 +30,9 @@ class DiarizationEngine:
     
     def __init__(self):
         self.config = DiarizationConfig()
-        self.segmenter = SpeechSegmenter()
+        self.segmenter = SpeechSegmenter(
+            min_speech_duration_s=self.config.min_speech_duration_s
+        )
         self.extractor = SpeakerEmbeddingExtractor(self.config)
         self.clustering = SpeakerClustering(self.config)
         self.identifier = SpeakerIdentifier(self.config)
@@ -81,12 +84,12 @@ class DiarizationEngine:
                 logger.warning("No valid speaker embeddings extracted.")
                 return transcript_segments
 
-            # 3. Cluster embeddings
+            # 3. Cluster embeddings with confidence scores
             start_cls = time.time()
-            labels = self.clustering.cluster(embeddings)
+            labels, confidences = self.clustering.cluster_with_confidence(embeddings)
             cls_elapsed = time.time() - start_cls
 
-            # 4. Refine centroids & Identify enrolled names (Phases 5 & 8)
+            # 4. Refine centroids & Identify enrolled names
             centroids = SpeakerTracker.calculate_centroids(embeddings, labels)
             speaker_name_map = {}
             
@@ -99,7 +102,7 @@ class DiarizationEngine:
                 else:
                     speaker_name_map[label] = f"SPEAKER_{label:02d}"
 
-            # 5. Build timeline
+            # 5. Build timeline with per-segment confidence from clustering
             timeline = []
             for i, reg in enumerate(valid_regions):
                 label = labels[i]
@@ -107,19 +110,34 @@ class DiarizationEngine:
                     "start": reg["start"],
                     "end": reg["end"],
                     "speaker_label": speaker_name_map[label],
-                    "confidence": 1.0  # fallback confidence
+                    "confidence": confidences[i] if i < len(confidences) else 0.5
                 })
 
-            # 6. Flag Overlapping speech intervals (Phase 9)
+            # 6. Flag Overlapping speech intervals
             timeline = OverlapDetector.detect_overlaps(timeline)
 
-            # 7. Map/Align to transcript segments (Phase 6)
-            aligned_segments = TranscriptAligner.align(transcript_segments, timeline)
+            # 7. Map/Align to transcript segments with configurable threshold
+            aligned_segments = TranscriptAligner.align(
+                transcript_segments,
+                timeline,
+                min_overlap_ratio=self.config.min_overlap_ratio
+            )
 
             total_elapsed = time.time() - start_total
             num_speakers = len(set(labels))
+            
+            # Log per-speaker statistics
+            speaker_stats = {}
+            for seg in aligned_segments:
+                spk = seg.get("speaker_label", "UNKNOWN")
+                if spk not in speaker_stats:
+                    speaker_stats[spk] = {"segments": 0, "words": 0}
+                speaker_stats[spk]["segments"] += 1
+                speaker_stats[spk]["words"] += len(seg.get("text", "").split())
+            for spk, stats in sorted(speaker_stats.items()):
+                logger.info(f"Speaker {spk}: {stats['segments']} segments, {stats['words']} words")
 
-            # Save diarization performance benchmark (Phase 12)
+            # Save diarization performance benchmark
             DiarizationBenchmarker.generate_report(
                 wav_path=audio_path,
                 total_time=total_elapsed,

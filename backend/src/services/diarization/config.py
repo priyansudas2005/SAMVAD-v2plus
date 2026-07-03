@@ -23,6 +23,12 @@ class DiarizationConfig:
         self.similarity_threshold: float = float(diar.get("similarity_threshold", 0.7))
         self.embedding_model: str = diar.get("embedding_model", "speechbrain")
         
+        # Alignment parameters
+        self.min_overlap_ratio: float = float(diar.get("min_overlap_ratio", 0.2))
+        
+        # VAD parameters
+        self.min_speech_duration_s: float = float(diar.get("min_speech_duration_s", 0.5))
+        
         # Paths
         self.models_dir: Path = Path(paths.get("models_dir", "models")) / "diarization"
         self.output_dir: Path = Path(paths.get("recordings_dir", "data/recordings"))
