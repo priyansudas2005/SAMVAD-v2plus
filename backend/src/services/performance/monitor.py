@@ -3,7 +3,6 @@ monitor.py
 Intelligent resource and health monitor for SAMVAD V2.0.
 Provides real-time system performance telemetry.
 """
-import psutil
 import os
 from typing import Dict, Any
 
@@ -19,7 +18,7 @@ class ResourceMonitor:
         """
         Gathers system memory, cpu loads, active models, and disk sizes.
         """
-        process = psutil.Process(os.getpid())
+        import psutil; process = psutil.Process(os.getpid())
         ram_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         # Basic SQLite size estimation

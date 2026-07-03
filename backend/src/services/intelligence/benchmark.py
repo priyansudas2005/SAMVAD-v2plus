@@ -4,8 +4,6 @@ Performance benchmarks for SAMVAD V2.0 Meeting Intelligence Engine.
 """
 import time
 import json
-import psutil
-import os
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -27,7 +25,7 @@ class MeetingIntelligenceBenchmarker:
         elapsed = time.time() - start_time
         
         # Get memory utilization
-        process = psutil.Process(os.getpid())
+        import psutil; process = psutil.Process(os.getpid())
         memory_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         benchmark_data = {

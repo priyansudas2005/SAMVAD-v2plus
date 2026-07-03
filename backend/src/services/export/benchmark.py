@@ -4,7 +4,6 @@ Performance benchmarks for SAMVAD V2.0 Document Export Engine.
 """
 import time
 import json
-import psutil
 import os
 from pathlib import Path
 from typing import Dict, Any
@@ -27,7 +26,7 @@ class ExportIntelligenceBenchmarker:
         elapsed = time.time() - start_time
         
         # Get memory stats
-        process = psutil.Process(os.getpid())
+        import psutil; process = psutil.Process(os.getpid())
         memory_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         benchmark_data = {

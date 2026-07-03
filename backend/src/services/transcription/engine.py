@@ -5,7 +5,6 @@ Validates input, runs preprocessors if needed, transcribes, post-processes, and 
 """
 import time
 import os
-import psutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 

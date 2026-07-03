@@ -4,9 +4,9 @@ Production-grade system profiling for SAMVAD V2.0.
 Tracks latencies, cache ratios, memory limits, and dumps reports.
 """
 import time
-import json
-import psutil
 import os
+import json
+import threading
 from pathlib import Path
 from typing import Dict, Any
 
@@ -30,7 +30,7 @@ class PerformanceProfiler:
 
     def build_report(self, meeting_id: str) -> Dict[str, Any]:
         """Assembles a performance profiling report."""
-        process = psutil.Process(os.getpid())
+        import psutil; process = psutil.Process(os.getpid())
         ram_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         report = {
