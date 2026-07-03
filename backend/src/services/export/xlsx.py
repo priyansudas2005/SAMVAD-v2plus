@@ -5,7 +5,6 @@ Creates separate worksheets for Transcript, Action Items, Decisions,
 Risks, Follow-ups, Questions, Entities, Topics, and Analytics.
 """
 import io
-import pandas as pd
 from typing import Dict, Any
 from .base import BaseExporter, get_export_config
 
@@ -14,6 +13,7 @@ class XlsxExporter(BaseExporter):
     def export(self, meeting_title: str, date_str: str, segments: list,
                memo: Dict[str, Any] = None,
                intelligence: Dict[str, Any] = None) -> bytes:
+        import pandas as pd
         cfg = get_export_config()
         sheets = {}
 
