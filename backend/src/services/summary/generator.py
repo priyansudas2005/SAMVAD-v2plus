@@ -142,6 +142,10 @@ class MemoGenerator:
                 self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
                 if self.device == "cuda":
                     self.model = self.model.to("cuda")
+                # Detect mock objects (CI environment) — return value must decode to actual str
+                test_decode = self.tokenizer.decode([0], skip_special_tokens=True)
+                if not isinstance(test_decode, str):
+                    raise RuntimeError("Model returned non-string (mock detected)")
                 self.model_loaded = True
                 logger.info("Summarization model loaded successfully.")
             except Exception as e:
