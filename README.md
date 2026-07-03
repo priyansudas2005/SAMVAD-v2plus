@@ -46,7 +46,7 @@ Ensure [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https:
 
 1. **Clone & Navigate** to the folder:
    ```bash
-   cd C:\Users\priya\.gemini\antigravity\scratch\SAMVADv2
+   cd F:\Projects\SAMVADv2
    ```
 
 2. **Boot the Application**:

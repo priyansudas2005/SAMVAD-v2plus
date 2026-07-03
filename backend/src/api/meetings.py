@@ -43,12 +43,12 @@ def serialize_meeting(m: DBMeeting) -> dict:
     if m.memo:
         memo_data = {
             "meeting_id": m.memo.meeting_id,
-            "summary": m.memo.summary,
+            "summary": m.memo.summary or "",
             "action_items": json.loads(m.memo.action_items_json) if m.memo.action_items_json else [],
             "decisions": json.loads(m.memo.decisions_json) if m.memo.decisions_json else [],
             "key_points": json.loads(m.memo.key_points_json) if m.memo.key_points_json else [],
-            "generated_at": m.memo.generated_at,
-            "confidence": m.memo.confidence
+            "generated_at": m.memo.generated_at or "",
+            "confidence": m.memo.confidence or 1.0
         }
         
     qa_history = []
@@ -285,7 +285,7 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
 
         # 7. Generate structured summary / minutes
         memo_generator = MemoGenerator()
-        memo_result = await memo_generator.generate_memo(meeting_id, full_transcript)
+        memo_result = await memo_generator.generate_memo(meeting_id, full_transcript, intelligence=intel_report)
         
         # Store memo
         db.query(DBMemo).filter(DBMemo.meeting_id == meeting_id).delete()
@@ -555,7 +555,7 @@ async def regenerate_downstream_assets(m: DBMeeting, db: Session):
     # 3. Regenerate memo
     try:
         memo_generator = MemoGenerator()
-        memo_result = await memo_generator.generate_memo(meeting_id, full_transcript)
+        memo_result = await memo_generator.generate_memo(meeting_id, full_transcript, intelligence=intel_report)
         
         db.query(DBMemo).filter(DBMemo.meeting_id == meeting_id).delete()
         db_memo = DBMemo(

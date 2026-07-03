@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 # ── 3. Detect CI environment ────────────────────────────────────────────────────
-# If torch is not importable, we are in CI — install lightweight mocks.
+# If torch is not importable, we are in CI — install heavyweight mocks.
 def _is_torch_available() -> bool:
     try:
         import importlib

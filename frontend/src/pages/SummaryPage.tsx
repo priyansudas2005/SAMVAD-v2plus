@@ -49,14 +49,26 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting }) => {
           <h1 className="text-2xl font-extrabold text-white tracking-tight">Meeting Intelligence & Memo</h1>
           <p className="text-slate-400 text-sm mt-1">Structured minutes, task assignments, and strategic conclusions.</p>
         </div>
-        <div className="flex gap-2">
-          <a 
-            href={api.getExportUrl(currentMeeting.meeting_id, 'md')} 
-            download
-            className="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Markdown
+        <div className="flex gap-2 flex-wrap">
+          <a href={api.getExportUrl(currentMeeting.meeting_id, 'pdf')} download
+             className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> PDF
+          </a>
+          <a href={api.getExportUrl(currentMeeting.meeting_id, 'html')} download
+             className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> HTML
+          </a>
+          <a href={api.getExportUrl(currentMeeting.meeting_id, 'docx')} download
+             className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> DOCX
+          </a>
+          <a href={api.getExportUrl(currentMeeting.meeting_id, 'csv')} download
+             className="px-4 py-2 bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 text-green-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> CSV
+          </a>
+          <a href={api.getExportUrl(currentMeeting.meeting_id, 'md')} download
+             className="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> Markdown
           </a>
         </div>
       </div>

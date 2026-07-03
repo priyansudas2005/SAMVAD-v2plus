@@ -24,12 +24,12 @@ class TranscriptSegmentSchema(BaseModel):
 
 class MemoSchema(BaseModel):
     meeting_id: str
-    summary: Optional[str] = None
+    summary: str = ""
     action_items: List[str] = []
     decisions: List[str] = []
     key_points: List[str] = []
-    generated_at: Optional[str] = None
-    confidence: Optional[float] = 1.0
+    generated_at: str = ""
+    confidence: float = 1.0
 
     class Config:
         from_attributes = True
@@ -100,11 +100,10 @@ class AnalyticsSummarySchema(BaseModel):
     meetings_count: int
     duration_total: float
     words_total: int
-    avg_duration: float
-    avg_words: float
-    keywords_cloud: List[KeywordStat] = []
+    action_items_total: int = 0
     timeline: List[TimelineStat] = []
-    models_breakdown: List[ModelStat] = []
+    keywords: List[KeywordStat] = []
+    model_distribution: List[ModelStat] = []
 
 class TranscriptSegmentUpdate(BaseModel):
     text: str

@@ -1,0 +1,46 @@
+{
+  "accuracy": 72.72727272727273,
+  "avg_latency_ms": 538.8987151059238,
+  "median_latency_ms": 402.1192789077759,
+  "p95_latency_ms": 645.1206684112549,
+  "p99_latency_ms": 661.6420888900757,
+  "max_latency_ms": 6560.935497283936,
+  "scale_metrics": {
+    "10m": {
+      "chunks_count": 1,
+      "chunking_ms": 3.9412975311279297,
+      "indexing_ms": 5927.54602432251,
+      "text_length": 1000
+    },
+    "1h": {
+      "chunks_count": 6,
+      "chunking_ms": 4.895210266113281,
+      "indexing_ms": 160.25900840759277,
+      "text_length": 10000
+    },
+    "3h": {
+      "chunks_count": 22,
+      "chunking_ms": 5.166769027709961,
+      "indexing_ms": 503.66973876953125,
+      "text_length": 40000
+    }
+  },
+  "database": {
+    "tables": [
+      "meetings",
+      "transcripts",
+      "sqlite_sequence",
+      "memos",
+      "qa_history",
+      "settings",
+      "transcript_embeddings"
+    ],
+    "indexes_count": 3,
+    "fk_violations_count": 120,
+    "orphan_segments": 0,
+    "orphan_embeddings": 28
+  },
+  "security": {
+    "safety_ratio": 1.0
+  }
+}

@@ -31,7 +31,8 @@ class DiarizationEngine:
     def __init__(self):
         self.config = DiarizationConfig()
         self.segmenter = SpeechSegmenter(
-            min_speech_duration_s=self.config.min_speech_duration_s
+            min_speech_duration_s=self.config.min_speech_duration_s,
+            max_segment_duration_s=self.config.max_segment_duration_s
         )
         self.extractor = SpeakerEmbeddingExtractor(self.config)
         self.clustering = SpeakerClustering(self.config)

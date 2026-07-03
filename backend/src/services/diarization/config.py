@@ -29,6 +29,12 @@ class DiarizationConfig:
         # VAD parameters
         self.min_speech_duration_s: float = float(diar.get("min_speech_duration_s", 0.5))
         
+        # Maximum duration for a single diarization segment (seconds).
+        # Longer VAD regions are split into chunks of this size so that
+        # the embedding extractor and clustering get more data points,
+        # enabling detection of more speakers.
+        self.max_segment_duration_s: float = float(diar.get("max_segment_duration_s", 4.0))
+        
         # Paths
         self.models_dir: Path = Path(paths.get("models_dir", "models")) / "diarization"
         self.output_dir: Path = Path(paths.get("recordings_dir", "data/recordings"))

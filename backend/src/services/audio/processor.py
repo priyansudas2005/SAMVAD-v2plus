@@ -7,7 +7,6 @@ import os
 import time
 import numpy as np
 import soundfile as sf
-import psutil
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
@@ -135,6 +134,7 @@ class AudioProcessor:
 
             # Record baseline metrics
             snr_before = self.benchmarker.compute_snr(audio)
+            import psutil
             process = psutil.Process()
             cpu_before = process.cpu_percent()
             ram_before = process.memory_info().rss / (1024 * 1024)

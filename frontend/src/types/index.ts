@@ -57,6 +57,7 @@ export interface SystemSettings {
   vad_enabled: boolean;
   ollama_url?: string;
   db_path?: string;
+  native_audio_available?: boolean;
 }
 
 export interface AnalyticsSummary {

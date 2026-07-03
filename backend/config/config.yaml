@@ -75,6 +75,17 @@ database:
   name: "transcripts.db"
   max_connections: 10
 
+diarization:
+  enabled: true
+  min_speakers: 2
+  max_speakers: 8
+  clustering_threshold: 0.4
+  similarity_threshold: 0.7
+  min_overlap_ratio: 0.2
+  min_speech_duration_s: 0.5
+  max_segment_duration_s: 4.0
+  embedding_model: "speechbrain"
+
 memo:
   summary_max_length: 150
   summary_min_length: 50
@@ -160,12 +171,88 @@ export:
   include_analytics: true
   include_timeline: true
   include_confidence: true
+  include_processing_pipeline: true
   theme: "corporate"
   page_size: "A4"
   orientation: "portrait"
   font_family: "Helvetica"
+  logo_path: ""
   company_name: "SAMVAD Enterprise"
+  watermark: ""
   template: "Standard Meeting"
+  templates:
+    Standard Meeting:
+      title_page: true
+      section_order: ["summary", "intelligence", "analytics", "transcript"]
+      include_metadata: true
+      branding: true
+      header_footer: true
+      page_numbers: true
+      table_of_contents: true
+      include_analytics: true
+    Executive Summary:
+      title_page: true
+      section_order: ["summary", "analytics", "intelligence"]
+      include_metadata: true
+      branding: true
+      header_footer: true
+      page_numbers: true
+      table_of_contents: false
+      include_analytics: true
+    Technical Meeting:
+      title_page: true
+      section_order: ["summary", "transcript", "intelligence", "analytics"]
+      include_metadata: true
+      branding: true
+      header_footer: true
+      page_numbers: true
+      table_of_contents: true
+      include_analytics: true
+    Research Meeting:
+      title_page: true
+      section_order: ["summary", "transcript", "analytics", "intelligence"]
+      include_metadata: true
+      branding: false
+      header_footer: true
+      page_numbers: true
+      table_of_contents: true
+      include_analytics: true
+    Government Meeting:
+      title_page: true
+      section_order: ["summary", "intelligence", "analytics", "transcript"]
+      include_metadata: true
+      branding: false
+      header_footer: true
+      page_numbers: true
+      table_of_contents: true
+      include_analytics: true
+    Client Meeting:
+      title_page: true
+      section_order: ["summary", "intelligence", "analytics", "transcript"]
+      include_metadata: true
+      branding: true
+      header_footer: true
+      page_numbers: true
+      table_of_contents: true
+      include_analytics: true
+    Interview:
+      title_page: true
+      section_order: ["transcript", "summary"]
+      include_metadata: true
+      branding: false
+      header_footer: true
+      page_numbers: true
+      table_of_contents: false
+      include_analytics: false
+    Custom Template:
+      title_page: true
+      section_order: ["summary", "intelligence", "analytics", "transcript", "appendix"]
+      include_metadata: true
+      branding: true
+      header_footer: true
+      page_numbers: true
+      table_of_contents: true
+      include_analytics: true
 
 performance:
   lazy_loading: true

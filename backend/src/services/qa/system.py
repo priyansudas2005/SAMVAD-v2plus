@@ -15,9 +15,10 @@ from .analytics import QAAnalytics
 logger = get_logger(__name__)
 
 def index_meeting_transcript(meeting_id: str, transcript: str, db):
-    qa_system = MeetingQASystem()
+    config = QAConfig()
+    retriever = SemanticRetriever(config=config)
     chunks = chunk_transcript(transcript)
-    qa_system.retriever.index_transcript(meeting_id, chunks, db)
+    retriever.index_transcript(meeting_id, chunks, db)
 
 def chunk_transcript(transcript: str, tokenizer=None) -> List[Dict[str, Any]]:
     config = QAConfig()
@@ -92,7 +93,7 @@ class QuestionAnswering:
                 data=json.dumps(payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=2.0) as response:
+            with urllib.request.urlopen(req, timeout=30.0) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 ans = res_data.get("response", "").strip()
                 if ans:

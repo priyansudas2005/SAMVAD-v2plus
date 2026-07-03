@@ -1,181 +1,207 @@
 """
 pdf.py
-Print-ready HTML/PDF exporter for SAMVAD V2.0.
-Generates an HTML file styled specifically for enterprise PDF printing and layout.
+Enterprise-grade print-ready HTML/PDF exporter for SAMVAD V2.0.
+Generates a full-featured HTML document styled for professional PDF output.
 """
 import uuid
 from typing import Dict, Any
-from .base import BaseExporter
-from src.utils.config import load_config
+from .base import BaseExporter, get_export_config, get_template, build_export_metadata, pick_speaker_color
 
 class PdfExporter(BaseExporter):
-    """
-    Exports meeting details into a print-ready HTML template configured for PDF conversion.
-    Includes a cover page, table of contents, action/decision tables, and analytics.
-    """
 
-    def export(self, meeting_title: str, date_str: str, segments: list, memo: Dict[str, Any] = None, intelligence: Dict[str, Any] = None) -> bytes:
-        cfg = load_config()
-        exp_cfg = cfg.get("export", {})
-        
-        company = exp_cfg.get("company_name", "SAMVAD Enterprise")
-        theme = exp_cfg.get("theme", "corporate")
-        font_family = exp_cfg.get("font_family", "Helvetica")
-        template = exp_cfg.get("template", "Standard Meeting")
+    def export(self, meeting_title: str, date_str: str, segments: list,
+               memo: Dict[str, Any] = None,
+               intelligence: Dict[str, Any] = None) -> bytes:
+        cfg = get_export_config()
+        template_cfg = get_template(cfg.get("template", "Standard Meeting"))
+        meta = build_export_metadata(meeting_title, date_str)
 
-        # Color schemes based on theme config
+        company = cfg.get("company_name", "SAMVAD Enterprise")
+        theme = cfg.get("theme", "corporate")
+        font_family = cfg.get("font_family", "Helvetica")
+        page_size = cfg.get("page_size", "A4")
+        orientation = cfg.get("orientation", "portrait")
+        logo_path = cfg.get("logo_path", "")
+
         primary_color = "#1e3a8a" if theme == "corporate" else "#0f172a"
         secondary_color = "#0d9488" if theme == "corporate" else "#475569"
+        accent = "#3b82f6"
+
+        section_order = template_cfg.get("section_order", ["summary", "intelligence", "analytics", "transcript"])
 
         html = []
-        html.append("<!DOCTYPE html>")
-        html.append("<html>")
-        html.append("<head>")
-        html.append("<meta charset='utf-8'>")
+        html.append("<!DOCTYPE html><html><head><meta charset='utf-8'>")
         html.append(f"<title>{meeting_title} - Report</title>")
         html.append("<style>")
-        html.append(f"body {{ font-family: '{font_family}', Arial, sans-serif; line-height: 1.6; color: #333333; margin: 0; padding: 0; }}")
-        
-        # Page layout styling
-        html.append(".page { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px; box-sizing: border-box; }")
+        html.append(f"@page {{ size: {page_size} {orientation}; margin: 2.5cm 2cm; }}")
+        html.append(f"body {{ font-family: '{font_family}', Arial, Helvetica, sans-serif; line-height: 1.7; color: #1e293b; margin: 0; padding: 0; background: #fff; }}")
+        html.append(".page { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px 40px; box-sizing: border-box; }")
         html.append(".page-break { page-break-before: always; }")
-        
-        # Cover page styling
-        html.append(f".cover {{ height: 100vh; display: flex; flex-direction: column; justify-content: space-between; border-left: 8px solid {primary_color}; padding-left: 40px; box-sizing: border-box; }}")
-        html.append(".cover-header { margin-top: 100px; }")
-        html.append(f".cover-title {{ font-size: 36px; font-weight: bold; color: {primary_color}; margin: 10px 0; }}")
-        html.append(f".cover-subtitle {{ font-size: 20px; color: {secondary_color}; }}")
-        html.append(".cover-meta { margin-bottom: 100px; font-size: 14px; color: #64748b; }")
-        
-        # Standard headings
-        html.append(f"h1 {{ color: {primary_color}; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-top: 40px; page-break-after: avoid; }}")
-        html.append(f"h2 {{ color: {secondary_color}; margin-top: 25px; page-break-after: avoid; }}")
-        html.append("table { width: 100%; border-collapse: collapse; margin-top: 15px; page-break-inside: avoid; }")
-        html.append("th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }")
-        html.append("th { background-color: #f8fafc; color: #1e293b; }")
-        
-        # Segment and speaker styling
-        html.append(".segment { margin-bottom: 12px; page-break-inside: avoid; }")
-        html.append(".timestamp { font-weight: bold; color: #64748b; }")
-        html.append(".speaker { font-weight: bold; color: #0f766e; }")
-        
-        # Badge colors
-        html.append(".badge-high { background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }")
-        html.append(".badge-med { background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }")
-        html.append(".badge-low { background-color: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }")
-        
-        html.append("</style>")
-        html.append("</head>")
-        html.append("<body>")
 
-        # ==========================================
-        # COVER PAGE
-        # ==========================================
-        html.append("<div class='page cover'>")
-        html.append("  <div class='cover-header'>")
-        html.append(f"    <div class='cover-subtitle'>{company}</div>")
-        html.append(f"    <div class='cover-title'>{meeting_title}</div>")
-        html.append(f"    <p>Template: {template} | Status: Confidential</p>")
-        html.append("  </div>")
-        html.append("  <div class='cover-meta'>")
-        html.append(f"    <p><strong>Date:</strong> {date_str}</p>")
-        html.append(f"    <p><strong>Export UUID:</strong> {uuid.uuid4()}</p>")
-        html.append("    <p><strong>Software:</strong> SAMVAD V2.0 (Offline Verification Approved)</p>")
-        html.append("  </div>")
-        html.append("</div>")
+        # Cover
+        html.append(f".cover {{ min-height: 90vh; display: flex; flex-direction: column; justify-content: center; border-left: 8px solid {primary_color}; padding: 40px; }}")
+        html.append(f".cover-title {{ font-size: 40px; font-weight: 800; color: {primary_color}; margin: 10px 0; line-height: 1.2; }}")
+        html.append(f".cover-subtitle {{ font-size: 22px; color: {secondary_color}; font-weight: 400; }}")
+        html.append(".cover-meta { margin-top: 40px; font-size: 13px; color: #64748b; }")
+        html.append(".cover-meta p { margin: 4px 0; }")
 
-        # ==========================================
-        # TABLE OF CONTENTS
-        # ==========================================
-        html.append("<div class='page page-break'>")
-        html.append("  <h1>Table of Contents</h1>")
-        html.append("  <ul>")
-        if memo:
-            html.append("    <li><a href='#summary'>1. Executive Summary</a></li>")
-        if intelligence:
-            html.append("    <li><a href='#intelligence'>2. Meeting Intelligence</a></li>")
-            html.append("    <li><a href='#analytics'>3. Meeting Analytics</a></li>")
-        html.append("    <li><a href='#transcript'>4. Detailed Transcript</a></li>")
-        html.append("  </ul>")
-        html.append("</div>")
+        # Typography
+        html.append(f"h1 {{ color: {primary_color}; border-bottom: 3px solid {accent}; padding-bottom: 10px; margin-top: 40px; font-size: 26px; page-break-after: avoid; }}")
+        html.append(f"h2 {{ color: {secondary_color}; margin-top: 28px; font-size: 20px; page-break-after: avoid; }}")
+        html.append(f"h3 {{ color: #334155; margin-top: 20px; font-size: 16px; }}")
+        html.append("p { margin: 8px 0 16px 0; }")
 
-        # ==========================================
-        # EXECUTIVE SUMMARY
-        # ==========================================
-        if memo:
-            html.append("<div class='page page-break' id='summary'>")
-            html.append("  <h1>1. Executive Summary</h1>")
-            html.append(f"  <p>{memo.get('summary', 'No summary generated.')}</p>")
+        # Tables
+        html.append("table { width: 100%; border-collapse: collapse; margin: 16px 0; page-break-inside: avoid; font-size: 13px; }")
+        html.append("th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; }")
+        html.append("th { background-color: #f1f5f9; color: #1e293b; font-weight: 700; }")
+        html.append("tr:nth-child(even) { background-color: #f8fafc; }")
+
+        # TOC
+        html.append(".toc { margin: 20px 0; }")
+        html.append(".toc a { color: #3b82f6; text-decoration: none; display: block; padding: 6px 0; font-size: 14px; }")
+        html.append(".toc a:hover { text-decoration: underline; }")
+
+        # Segments
+        html.append(".segment { margin-bottom: 14px; padding: 12px; border-left: 4px solid #e2e8f0; page-break-inside: avoid; }")
+        html.append(".timestamp { font-weight: 700; color: #64748b; font-size: 12px; }")
+        html.append(".speaker-label { font-weight: 700; font-size: 13px; display: inline-block; margin-right: 8px; }")
+        html.append(".segment-text { margin: 4px 0 0 0; font-size: 13px; line-height: 1.6; }")
+
+        # Badges
+        html.append(".badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }")
+        html.append(".badge-high { background: #fee2e2; color: #991b1b; }")
+        html.append(".badge-med { background: #fef3c7; color: #92400e; }")
+        html.append(".badge-low { background: #d1fae5; color: #065f46; }")
+        html.append(".badge-very-high { background: #dbeafe; color: #1e40af; }")
+
+        # Stats cards
+        html.append(".stat-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }")
+        html.append(".stat-card { flex: 1; min-width: 140px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; }")
+        html.append(".stat-value { font-size: 28px; font-weight: 800; color: #1e293b; }")
+        html.append(".stat-label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }")
+
+        # List
+        html.append("ul, ol { margin: 8px 0 16px 0; padding-left: 24px; }")
+        html.append("li { margin: 4px 0; }")
+
+        # Header / Footer for print
+        html.append("@media print {")
+        html.append("  @page { @top-left { content: '" + company + "'; font-size: 9px; color: #94a3b8; }")
+        html.append("  @page { @top-right { content: '" + meeting_title + "'; font-size: 9px; color: #94a3b8; }")
+        html.append("  @page { @bottom-center { content: counter(page); font-size: 9px; color: #94a3b8; } }")
+        html.append("}")
+
+        html.append("</style></head><body>")
+
+        # ── Cover Page ──
+        if template_cfg.get("title_page", True):
+            html.append("<div class='page cover'>")
+            if logo_path:
+                html.append(f"<img src='{logo_path}' style='max-height:60px; margin-bottom:20px;' alt='Logo' />")
+            html.append(f"<div class='cover-subtitle'>{company}</div>")
+            html.append(f"<div class='cover-title'>{meeting_title}</div>")
+            html.append(f"<p style='color:#64748b;'>Template: {cfg.get('template')} | Status: Confidential</p>")
+            html.append("<div class='cover-meta'>")
+            html.append(f"<p><strong>Date:</strong> {date_str}</p>")
+            html.append(f"<p><strong>Export UUID:</strong> {meta['export_uuid']}</p>")
+            html.append(f"<p><strong>Software:</strong> SAMVAD V2.0 — Offline Verification: {meta['offline_verification']}</p>")
+            html.append(f"<p><strong>Checksum:</strong> {meta['checksum']}</p>")
+            html.append("</div></div>")
+
+        # ── Table of Contents ──
+        if template_cfg.get("table_of_contents", True):
+            html.append("<div class='page page-break'><h1>Table of Contents</h1><div class='toc'>")
+            section_names = {"summary": "1. Executive Summary", "intelligence": "2. Meeting Intelligence",
+                             "analytics": "3. Meeting Analytics", "transcript": "4. Detailed Transcript",
+                             "appendix": "5. Appendix"}
+            for sec in section_order:
+                name = section_names.get(sec, sec.replace("_", " ").title())
+                html.append(f"<a href='#{sec}'>• {name}</a>")
+            html.append("</div></div>")
+
+        # ── Section: Summary ──
+        if "summary" in section_order and memo:
+            html.append(f"<div class='page page-break' id='summary'><h1>1. Executive Summary</h1>")
+            html.append(f"<p>{memo.get('summary', 'No summary generated.')}</p>")
+            if memo.get("key_points"):
+                html.append("<h2>Key Discussion Points</h2><ul>")
+                for kp in memo.get("key_points", []):
+                    html.append(f"<li>{kp}</li>")
+                html.append("</ul>")
             html.append("</div>")
 
-        # ==========================================
-        # MEETING INTELLIGENCE
-        # ==========================================
-        if intelligence:
-            html.append("<div class='page page-break' id='intelligence'>")
-            html.append("  <h1>2. Meeting Intelligence</h1>")
+        # ── Section: Intelligence ──
+        if "intelligence" in section_order and intelligence:
+            html.append(f"<div class='page page-break' id='intelligence'><h1>2. Meeting Intelligence</h1>")
 
             actions = intelligence.get("action_items", [])
             if actions:
-                html.append("  <h2>🟩 Tasks & Action Items</h2>")
-                html.append("  <table>")
-                html.append("    <tr><th>Task</th><th>Assignee</th><th>Priority</th><th>Deadline</th></tr>")
+                html.append("<h2>Tasks & Action Items</h2><table>")
+                html.append("<tr><th>Task</th><th>Assignee</th><th>Priority</th><th>Deadline</th><th>Status</th></tr>")
                 for item in actions:
                     priority = item.get("priority", "MEDIUM")
-                    badge_class = "badge-high" if priority == "HIGH" else ("badge-med" if priority == "MEDIUM" else "badge-low")
-                    html.append(f"    <tr><td>{item.get('task')}</td><td>{item.get('owner')}</td><td><span class='{badge_class}'>{priority}</span></td><td>{item.get('deadline')}</td></tr>")
-                html.append("  </table>")
+                    badge = "badge-high" if priority == "HIGH" else ("badge-med" if priority == "MEDIUM" else "badge-low")
+                    html.append(f"<tr><td>{item.get('task', '')}</td><td>{item.get('owner', '')}</td>"
+                                f"<td><span class='badge {badge}'>{priority}</span></td>"
+                                f"<td>{item.get('deadline', '')}</td><td>{item.get('status', '')}</td></tr>")
+                html.append("</table>")
 
             decisions = intelligence.get("decisions", [])
             if decisions:
-                html.append("  <h2>🔮 Key Decisions</h2>")
-                html.append("  <ul>")
+                html.append("<h2>Key Decisions</h2><table><tr><th>Decision</th></tr>")
                 for dec in decisions:
                     text = dec.get("text") if isinstance(dec, dict) else str(dec)
-                    html.append(f"    <li>{text}</li>")
-                html.append("  </ul>")
+                    html.append(f"<tr><td>{text}</td></tr>")
+                html.append("</table>")
 
             risks = intelligence.get("risks", [])
             if risks:
-                html.append("  <h2>⚠️ Risks</h2>")
-                html.append("  <ul>")
-                for rsk in risks:
-                    text = rsk.get("text") if isinstance(rsk, dict) else str(rsk)
-                    html.append(f"    <li>{text}</li>")
-                html.append("  </ul>")
+                html.append("<h2>Risks & Blockers</h2><ul>")
+                for r in risks:
+                    text = r.get("text") if isinstance(r, dict) else str(r)
+                    html.append(f"<li><strong>Risk:</strong> {text}</li>")
+                html.append("</ul>")
+
+            for key, label in [("followups", "Follow-ups"), ("questions", "Questions Raised")]:
+                items = intelligence.get(key, [])
+                if items:
+                    html.append(f"<h2>{label}</h2><ul>")
+                    for item in items:
+                        html.append(f"<li>{item}</li>")
+                    html.append("</ul>")
+
             html.append("</div>")
 
-            # ==========================================
-            # MEETING ANALYTICS
-            # ==========================================
-            analytics = intelligence.get("analytics", {})
+        # ── Section: Analytics ──
+        if "analytics" in section_order:
+            analytics = intelligence.get("analytics", {}) if intelligence else {}
             if analytics:
-                html.append("<div class='page page-break' id='analytics'>")
-                html.append("  <h1>3. Meeting Analytics</h1>")
-                html.append("  <table>")
-                html.append("    <tr><th>Metric</th><th>Value</th></tr>")
-                html.append(f"    <tr><td>Productivity Score</td><td>{analytics.get('productivity_score', 0)}/100</td></tr>")
-                html.append(f"    <tr><td>Participation Balance</td><td>{analytics.get('participation_score', 0)}/100</td></tr>")
-                html.append(f"    <tr><td>Complexity Score</td><td>{analytics.get('complexity_score', 0)}/100</td></tr>")
-                html.append(f"    <tr><td>Total Questions</td><td>{analytics.get('question_count', 0)}</td></tr>")
-                html.append(f"    <tr><td>Interruptions Count</td><td>{analytics.get('interruptions', 0)}</td></tr>")
-                html.append("  </table>")
-                html.append("</div>")
+                html.append(f"<div class='page page-break' id='analytics'><h1>3. Meeting Analytics</h1>")
+                html.append("<div class='stat-grid'>")
+                stats = [("Productivity", "productivity_score", ""), ("Participation", "participation_score", ""),
+                         ("Complexity", "complexity_score", ""), ("Questions", "question_count", ""),
+                         ("Interruptions", "interruptions", "")]
+                for label, key, _ in stats:
+                    val = analytics.get(key, 0)
+                    html.append(f"<div class='stat-card'><div class='stat-value'>{val}</div>"
+                                f"<div class='stat-label'>{label}</div></div>")
+                html.append("</div></div>")
 
-        # ==========================================
-        # DETAILED TRANSCRIPT
-        # ==========================================
-        html.append("<div class='page page-break' id='transcript'>")
-        html.append("  <h1>4. Detailed Transcript</h1>")
-        for seg in segments:
-            speaker = seg.get("speaker_label", f"Speaker {seg.get('id', 1)}")
-            html.append("  <div class='segment'>")
-            html.append(f"    <span class='timestamp'>[{seg.get('start', '00:00')} - {seg.get('end', '00:00')}]</span> ")
-            html.append(f"    <span class='speaker'>{speaker}:</span> {seg.get('text', '')}")
-            html.append("  </div>")
-        html.append("</div>")
+        # ── Section: Transcript ──
+        if "transcript" in section_order:
+            html.append(f"<div class='page page-break' id='transcript'><h1>4. Detailed Transcript</h1>")
+            for seg in segments:
+                speaker = seg.get("speaker_label", "UNKNOWN")
+                color = pick_speaker_color(speaker)
+                cx = seg.get("speaker_confidence", 1.0)
+                badge = "badge-very-high" if cx >= 0.8 else ("badge-high" if cx >= 0.6 else "badge-low")
+                html.append(f"<div class='segment' style='border-left-color:{color};'>")
+                html.append(f"<span class='timestamp'>[{seg.get('start', '00:00')} - {seg.get('end', '00:00')}]</span> "
+                            f"<span class='speaker-label' style='color:{color};'>{speaker}</span>"
+                            f"<span class='badge {badge}' style='float:right;'>{cx:.0%}</span>")
+                html.append(f"<div class='segment-text'>{seg.get('text', '')}</div></div>")
+            html.append("</div>")
 
-        html.append("</body>")
-        html.append("</html>")
-
+        html.append("</body></html>")
         return "\n".join(html).encode("utf-8")

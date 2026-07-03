@@ -6,7 +6,8 @@ from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 # Determine SQLite path
-DB_DIR = os.environ.get("SAMVAD_DB_DIR", "backend/data/database")
+default_dir = "data/database" if os.getcwd().endswith("backend") else "backend/data/database"
+DB_DIR = os.environ.get("SAMVAD_DB_DIR", default_dir)
 os.makedirs(DB_DIR, exist_ok=True)
 DB_PATH = os.path.join(DB_DIR, "transcripts.db")
 
@@ -132,6 +133,28 @@ def init_db():
         pass
     try:
         db.execute("ALTER TABLE qa_history ADD COLUMN source_snippet TEXT")
+        db.commit()
+    except Exception:
+        pass
+    
+    # Transcripts migrations for speaker diarization fields
+    try:
+        db.execute("ALTER TABLE transcripts ADD COLUMN speaker_label TEXT DEFAULT 'UNKNOWN'")
+        db.commit()
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE transcripts ADD COLUMN speaker_confidence FLOAT DEFAULT 1.0")
+        db.commit()
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE transcripts ADD COLUMN searchable_text TEXT")
+        db.commit()
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE transcripts ADD COLUMN metadata TEXT DEFAULT '{}'")
         db.commit()
     except Exception:
         pass

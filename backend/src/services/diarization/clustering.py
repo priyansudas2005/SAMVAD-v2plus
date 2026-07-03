@@ -50,8 +50,11 @@ class SpeakerClustering:
         # 2. Agglomerative Clustering with Complete Linkage
         labels = list(range(N))
         active_clusters = N
-        
+
         while active_clusters > self.config.min_speakers:
+            # Enforce max_speakers: if over the limit, force merging by ignoring threshold
+            current_threshold = self.config.clustering_threshold if active_clusters <= self.config.max_speakers else float('inf')
+
             min_dist = float('inf')
             pair = (-1, -1)
             
@@ -75,7 +78,7 @@ class SpeakerClustering:
                             min_dist = max_dist
                             pair = (cluster_i_label, cluster_j_label)
                             
-            if min_dist > self.config.clustering_threshold or pair == (-1, -1):
+            if min_dist > current_threshold or pair == (-1, -1):
                 break
                 
             # Merge clusters
