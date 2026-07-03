@@ -6,7 +6,7 @@ import time
 import json
 import numpy as np
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from src.utils.logger import get_logger
 
