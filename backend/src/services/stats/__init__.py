@@ -301,21 +301,21 @@ class StatsEngine:
 
         biggest_decision = None
         if decisions:
-            high_impact = [d for d in decisions if d.get("type") == "major" or isinstance(d, dict) and d.get("type") == "technical"]
-            biggest_decision = (high_impact[0] if high_impact else decisions[0]).get("text", str(decisions[0]))
+            high_impact = [d for d in decisions if isinstance(d, dict) and d.get("type") in ("major", "technical")]
+            biggest_decision = (high_impact[0] if high_impact else decisions[0]).get("text", str(decisions[0])) if isinstance(decisions[0], dict) else str(decisions[0])
 
         most_important_ai = None
         if actions:
-            high_pri = [a for a in actions if a.get("priority") == "HIGH" or a.get("priority") == "CRITICAL"]
-            most_important_ai = (high_pri[0] if high_pri else actions[0]).get("task", str(actions[0]))
+            high_pri = [a for a in actions if isinstance(a, dict) and a.get("priority") in ("HIGH", "CRITICAL")]
+            most_important_ai = (high_pri[0] if high_pri else actions[0]).get("task", str(actions[0])) if isinstance(actions[0], dict) else str(actions[0])
 
         biggest_risk = None
         if risks:
-            biggest_risk = risks[0].get("text", str(risks[0]))
+            biggest_risk = risks[0].get("text", str(risks[0])) if isinstance(risks[0], dict) else str(risks[0])
 
         biggest_blocker = None
         if blockers:
-            biggest_blocker = blockers[0].get("text", str(blockers[0]))
+            biggest_blocker = blockers[0].get("text", str(blockers[0])) if isinstance(blockers[0], dict) else str(blockers[0])
 
         key_deadline = None
         if actions:
@@ -347,14 +347,18 @@ class StatsEngine:
         actions = intel_data.get("action_items", [])
         high = med = low = completed = pending = overdue = 0
         for a in actions:
-            pri = str(a.get("priority", "MEDIUM")).upper() if isinstance(a, dict) else "MEDIUM"
-            if pri == "HIGH" or pri == "CRITICAL":
+            if isinstance(a, dict):
+                pri = str(a.get("priority", "MEDIUM")).upper()
+                status = str(a.get("status", "pending")).lower()
+            else:
+                pri = "MEDIUM"
+                status = "pending"
+            if pri in ("HIGH", "CRITICAL"):
                 high += 1
             elif pri == "MEDIUM":
                 med += 1
             else:
                 low += 1
-            status = str(a.get("status", "pending")).lower() if isinstance(a, dict) else "pending"
             if status == "completed":
                 completed += 1
             elif status == "overdue":
@@ -380,8 +384,12 @@ class StatsEngine:
         pending = []
         open_dec = []
         for d in decisions:
-            text = d.get("text", str(d)) if isinstance(d, dict) else str(d)
-            dtype = d.get("type", "") if isinstance(d, dict) else ""
+            if isinstance(d, dict):
+                text = d.get("text", str(d))
+                dtype = d.get("type", "")
+            else:
+                text = str(d)
+                dtype = ""
             if dtype == "major":
                 major.append(text)
             elif dtype == "technical":
@@ -402,13 +410,30 @@ class StatsEngine:
 
     def _build_topics_entities(self, intel_data: Dict, segments: List[Dict]) -> Dict:
         entities = intel_data.get("entities", {})
-        topics = intel_data.get("topics", [])
+        topics_raw = intel_data.get("topics", [])
 
         topic_list = []
-        for t in topics:
-            name = t.get("topic", t.get("text", str(t)))
-            conf = t.get("confidence", 1)
-            topic_list.append({"name": name, "type": "topic", "frequency": int(conf * 100) if isinstance(conf, (int, float)) else 1})
+        if isinstance(topics_raw, dict):
+            # Topics stored as categorized dict: {"primary": [...], "secondary": [...]}
+            for cat, sublist in topics_raw.items():
+                if isinstance(sublist, list):
+                    for t in sublist:
+                        if isinstance(t, dict):
+                            name = t.get("topic", t.get("text", str(t)))
+                            conf = t.get("confidence", 1)
+                        else:
+                            name = str(t)
+                            conf = 1
+                        topic_list.append({"name": name, "type": "topic", "frequency": int(conf * 100) if isinstance(conf, (int, float)) else 1})
+        elif isinstance(topics_raw, list):
+            for t in topics_raw:
+                if isinstance(t, dict):
+                    name = t.get("topic", t.get("text", str(t)))
+                    conf = t.get("confidence", 1)
+                else:
+                    name = str(t)
+                    conf = 1
+                topic_list.append({"name": name, "type": "topic", "frequency": int(conf * 100) if isinstance(conf, (int, float)) else 1})
 
         tech_list = []
         people_list = []
@@ -420,11 +445,17 @@ class StatsEngine:
         all_keywords = []
 
         seen_entities = set()
+        if not isinstance(entities, dict):
+            entities = {}
         for etype, elist in entities.items():
             if isinstance(elist, list):
                 for e in elist:
-                    name = e.get("text", e.get("name", str(e))) if isinstance(e, dict) else str(e)
-                    freq = e.get("frequency", 1) if isinstance(e, dict) else 1
+                    if isinstance(e, dict):
+                        name = e.get("text", e.get("name", str(e)))
+                        freq = e.get("frequency", 1)
+                    else:
+                        name = str(e)
+                        freq = 1
                     if name.lower() in seen_entities:
                         continue
                     seen_entities.add(name.lower())
@@ -633,16 +664,35 @@ class StatsEngine:
             if d.get("entities") and len(d["entities"]) > 3:
                 most_technical = spk
 
-        topics = intel_data.get("topics", [])
-        most_topic = topics[0].get("topic", topics[0].get("text", "N/A")) if topics else None
+        topics_raw = intel_data.get("topics", [])
+        if isinstance(topics_raw, list) and topics_raw:
+            if isinstance(topics_raw[0], dict):
+                most_topic = topics_raw[0].get("topic", topics_raw[0].get("text", "N/A"))
+            else:
+                most_topic = str(topics_raw[0])
+        elif isinstance(topics_raw, dict):
+            # Flatten categorized topics
+            flat = []
+            for sublist in topics_raw.values():
+                if isinstance(sublist, list):
+                    flat.extend(sublist)
+            if flat:
+                most_topic = flat[0].get("topic", flat[0].get("text", str(flat[0]))) if isinstance(flat[0], dict) else str(flat[0])
+            else:
+                most_topic = None
+        else:
+            most_topic = None
 
         # Most mentioned technology
         entities = intel_data.get("entities", {})
-        tech_entities = entities.get("technology", entities.get("Technology", []))
+        if isinstance(entities, dict):
+            tech_entities = entities.get("technology", entities.get("Technology", []))
+        else:
+            tech_entities = []
         most_tech = None
         if tech_entities:
             sorted_tech = sorted(tech_entities, key=lambda x: x.get("frequency", 1) if isinstance(x, dict) else 1, reverse=True)
-            most_tech = sorted_tech[0].get("text", str(sorted_tech[0])) if sorted_tech else None
+            most_tech = sorted_tech[0].get("text", str(sorted_tech[0])) if isinstance(sorted_tech[0], dict) else str(sorted_tech[0])
 
         # Most questions
         q_per_spk = {spk: len(d["questions"]) for spk, d in speaker_data.items()}
@@ -659,8 +709,15 @@ class StatsEngine:
         # Longest discussion
         longest_disc = None
         all_topics = intel_data.get("topics", [])
-        if all_topics:
-            longest_disc = all_topics[0].get("topic", str(all_topics[0]))
+        if isinstance(all_topics, list) and all_topics:
+            longest_disc = all_topics[0].get("topic", str(all_topics[0])) if isinstance(all_topics[0], dict) else str(all_topics[0])
+        elif isinstance(all_topics, dict):
+            flat = []
+            for sublist in all_topics.values():
+                if isinstance(sublist, list):
+                    flat.extend(sublist)
+            if flat:
+                longest_disc = flat[0].get("topic", str(flat[0])) if isinstance(flat[0], dict) else str(flat[0])
 
         return {
             "most_active_speaker": most_active,
