@@ -29,7 +29,8 @@ class STTConfig:
         self.word_timestamps: bool = bool(stt.get("word_timestamps", True))
         self.condition_on_previous_text: bool = bool(stt.get("condition_on_previous_text", True))
         self.initial_prompt: Optional[str] = stt.get("initial_prompt", None)
-        self.vad_filter: bool = bool(stt.get("vad_filter", True))
+        self.vad_filter: bool = bool(stt.get("vad_filter", False))
+        self.vad_parameters: dict = stt.get("vad_parameters", {})
         
         # Advanced thresholds
         self.patience: float = float(stt.get("patience", 1.0))

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   FileText, 
   CheckSquare, 
@@ -11,6 +11,8 @@ import {
 import { Meeting } from '../types';
 import { api } from '../services/api';
 import { motion } from 'framer-motion';
+import { ExportButton } from '../components/ExportButton';
+import { Toast } from '../components/Toast';
 
 interface SummaryPageProps {
   currentMeeting: Meeting;
@@ -19,6 +21,15 @@ interface SummaryPageProps {
 export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting }) => {
   const memo = currentMeeting.memo;
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const showToast = useCallback((msg: string, type: 'success' | 'error') => {
+    setToastMsg(msg);
+    setToastType(type);
+    setToastVisible(true);
+  }, []);
 
   const toggleCheck = (index: number) => {
     setCheckedItems(prev => ({
@@ -49,18 +60,17 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting }) => {
           <h1 className="text-2xl font-extrabold text-white tracking-tight">Meeting Intelligence & Memo</h1>
           <p className="text-slate-400 text-sm mt-1">Structured minutes, task assignments, and strategic conclusions.</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <a href={api.getExportUrl(currentMeeting.meeting_id, 'pdf')} download
-             className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
-            <Download className="w-3.5 h-3.5" /> PDF
-          </a>
+        <div className="flex gap-2 flex-wrap items-center">
+          <ExportButton
+            meetingId={currentMeeting.meeting_id}
+            onExport={async (fmt) => {
+              await api.downloadExport(currentMeeting.meeting_id, fmt, `${currentMeeting.title}_summary.${fmt}`);
+              showToast(`${fmt.toUpperCase()} summary exported successfully`, 'success');
+            }}
+          />
           <a href={api.getExportUrl(currentMeeting.meeting_id, 'html')} download
              className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
             <Download className="w-3.5 h-3.5" /> HTML
-          </a>
-          <a href={api.getExportUrl(currentMeeting.meeting_id, 'docx')} download
-             className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
-            <Download className="w-3.5 h-3.5" /> DOCX
           </a>
           <a href={api.getExportUrl(currentMeeting.meeting_id, 'csv')} download
              className="px-4 py-2 bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 text-green-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
@@ -182,6 +192,7 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting }) => {
         </div>
 
       </div>
+      <Toast message={toastMsg} type={toastType} visible={toastVisible} onClose={() => setToastVisible(false)} />
     </div>
   );
 };

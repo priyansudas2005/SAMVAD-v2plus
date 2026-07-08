@@ -109,6 +109,20 @@ export const api = {
     return `${API_BASE}/meetings/${id}/export/${format}`;
   },
 
+  async downloadExport(id: string, format: string, filename?: string): Promise<void> {
+    const res = await fetch(this.getExportUrl(id, format));
+    if (!res.ok) throw new Error(`Failed to export ${format}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || `${id}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+
   async updateTranscriptSegment(meetingId: string, segmentId: number, payload: { text: string; speaker_label?: string }): Promise<Meeting> {
     const res = await fetch(`${API_BASE}/meetings/${meetingId}/transcript/${segmentId}`, {
       method: 'PATCH',
@@ -117,5 +131,33 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to update segment');
     return res.json();
+  },
+
+  async regenerateIntelligence(meetingId: string): Promise<Meeting> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/regenerate`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to regenerate intelligence');
+    return res.json();
+  },
+
+  async getSpeakerAnalytics(meetingId: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/analytics/speakers`);
+    if (!res.ok) throw new Error('Failed to fetch speaker analytics');
+    return res.json();
+  },
+
+  async downloadStatsExport(meetingId: string, format: string): Promise<void> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/export/stats/${format}`);
+    if (!res.ok) throw new Error(`Failed to export statistics as ${format}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `statistics_${meetingId}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 };

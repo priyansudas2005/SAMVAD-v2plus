@@ -50,7 +50,7 @@ function App() {
   // Whisper model parameters
   const [modelSize, setModelSize] = useState<string>('base');
   const [language, setLanguage] = useState<string>('auto');
-  const [vadEnabled, setVadEnabled] = useState<boolean>(true);
+  const [vadEnabled, setVadEnabled] = useState<boolean>(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);

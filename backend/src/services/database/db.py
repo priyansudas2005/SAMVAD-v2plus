@@ -164,7 +164,7 @@ def init_db():
         default_settings = {
             "model_size": "base",
             "default_language": "auto",
-            "vad_enabled": "true",
+            "vad_enabled": "false",
             "ollama_url": "http://localhost:11434"
         }
         for k, v in default_settings.items():

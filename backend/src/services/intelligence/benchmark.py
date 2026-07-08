@@ -25,7 +25,7 @@ class MeetingIntelligenceBenchmarker:
         elapsed = time.time() - start_time
         
         # Get memory utilization
-        import psutil; process = psutil.Process(os.getpid())
+        import os; import psutil; process = psutil.Process(os.getpid())
         memory_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         benchmark_data = {

@@ -18,6 +18,7 @@ class TranscriptSegmentSchema(BaseModel):
     words: Optional[List[WordTimestampSchema]] = []
     speaker_label: Optional[str] = "UNKNOWN"
     speaker_confidence: Optional[float] = 1.0
+    metadata: Optional[Dict[str, Any]] = {}
 
     class Config:
         from_attributes = True

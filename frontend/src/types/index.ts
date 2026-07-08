@@ -16,6 +16,15 @@ export interface TranscriptSegment {
   words?: WordTimestamp[];
   speaker_label?: string;
   speaker_confidence?: number;
+  metadata?: {
+    is_edited?: boolean;
+    edit_timestamp?: string;
+    entities?: string[];
+    action_items?: string[];
+    decisions?: string[];
+    questions?: string[];
+    keywords?: string[];
+  };
 }
 
 export interface Memo {
