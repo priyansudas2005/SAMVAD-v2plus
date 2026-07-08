@@ -49,6 +49,7 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "action_items": json.loads(m.memo.action_items_json) if m.memo.action_items_json else [],
             "decisions": json.loads(m.memo.decisions_json) if m.memo.decisions_json else [],
             "key_points": json.loads(m.memo.key_points_json) if m.memo.key_points_json else [],
+            "discussion_points": json.loads(m.memo.discussion_points_json) if hasattr(m.memo, 'discussion_points_json') and m.memo.discussion_points_json else [],
             "generated_at": m.memo.generated_at or "",
             "confidence": m.memo.confidence or 1.0
         }
@@ -304,6 +305,7 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
             action_items_json=json.dumps(intel_report.get("action_items", memo_result.get("action_items", []))),
             decisions_json=json.dumps(intel_report.get("decisions", memo_result.get("decisions", []))),
             key_points_json=json.dumps(memo_result.get("key_points", [])),
+            discussion_points_json=json.dumps(memo_result.get("discussion_points", [])),
             generated_at=memo_result.get("generated_at"),
             confidence=memo_result.get("confidence", 1.0)
         )

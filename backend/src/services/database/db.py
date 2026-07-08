@@ -90,6 +90,7 @@ class DBMemo(Base):
     action_items_json = Column("action_items", Text, nullable=True, default="[]")
     decisions_json = Column("decisions", Text, nullable=True, default="[]")
     key_points_json = Column("key_points", Text, nullable=True, default="[]")
+    discussion_points_json = Column("discussion_points", Text, nullable=True, default="[]")
     generated_at = Column(String, nullable=True)
     confidence = Column(Float, nullable=True, default=1.0)
 
@@ -133,6 +134,11 @@ def init_db():
         pass
     try:
         db.execute("ALTER TABLE qa_history ADD COLUMN source_snippet TEXT")
+        db.commit()
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE memos ADD COLUMN discussion_points TEXT")
         db.commit()
     except Exception:
         pass

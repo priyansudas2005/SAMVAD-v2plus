@@ -29,6 +29,7 @@ class MemoSchema(BaseModel):
     action_items: List[str] = []
     decisions: List[str] = []
     key_points: List[str] = []
+    discussion_points: List[str] = []
     generated_at: str = ""
     confidence: float = 1.0
 

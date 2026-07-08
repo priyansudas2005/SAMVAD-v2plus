@@ -111,9 +111,14 @@ th,td { padding:6px 8px; text-align:left; }
             html.append("<h2 onclick='toggleCollapse(this)' class='collapse-btn'>Executive Summary</h2>")
             html.append(f"<div class='collapse-target'><p>{memo.get('summary', 'No summary generated.')}</p>")
             if memo.get("key_points"):
-                html.append("<h3>Key Discussion Points</h3><ul>")
+                html.append("<h3>Key Highlights</h3><ul>")
                 for kp in memo.get("key_points", []):
                     html.append(f"<li>{kp}</li>")
+                html.append("</ul>")
+            if memo.get("discussion_points"):
+                html.append("<h3>Discussion Points</h3><ul>")
+                for dp in memo.get("discussion_points", []):
+                    html.append(f"<li>{dp}</li>")
                 html.append("</ul>")
             html.append("</div></div>")
 

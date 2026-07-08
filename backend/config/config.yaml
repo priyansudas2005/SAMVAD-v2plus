@@ -87,10 +87,11 @@ diarization:
   embedding_model: "speechbrain"
 
 memo:
-  summary_max_length: 150
-  summary_min_length: 50
-  max_action_items: 5
-  max_key_points: 5
+  summary_max_length: 200
+  summary_min_length: 80
+  max_action_items: 10
+  max_key_points: 8
+  max_discussion_points: 10
 
 qa:
   model: "deepset/roberta-base-squad2"

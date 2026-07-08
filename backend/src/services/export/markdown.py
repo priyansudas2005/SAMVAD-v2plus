@@ -5,6 +5,7 @@ Markdown exporter for SAMVAD V2.0.
 from typing import Dict, Any
 from .base import BaseExporter
 
+
 class MarkdownExporter(BaseExporter):
     """
     Exports meeting metadata, summaries, action items, and transcripts into a GitHub-Flavored Markdown file.
@@ -12,19 +13,35 @@ class MarkdownExporter(BaseExporter):
 
     def export(self, meeting_title: str, date_str: str, segments: list, memo: Dict[str, Any] = None, intelligence: Dict[str, Any] = None) -> bytes:
         output = []
-        output.append(f"# 🎙️ Meeting Memo: {meeting_title}")
+        output.append(f"# Meeting Memo: {meeting_title}")
         output.append(f"**Date:** {date_str}  ")
         output.append("\n---")
 
         if memo:
-            output.append("## 📄 Executive Summary")
+            output.append("## Executive Summary")
             output.append(memo.get("summary", "No summary generated."))
             output.append("\n")
+
+        if memo:
+            kp = memo.get("key_points", [])
+            if kp:
+                output.append("## Key Highlights")
+                for point in kp:
+                    output.append(f"- {point}")
+                output.append("\n")
+
+        if memo:
+            dp = memo.get("discussion_points", [])
+            if dp:
+                output.append("## Discussion Points")
+                for point in dp:
+                    output.append(f"- {point}")
+                output.append("\n")
 
         if intelligence:
             actions = intelligence.get("action_items", [])
             if actions:
-                output.append("## 🟩 Tasks & Action Items")
+                output.append("## Tasks & Action Items")
                 for item in actions:
                     owner = item.get("owner", "UNKNOWN")
                     priority = item.get("priority", "MEDIUM")
@@ -34,21 +51,26 @@ class MarkdownExporter(BaseExporter):
 
             decisions = intelligence.get("decisions", [])
             if decisions:
-                output.append("## 🔮 Key Decisions")
+                output.append("## Key Decisions")
                 for dec in decisions:
                     text = dec.get("text") if isinstance(dec, dict) else str(dec)
-                    output.append(f"- • **Decision:** {text}")
+                    dec_type = dec.get("type", "FINAL") if isinstance(dec, dict) else ""
+                    speakers = dec.get("supporting_speakers", []) if isinstance(dec, dict) else []
+                    suffix = f" [{dec_type}]" if dec_type else ""
+                    if speakers:
+                        suffix += f" (by {', '.join(speakers[:3])})"
+                    output.append(f"- **Decision:** {text}{suffix}")
                 output.append("\n")
 
             risks = intelligence.get("risks", [])
             if risks:
-                output.append("## ⚠️ Risks Identified")
+                output.append("## Risks Identified")
                 for risk in risks:
                     text = risk.get("text") if isinstance(risk, dict) else str(risk)
                     output.append(f"- **Risk:** {text}")
                 output.append("\n")
 
-        output.append("## 📝 Detailed Transcript")
+        output.append("## Detailed Transcript")
         output.append("\n")
         for seg in segments:
             speaker = seg.get("speaker_label", f"Speaker {seg.get('id', 1)}")
