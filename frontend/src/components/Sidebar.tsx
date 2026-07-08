@@ -14,7 +14,8 @@ import {
   Square,
   RefreshCw,
   FolderSync,
-  Volume2
+  Volume2,
+  Activity
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
@@ -94,6 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const meetingItems = [
     { id: 'transcript', label: 'Transcript', icon: FileText, disabled: !currentMeeting },
     { id: 'summary', label: 'Meeting Memo', icon: Sparkles, disabled: !currentMeeting },
+    { id: 'stats', label: 'Meeting Stats', icon: Activity, disabled: !currentMeeting },
     { id: 'qa', label: 'AI Assistant', icon: BrainCircuit, disabled: !currentMeeting },
   ];
 

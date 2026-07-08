@@ -1,4 +1,4 @@
-import { Meeting, SystemSettings, AnalyticsSummary, QAEntry } from '../types';
+import { Meeting, SystemSettings, AnalyticsSummary, QAEntry, MeetingStats } from '../types';
 
 const API_BASE = '/api';
 
@@ -116,7 +116,10 @@ export const api = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename || `${id}.${format}`;
+    // Use server-provided filename from Content-Disposition when available
+    const disposition = res.headers.get('content-disposition');
+    const serverFilename = disposition?.match(/filename=["']?([^"'\n]+)["']?/)?.[1];
+    a.download = serverFilename || filename || `${id}.${format}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -147,6 +150,16 @@ export const api = {
     return res.json();
   },
 
+  async getMeetingStats(id: string): Promise<MeetingStats> {
+    const res = await fetch(`${API_BASE}/meetings/${id}/stats`);
+    if (!res.ok) throw new Error('Failed to fetch meeting stats');
+    return res.json();
+  },
+
+  getStatsExportUrl(id: string, format: string): string {
+    return `${API_BASE}/meetings/${id}/stats/export/${format}`;
+  },
+
   async downloadStatsExport(meetingId: string, format: string): Promise<void> {
     const res = await fetch(`${API_BASE}/meetings/${meetingId}/export/stats/${format}`);
     if (!res.ok) throw new Error(`Failed to export statistics as ${format}`);
@@ -154,7 +167,9 @@ export const api = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `statistics_${meetingId}.${format}`;
+    const disposition = res.headers.get('content-disposition');
+    const serverFilename = disposition?.match(/filename=["']?([^"'\n]+)["']?/)?.[1];
+    a.download = serverFilename || `statistics_${meetingId}.${format}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

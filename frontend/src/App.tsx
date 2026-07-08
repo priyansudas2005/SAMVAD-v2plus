@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const StatsPage = lazy(() => import('./pages/StatsPage').then(m => ({ default: m.StatsPage })));
 
 const TabSkeleton = () => (
   <div className="flex-1 bg-slate-950 p-8 space-y-6 animate-pulse w-full h-screen overflow-hidden">
@@ -430,6 +431,22 @@ function App() {
               <SummaryPage 
                 currentMeeting={currentMeeting}
               />
+            </motion.div>
+          )}
+
+          {activePage === 'stats' && currentMeeting && (
+            <motion.div
+              key={`stats-${currentMeeting.meeting_id}`}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              <Suspense fallback={<TabSkeleton />}>
+                <StatsPage currentMeeting={currentMeeting} onUpdateMeeting={handleUpdateCurrentMeeting} />
+              </Suspense>
             </motion.div>
           )}
 

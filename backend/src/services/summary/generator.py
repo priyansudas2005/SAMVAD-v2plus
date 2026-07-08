@@ -422,33 +422,73 @@ Transcript:
 
     def _fallback_summary(self, text: str) -> str:
         sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+        if not sentences:
+            return text[:500]
+
+        # Score sentences by relevance (position, length, keyword signals)
+        scored = []
+        keywords = ["decision", "agree", "conclude", "approve", "launch", "deploy", "deadline",
+                     "important", "critical", "blocker", "risk", "release", "goal", "target",
+                     "next step", "action", "assign", "responsible", "schedule", "plan",
+                     "problem", "issue", "solution", "fix", "update", "change", "migrate",
+                     "implement", "build", "create", "setup", "configure", "integrate"]
+        for i, s in enumerate(sentences):
+            clean = s.strip()
+            if len(clean.split()) < 5:
+                continue
+            score = 0.0
+            # Prefer early sentences
+            score += max(0, 1.0 - (i / len(sentences)) * 0.5)
+            # Prefer medium-length sentences (substantive but not rambling)
+            wc = len(clean.split())
+            if 8 <= wc <= 40:
+                score += 0.3
+            # Boost for keyword hits
+            lower = clean.lower()
+            for kw in keywords:
+                if kw in lower:
+                    score += 0.15
+            # Boost for sentences with named entities (capitalized words)
+            caps = sum(1 for w in clean.split() if w[0].isupper() if len(w) > 1)
+            if caps >= 2:
+                score += 0.1
+            scored.append((score, clean))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
         taken = []
-        current_len = 0
-        for s in sentences:
-            current_len += len(s.split())
-            if current_len > 100 and len(taken) >= 3:
+        total_words = 0
+        for _, s in scored:
+            wc = len(s.split())
+            if total_words + wc > 150:
                 break
             taken.append(s)
+            total_words += wc
+            if len(taken) >= 5:
+                break
+
+        if not taken:
+            taken = [s.strip() for s in sentences[:3] if len(s.strip().split()) >= 5]
         return " ".join(taken) if taken else text[:500]
 
     def _extract_action_items(self, text: str) -> List[str]:
         sentences = re.split(r'(?<=[.!?])\s+', text)
         patterns = [
-            r"\b(i|we|you|they|should|will|must|need to|ought to|scheduled to|plan to|going to)\s+\w+",
-            r"\b(todo|action item|task|assign|responsible|deadline|follow.up|to.do)\b",
-            r"\b(will handle|will take care|will look into|will follow up|will send|will create|will update|will prepare)\b",
-            r"\b(can you|please|could you)\s+\w+"
+            r"\b(?:will|shall|must|need to|has to|have to|going to|plan to|scheduled to)\b",
+            r"\b(?:assigned?|responsible|tasked|delegated|owner)\b",
+            r"\b(?:action item|to.?do|todo|follow.?up|next step)\b",
+            r"\b(?:will handle|will take care|will look into|will follow up|will send|will create|will update|will prepare|will fix|will implement)\b",
+            r"^(?:please|can you|could you|we need|we should|we must|i need|i will)\b",
         ]
         items = []
         for s in sentences:
             clean = s.strip()
-            if not clean or clean.endswith('?') or len(clean.split()) < 4:
+            if not clean or clean.endswith('?') or len(clean.split()) < 4 or len(clean.split()) > 50:
                 continue
             for pat in patterns:
                 if re.search(pat, clean, re.IGNORECASE):
-                    cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean)
+                    cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean).strip()
                     cleaned = re.sub(r'^[-\*\d\.\s]+', '', cleaned).strip()
-                    if cleaned and len(cleaned) > 10 and cleaned not in items:
+                    if cleaned and len(cleaned) > 15 and cleaned not in items:
                         items.append(cleaned)
                     break
         return items
@@ -456,20 +496,22 @@ Transcript:
     def _extract_decisions(self, text: str) -> List[str]:
         sentences = re.split(r'(?<=[.!?])\s+', text)
         patterns = [
-            r"\b(decided|agreed|approved|consensus|settled on|resolution|concluded|going to go with|voted|chose|selected)\b",
-            r"\b(decision is|we will use|we chose|we selected|we decided|we agreed)\b",
-            r"\b(finalized|confirmed|established|determined|resolved)\b"
+            r"\b(?:decided|agreed|approved|consensus|settled on|resolution|concluded|voted|chose|selected|finalized|confirmed|established|determined|resolved|ratified|endorsed)\b",
+            r"\b(?:we will use|we chose|we selected|we decided|we agreed|we opted|we picked|we settled)\b",
+            r"\b(?:decision is|plan is|goal is|target is|objective is)\b",
+            r"\b(?:going forward|moving forward|from now on|effective immediately)\b",
+            r"\b(?:greenlit|signed off|rubber.?stamped|given the go.?ahead|got approval)\b"
         ]
         decisions = []
         for s in sentences:
             clean = s.strip()
-            if not clean or clean.endswith('?') or len(clean.split()) < 4:
+            if not clean or clean.endswith('?') or len(clean.split()) < 5 or len(clean.split()) > 50:
                 continue
             for pat in patterns:
                 if re.search(pat, clean, re.IGNORECASE):
-                    cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean)
+                    cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean).strip()
                     cleaned = re.sub(r'^[-\*\d\.\s]+', '', cleaned).strip()
-                    if cleaned and len(cleaned) > 10 and cleaned not in decisions:
+                    if cleaned and len(cleaned) > 15 and cleaned not in decisions:
                         decisions.append(cleaned)
                     break
         return decisions
