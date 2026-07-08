@@ -389,10 +389,14 @@ def export_meeting(meeting_id: str, format_type: str, db: Session = Depends(get_
             "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         }
         
+        actual_format = ExportEngine.get_actual_format(fmt)
+        ext = fmt if actual_format == fmt else actual_format
+        media_type = media_types.get(actual_format, media_types.get(fmt, "application/octet-stream"))
+        
         return Response(
             content=content,
-            media_type=media_types.get(fmt, "application/octet-stream"),
-            headers={"Content-Disposition": f"attachment; filename={meeting_id}.{fmt}"}
+            media_type=media_type,
+            headers={"Content-Disposition": f"attachment; filename={meeting_id}.{ext}"}
         )
     except Exception as exp_err:
         logger.error(f"Export failure: {exp_err}")
