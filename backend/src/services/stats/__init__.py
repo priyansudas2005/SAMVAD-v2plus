@@ -319,7 +319,7 @@ class StatsEngine:
 
         key_deadline = None
         if actions:
-            with_deadline = [a for a in actions if a.get("deadline")]
+            with_deadline = [a for a in actions if isinstance(a, dict) and a.get("deadline")]
             if with_deadline:
                 key_deadline = with_deadline[0].get("deadline")
 
@@ -401,7 +401,7 @@ class StatsEngine:
             else:
                 open_dec.append(text)
         return {
-            "major_decisions": major or [d.get("text", str(d)) for d in decisions[:3]] if decisions else [],
+            "major_decisions": major or [(d.get("text", str(d)) if isinstance(d, dict) else str(d)) for d in decisions[:3]] if decisions else [],
             "technical_decisions": technical,
             "business_decisions": business,
             "pending_decisions": pending,
@@ -482,7 +482,12 @@ class StatsEngine:
         kw_counter = Counter()
         for seg in segments:
             for kw in seg.get("keywords", []):
-                kw_counter[kw] += 1
+                if isinstance(kw, dict):
+                    k_text = kw.get("keyword", "")
+                else:
+                    k_text = str(kw)
+                if k_text:
+                    kw_counter[k_text] += 1
         all_keywords = [kw for kw, _ in kw_counter.most_common(20)]
 
         return {

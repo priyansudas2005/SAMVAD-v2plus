@@ -12,7 +12,7 @@ from pathlib import Path
 
 from src.services.audio.recorder import AudioRecorder
 from src.services.audio.recorder_config import RecorderConfig
-from src.services.audio.monitor import AudioMonitor
+from src.services.audio.audio_monitor import AudioMonitor
 from src.services.audio.validator import AudioValidator
 from src.services.audio.processor import AudioProcessor
 from src.services.audio.recorder_exceptions import (
@@ -145,14 +145,18 @@ def test_loudness_normalizer():
 # 6. Audio Monitor Tests
 # ===========================================================================
 def test_audio_monitor():
-    monitor = AudioMonitor()
+    monitor = AudioMonitor(session_id="test_session", low_volume_threshold=0.01, clip_threshold=0.95)
+    monitor.start()
     buf = 0.5 * np.sin(2 * np.pi * 200 * np.linspace(0, 0.1, 1600))
-    monitor.process_buffer(buf)
-    metrics = monitor.get_metrics()
+    monitor.push_frame(buf)
+    time.sleep(0.1)
+    status = monitor.get_status()
+    monitor.stop()
     
-    assert metrics["rms_db"] > -80.0
-    assert metrics["peak_db"] > -80.0
-    assert metrics["cpu_percent"] >= 0.0
+    assert status["session_id"] == "test_session"
+    assert status["level_db"] > -80.0
+    assert status["peak_db"] > -80.0
+    assert status["frame_count"] >= 1
 
 
 # ===========================================================================
