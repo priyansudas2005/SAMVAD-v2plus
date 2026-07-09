@@ -14,6 +14,20 @@ logger = __import__('logging').getLogger(__name__)
 SPEAKER_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316"]
 
 
+def safe_json_load(json_str: Optional[str], default_val: Any) -> Any:
+    if not json_str:
+        return default_val
+    try:
+        val = json.loads(json_str)
+        if isinstance(default_val, dict) and not isinstance(val, dict):
+            return default_val
+        if isinstance(default_val, list) and not isinstance(val, list):
+            return default_val
+        return val
+    except Exception:
+        return default_val
+
+
 class StatsEngine:
 
     def __init__(self, meeting_id: str, db: Session):
@@ -67,8 +81,8 @@ class StatsEngine:
     def _segments_to_dicts(self) -> List[Dict[str, Any]]:
         result = []
         for s in self.segments:
-            meta = json.loads(s.metadata_json) if s.metadata_json else {}
-            words = json.loads(s.words_json) if s.words_json else []
+            meta = safe_json_load(s.metadata_json, {})
+            words = safe_json_load(s.words_json, [])
             result.append({
                 "id": s.id,
                 "start": s.start,
@@ -90,21 +104,17 @@ class StatsEngine:
     def _load_intel(self) -> dict:
         if not self.intel:
             return {}
-        try:
-            analytics = json.loads(self.intel.analytics_json or "{}")
-        except Exception:
-            analytics = {}
         return {
-            "action_items": json.loads(self.intel.action_items_json or "[]"),
-            "decisions": json.loads(self.intel.decisions_json or "[]"),
-            "risks": json.loads(self.intel.risks_json or "[]"),
-            "blockers": json.loads(self.intel.blockers_json or "[]"),
-            "followups": json.loads(self.intel.followups_json or "[]"),
-            "questions": json.loads(self.intel.questions_json or "[]"),
-            "entities": json.loads(self.intel.entities_json or "{}"),
-            "topics": json.loads(self.intel.topics_json or "[]"),
-            "timeline": json.loads(self.intel.timeline_json or "{}"),
-            "analytics": analytics
+            "action_items": safe_json_load(self.intel.action_items_json, []),
+            "decisions": safe_json_load(self.intel.decisions_json, []),
+            "risks": safe_json_load(self.intel.risks_json, []),
+            "blockers": safe_json_load(self.intel.blockers_json, []),
+            "followups": safe_json_load(self.intel.followups_json, []),
+            "questions": safe_json_load(self.intel.questions_json, []),
+            "entities": safe_json_load(self.intel.entities_json, {}),
+            "topics": safe_json_load(self.intel.topics_json, []),
+            "timeline": safe_json_load(self.intel.timeline_json, {}),
+            "analytics": safe_json_load(self.intel.analytics_json, {})
         }
 
     def _load_memo(self) -> dict:
@@ -113,10 +123,10 @@ class StatsEngine:
         m = self.meeting.memo
         return {
             "summary": m.summary or "",
-            "action_items": json.loads(m.action_items_json) if m.action_items_json else [],
-            "decisions": json.loads(m.decisions_json) if m.decisions_json else [],
-            "key_points": json.loads(m.key_points_json) if m.key_points_json else [],
-            "discussion_points": json.loads(m.discussion_points_json) if m.discussion_points_json else []
+            "action_items": safe_json_load(m.action_items_json, []),
+            "decisions": safe_json_load(m.decisions_json, []),
+            "key_points": safe_json_load(m.key_points_json, []),
+            "discussion_points": safe_json_load(m.discussion_points_json, [])
         }
 
     def _build_speaker_data(self, segments: List[Dict]) -> Dict[str, Dict]:
@@ -636,7 +646,7 @@ class StatsEngine:
             recommendations.append("Excellent recording quality.")
         if len(speaker_data) > 1 and avg_conf >= 0.75:
             recommendations.append("Speaker separation is reliable.")
-        if any(s["speaker_confidence"] < 0.5 for s in segments):
+        if any(isinstance(s.get("speaker_confidence"), (int, float)) and s["speaker_confidence"] < 0.5 for s in segments):
             recommendations.append("Some segments have low confidence. Check audio quality for those regions.")
         if actions:
             recommendations.append("Action items extracted successfully.")
