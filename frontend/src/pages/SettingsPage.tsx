@@ -38,12 +38,12 @@ export const SettingsPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
 
   // Appearance states
-  const [activeTheme, setActiveTheme] = useState<string>('cosmic');
+  const [activeTheme, setActiveTheme] = useState<string>('dark');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Read saved theme
-    const savedTheme = localStorage.getItem('samvad-theme') || 'cosmic';
+    const savedTheme = localStorage.getItem('samvad-theme') || 'dark';
     setActiveTheme(savedTheme);
 
     const fetchSettings = async () => {
@@ -140,51 +140,36 @@ export const SettingsPage: React.FC = () => {
           Select a custom color theme mapping. Variables apply dynamically across all dashboards.
         </p>
 
-        {/* 2B Swatches Grid */}
-        <div className="grid grid-cols-2 gap-4 pt-2">
-          {themes.map((theme) => {
-            const isActive = activeTheme === theme.id;
-            return (
-              <motion.div
-                key={theme.id}
-                onClick={() => handleThemeChange(theme.id, theme.name)}
-                whileHover={{ scale: 1.05 }}
-                className={`p-4 rounded-xl border cursor-pointer select-none flex items-center gap-4 transition-all duration-300 ${
-                  isActive 
-                    ? 'bg-slate-900/60'
-                    : 'bg-slate-950/40 border-slate-900 hover:border-slate-800'
-                }`}
-                style={{
-                  borderColor: isActive ? theme.accent : 'rgba(255, 255, 255, 0.05)',
-                  boxShadow: isActive ? `0 0 15px ${theme.accent}3d` : 'none'
-                }}
-              >
-                {/* Preview Circle */}
-                <div 
-                  className="w-10 h-10 rounded-full border border-slate-700/40 flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: theme.bg }}
-                >
-                  <div 
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: theme.accent }}
-                  />
-                </div>
-
-                {/* Theme Meta */}
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-mono text-xs font-bold text-white truncate tracking-wider">{theme.name}</h4>
-                  <p className="text-[10px] text-slate-500 font-semibold uppercase mt-0.5 tracking-wide">
-                    {theme.id === 'arctic' ? 'Light' : 'Dark'} Mode
-                  </p>
-                </div>
-
-                {/* Active check icon */}
-                {isActive && (
-                  <Check className="w-4 h-4" style={{ color: theme.accent }} />
-                )}
-              </motion.div>
-            );
-          })}
+        {/* Theme Mode Toggle Row */}
+        <div className="flex items-center justify-between p-4 rounded-xl border border-slate-900 bg-slate-950/40 select-none">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-mono text-xs font-bold text-white tracking-wider">COLOR SYSTEM MODE</h4>
+            <p className="text-[10px] text-slate-500 font-semibold uppercase mt-0.5 tracking-wide">
+              Currently using {activeTheme === 'light' ? 'Light' : 'Dark'} Mode
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleThemeChange('dark', 'Dark Mode')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold font-sans border transition-all ${
+                activeTheme === 'dark'
+                  ? 'bg-slate-900 border-sky-400 text-sky-400'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              Dark Mode
+            </button>
+            <button
+              onClick={() => handleThemeChange('light', 'Light Mode')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold font-sans border transition-all ${
+                activeTheme === 'light'
+                  ? 'bg-white border-sky-400 text-sky-600'
+                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              Light Mode
+            </button>
+          </div>
         </div>
 
         {/* Dynamic UI customizers (Fix Phase 9 Settings) */}

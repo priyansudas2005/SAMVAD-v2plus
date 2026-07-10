@@ -23,9 +23,11 @@ const TabSkeleton = () => (
 );
 
 // Initial theme check before first render to prevent flashing (Fix 2C/3)
-const initialTheme = localStorage.getItem('samvad-theme') || 'cosmic';
+const initialTheme = localStorage.getItem('samvad-theme') || 'dark';
 document.documentElement.className = '';
-document.documentElement.classList.add(`theme-${initialTheme}`);
+if (initialTheme === 'light') {
+  document.documentElement.classList.add('theme-light');
+}
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
