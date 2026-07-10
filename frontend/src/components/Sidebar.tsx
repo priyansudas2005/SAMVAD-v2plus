@@ -394,7 +394,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               const isActive = activePage === item.id;
               return (
                 <motion.button
-                  key={item.id}
+                  key={`workspace-nav-${item.id}-${isActive}`}
                   onClick={() => setActivePage(item.id)}
                   whileHover={{ y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
                   whileTap={{ scale: 0.97 }}
@@ -448,7 +448,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               const isActive = activePage === item.id;
               return (
                 <motion.button
-                  key={item.id}
+                  key={`meeting-nav-${item.id}-${isActive}`}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
                   whileHover={item.disabled ? {} : { y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
