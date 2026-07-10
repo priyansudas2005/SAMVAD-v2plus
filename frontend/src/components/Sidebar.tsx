@@ -398,7 +398,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => setActivePage(item.id)}
                   whileHover={{ y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
                   whileTap={{ scale: 0.97 }}
-                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
+                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border focus:outline-none ${
                     isActive
                       ? 'text-white shadow-lg'
                       : 'text-slate-300 hover:text-white'
@@ -453,7 +453,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => setActivePage(item.id)}
                   whileHover={item.disabled ? {} : { y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
                   whileTap={item.disabled ? undefined : { scale: 0.97 }}
-                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
+                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border focus:outline-none ${
                     item.disabled
                       ? 'text-slate-700 cursor-not-allowed border-transparent opacity-25'
                       : isActive
