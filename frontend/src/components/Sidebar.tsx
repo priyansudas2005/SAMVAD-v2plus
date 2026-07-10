@@ -86,7 +86,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'recorder', label: 'Recorder', icon: Mic },
     { id: 'history', label: 'Meeting History', icon: History },
     { id: 'analytics', label: 'Analytics', icon: BarChart4 },
     { id: 'settings', label: 'Settings', icon: Settings },
