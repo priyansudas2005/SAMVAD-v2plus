@@ -396,31 +396,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <motion.button
                   key={item.id}
                   onClick={() => setActivePage(item.id)}
-                  whileHover={{ y: -2, backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+                  whileHover={{ y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
                   whileTap={{ scale: 0.97 }}
                   className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
                     isActive
-                      ? 'text-white border-[rgba(139,92,246,0.3)] shadow-lg'
-                      : 'text-slate-400 border-slate-900/40 hover:text-slate-200'
+                      ? 'text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
                   }`}
-                  style={isActive ? {
-                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 100%)',
-                    boxShadow: '0 8px 20px rgba(139, 92, 246, 0.18), inset 0 0 10px rgba(139, 92, 246, 0.1)',
-                  } : {
-                    background: 'rgba(20, 20, 20, 0.3)',
+                  style={{
+                    borderColor: isActive ? '#8B5CF6' : 'rgba(255, 255, 255, 0.12)',
+                    background: isActive 
+                      ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.03) 100%)' 
+                      : 'rgba(20, 20, 20, 0.45)',
+                    boxShadow: isActive 
+                      ? '0 8px 22px rgba(139, 92, 246, 0.25), inset 0 0 10px rgba(139, 92, 246, 0.15)' 
+                      : '0 4px 12px rgba(0, 0, 0, 0.2)',
                   }}
                 >
                   <motion.div
                     animate={isActive ? { 
                       scale: [1, 1.2, 1],
                       rotate: [0, 8, -8, 0],
-                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 8px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
+                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 12px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
                     } : {}}
                     transition={{ duration: 0.65, ease: "easeInOut" }}
                   >
-                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#8B5CF6]' : 'text-slate-500 hover:text-[#8B5CF6]'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#8B5CF6]' : 'text-slate-400 hover:text-[#8B5CF6]'}`} />
                   </motion.div>
-                  <span style={isActive ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.5)' } : undefined}>
+                  <span style={isActive ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' } : undefined}>
                     {item.label}
                   </span>
                 </motion.button>
@@ -448,33 +451,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
-                  whileHover={item.disabled ? {} : { y: -2, backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+                  whileHover={item.disabled ? {} : { y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
                   whileTap={item.disabled ? undefined : { scale: 0.97 }}
                   className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
                     item.disabled
-                      ? 'text-slate-650 cursor-not-allowed border-transparent opacity-40'
+                      ? 'text-slate-700 cursor-not-allowed border-transparent opacity-25'
                       : isActive
-                      ? 'text-white border-[rgba(139,92,246,0.3)] shadow-lg'
-                      : 'text-slate-300 border-slate-900/40 hover:text-white'
+                      ? 'text-white shadow-lg'
+                      : 'text-slate-300 hover:text-white'
                   }`}
-                  style={isActive && !item.disabled ? {
-                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 100%)',
-                    boxShadow: '0 8px 20px rgba(139, 92, 246, 0.18), inset 0 0 10px rgba(139, 92, 246, 0.1)',
-                  } : {
-                    background: item.disabled ? 'rgba(20, 20, 20, 0.15)' : 'rgba(20, 20, 20, 0.35)',
+                  style={{
+                    borderColor: item.disabled ? 'transparent' : isActive ? '#8B5CF6' : 'rgba(255, 255, 255, 0.12)',
+                    background: item.disabled 
+                      ? 'rgba(20, 20, 20, 0.15)' 
+                      : isActive 
+                      ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.03) 100%)' 
+                      : 'rgba(20, 20, 20, 0.45)',
+                    boxShadow: isActive && !item.disabled
+                      ? '0 8px 22px rgba(139, 92, 246, 0.25), inset 0 0 10px rgba(139, 92, 246, 0.15)' 
+                      : item.disabled ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.2)',
                   }}
                 >
                   <motion.div
                     animate={isActive && !item.disabled ? { 
                       scale: [1, 1.2, 1],
                       rotate: [0, 8, -8, 0],
-                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 8px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
+                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 12px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
                     } : {}}
                     transition={{ duration: 0.65, ease: "easeInOut" }}
                   >
-                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : item.disabled ? 'text-slate-700' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : item.disabled ? 'text-slate-750' : 'text-slate-400'}`} />
                   </motion.div>
-                  <span style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.5)' } : undefined}>
+                  <span style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' } : undefined}>
                     {item.label}
                   </span>
                 </motion.button>
