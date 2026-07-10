@@ -1376,11 +1376,13 @@
   --button-color: #101010; /* Same as background */
   --highlight-color-hue: 210deg;
 
+  position: relative;
+  box-sizing: border-box;
   user-select: none;
-  display: flex;
-  justify-content: center;
+  display: inline-flex;
   align-items: center;
-  padding: 0.5em 1.2em;
+  justify-content: center;
+  padding: 0.5em 1.4em;
   font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
   font-size: 0.95em;
   font-weight: 500;

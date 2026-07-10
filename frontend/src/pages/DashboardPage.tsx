@@ -302,25 +302,25 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   </div>
                   {error && <p className="text-xs text-rose-500 font-semibold">{error}</p>}
                   <div className="btn-wrapper">
-                    <button onClick={() => setActivePage('recorder')} className="btn">
-                      <svg className="btn-svg text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <button onClick={() => setActivePage('recorder')} className="btn flex items-center justify-center">
+                      <svg className="btn-svg text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '14px', height: '14px', marginRight: '0.4rem' }}>
                         <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                         <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                         <line x1="12" x2="12" y1="19" y2="22"/>
                       </svg>
-                      <span className="txt-wrapper text-xs uppercase tracking-wider font-bold">
-                        <span className="txt-1">
+                      <span className="txt-wrapper text-xs uppercase tracking-wider font-bold relative flex items-center">
+                        <span className="flex gap-[1px]">
                           <span className="btn-letter">R</span>
-                          <span className="btn-letter">e</span>
-                          <span className="btn-letter">c</span>
-                          <span className="btn-letter">o</span>
-                          <span className="btn-letter">r</span>
-                          <span className="btn-letter">d</span>
+                          <span className="btn-letter">E</span>
+                          <span className="btn-letter">C</span>
+                          <span className="btn-letter">O</span>
+                          <span className="btn-letter">R</span>
+                          <span className="btn-letter">D</span>
                           <span className="btn-letter">&nbsp;</span>
                           <span className="btn-letter">L</span>
-                          <span className="btn-letter">i</span>
-                          <span className="btn-letter">v</span>
-                          <span className="btn-letter">e</span>
+                          <span className="btn-letter">I</span>
+                          <span className="btn-letter">V</span>
+                          <span className="btn-letter">E</span>
                         </span>
                       </span>
                     </button>

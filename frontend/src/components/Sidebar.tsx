@@ -260,11 +260,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="glass-glider" />
               </div>
 
-              <div className="btn-wrapper w-full text-center flex justify-center">
-                <button onClick={startRecording} className="btn w-full">
-                  <Play className="btn-svg text-sky-400 fill-sky-400" style={{ marginRight: '0.3rem', width: '14px', height: '14px' }} />
-                  <span className="txt-wrapper text-[10px] uppercase tracking-wider font-bold">
-                    <span className="txt-1">
+              <div className="btn-wrapper w-full flex justify-center mt-1">
+                <button onClick={startRecording} className="btn w-full flex items-center justify-center">
+                  <Play className="btn-svg text-sky-400 fill-sky-400" style={{ width: '12px', height: '12px', marginRight: '0.35rem' }} />
+                  <span className="txt-wrapper text-[10px] uppercase tracking-wider font-bold relative flex items-center">
+                    <span className="flex gap-[1px]">
                       <span className="btn-letter">R</span>
                       <span className="btn-letter">E</span>
                       <span className="btn-letter">C</span>
