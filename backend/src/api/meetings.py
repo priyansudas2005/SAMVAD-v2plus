@@ -91,6 +91,42 @@ def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Meeting not found")
     return serialize_meeting(m)
 
+@router.get("/{meeting_id}/audio")
+def get_meeting_audio(meeting_id: str, db: Session = Depends(get_db)):
+    m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+    if not m or not m.audio_path:
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    
+    # Try resolving path absolute, relative to CWD, or relative to project root
+    path = m.audio_path
+    if os.path.exists(path):
+        return FileResponse(path)
+        
+    # If backend is running inside 'backend' folder, the path might be relative to the parent
+    parent_path = os.path.join("..", path)
+    if os.path.exists(parent_path):
+        return FileResponse(parent_path)
+        
+    # If the database stored it as 'backend/data/...', but we are running in the backend directory
+    if path.startswith("backend/"):
+        sub_path = path[8:]
+        if os.path.exists(sub_path):
+            return FileResponse(sub_path)
+            
+    # Try search inside the standard recordings directory
+    filename = os.path.basename(path)
+    rec_path = os.path.join(RECORDINGS_DIR, filename)
+    if os.path.exists(rec_path):
+        return FileResponse(rec_path)
+        
+    parent_rec_path = os.path.join("..", RECORDINGS_DIR, filename)
+    if os.path.exists(parent_rec_path):
+        return FileResponse(parent_rec_path)
+
+    raise HTTPException(status_code=404, detail=f"Audio file not found at {path}")
+
+
+
 @router.delete("/{meeting_id}")
 def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):
     m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()

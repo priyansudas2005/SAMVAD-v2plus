@@ -228,51 +228,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Recording Controls */}
           {recordingState === 'idle' && (
             <div className="space-y-3">
-              {/* Capture Source Tabs */}
-              <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setCaptureSource('mic')}
-                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
-                    captureSource === 'mic' 
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
-                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
-                  }`}
-                >
-                  Mic
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCaptureSource('system')}
-                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
-                    captureSource === 'system' 
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
-                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
-                  }`}
-                >
-                  System
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCaptureSource('both')}
-                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
-                    captureSource === 'both' 
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
-                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
-                  }`}
-                >
-                  Mix
-                </button>
+              {/* Capture Source Tabs (Speakr Style Glider) */}
+              <div className="glass-radio-group">
+                <input
+                  type="radio"
+                  id="glass-silver"
+                  name="audioSource"
+                  checked={captureSource === 'mic'}
+                  onChange={() => setCaptureSource('mic')}
+                />
+                <label htmlFor="glass-silver">Mic</label>
+
+                <input
+                  type="radio"
+                  id="glass-gold"
+                  name="audioSource"
+                  checked={captureSource === 'system'}
+                  onChange={() => setCaptureSource('system')}
+                />
+                <label htmlFor="glass-gold">System</label>
+
+                <input
+                  type="radio"
+                  id="glass-platinum"
+                  name="audioSource"
+                  checked={captureSource === 'both'}
+                  onChange={() => setCaptureSource('both')}
+                />
+                <label htmlFor="glass-platinum">Mix</label>
+
+                <div className="glass-glider" />
               </div>
 
-              <motion.button 
-                onClick={startRecording}
-                whileTap={{ scale: 0.97 }}
-                className="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/10 hover:scale-[1.01]"
-              >
-                <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                Start Recording
-              </motion.button>
+              <div className="btn-wrapper w-full text-center flex justify-center">
+                <button onClick={startRecording} className="btn w-full">
+                  <Play className="btn-svg text-sky-400 fill-sky-400" style={{ marginRight: '0.3rem', width: '14px', height: '14px' }} />
+                  <span className="txt-wrapper text-[10px] uppercase tracking-wider font-bold">
+                    <span className="txt-1">
+                      <span className="btn-letter">S</span>
+                      <span className="btn-letter">t</span>
+                      <span className="btn-letter">a</span>
+                      <span className="btn-letter">r</span>
+                      <span className="btn-letter">t</span>
+                      <span className="btn-letter">&nbsp;</span>
+                      <span className="btn-letter">R</span>
+                      <span className="btn-letter">e</span>
+                      <span className="btn-letter">c</span>
+                      <span className="btn-letter">o</span>
+                      <span className="btn-letter">r</span>
+                      <span className="btn-letter">d</span>
+                      <span className="btn-letter">i</span>
+                      <span className="btn-letter">n</span>
+                      <span className="btn-letter">g</span>
+                    </span>
+                  </span>
+                </button>
+              </div>
             </div>
           )}
 
