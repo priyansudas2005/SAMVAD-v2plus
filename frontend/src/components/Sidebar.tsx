@@ -452,16 +452,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   whileTap={item.disabled ? undefined : { scale: 0.97 }}
                   className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
                     item.disabled
-                      ? 'text-slate-700 cursor-not-allowed border-transparent opacity-25'
+                      ? 'text-slate-650 cursor-not-allowed border-transparent opacity-40'
                       : isActive
                       ? 'text-white border-[rgba(139,92,246,0.3)] shadow-lg'
-                      : 'text-slate-400 border-slate-900/40 hover:text-slate-200'
+                      : 'text-slate-300 border-slate-900/40 hover:text-white'
                   }`}
                   style={isActive && !item.disabled ? {
                     background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 100%)',
                     boxShadow: '0 8px 20px rgba(139, 92, 246, 0.18), inset 0 0 10px rgba(139, 92, 246, 0.1)',
                   } : {
-                    background: 'rgba(20, 20, 20, 0.3)',
+                    background: item.disabled ? 'rgba(20, 20, 20, 0.15)' : 'rgba(20, 20, 20, 0.35)',
                   }}
                 >
                   <motion.div
@@ -472,7 +472,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     } : {}}
                     transition={{ duration: 0.65, ease: "easeInOut" }}
                   >
-                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : item.disabled ? 'text-slate-700' : 'text-slate-400'}`} />
                   </motion.div>
                   <span style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.5)' } : undefined}>
                     {item.label}
