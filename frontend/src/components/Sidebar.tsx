@@ -109,28 +109,100 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10">
       {/* Brand Section */}
       <div className="p-6 border-b border-slate-900/40 flex items-center gap-3">
-        <div className="relative flex items-center justify-center">
-          {/* Pulsing ambient glow backplane */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-sky-400 to-indigo-500 rounded-xl blur-md opacity-45 animate-pulse pointer-events-none" />
-          {/* Premium Logo Box Container */}
-          <div className="relative w-11 h-11 bg-slate-950/60 border border-slate-800/40 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden group">
-            {/* Top corner gradient shine */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-70" />
-            {/* Bottom accent glow strip */}
-            <div className="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-sky-400 to-indigo-500" />
-            
-            {/* Stylish Audio/Speaker Waves Icon */}
-            <Volume2 className="w-5.5 h-5.5 text-sky-400 group-hover:scale-108 transition-transform duration-300" />
+        <div
+          className="relative flex items-center justify-center cursor-pointer"
+          onClick={() => {}}
+        >
+          {/* App icon box */}
+          <div
+            className="relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-500 hover:scale-105"
+            style={{
+              background: 'linear-gradient(145deg, #0f1a2e 0%, #070d1a 100%)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              boxShadow: `0 0 0 1px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.4)`,
+            }}
+          >
+            {/* Inner top shine */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+            {/* Active glow halo — pulses like a live mic */}
+            <div
+              className="absolute rounded-full pointer-events-none"
+              style={{
+                width: 48, height: 48,
+                background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+                opacity: recordingState === 'recording' ? 0.35 : 0.12,
+                filter: 'blur(10px)',
+                animation: 'logo-halo 2.5s ease-in-out infinite',
+              }}
+            />
+
+            {/* Microphone + Sound Waves SVG — scaled down to fit box */}
+            <svg
+              width="36" height="36" viewBox="0 0 52 52" fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="relative z-10"
+              style={{ filter: 'drop-shadow(0 0 4px var(--accent-glow))' }}
+            >
+              <defs>
+                <linearGradient id="micGrad" x1="26" y1="4" x2="26" y2="30" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="var(--accent-primary)" />
+                  <stop offset="100%" stopColor="var(--accent-glow)" />
+                </linearGradient>
+                <radialGradient id="micBodyFill" cx="50%" cy="30%" r="70%">
+                  <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity="0.03" />
+                </radialGradient>
+              </defs>
+
+              {/* Microphone capsule */}
+              <rect x="19" y="5" width="14" height="21" rx="7"
+                fill="url(#micBodyFill)" stroke="url(#micGrad)" strokeWidth="2"
+              />
+              <line x1="22" y1="12" x2="30" y2="12" stroke="url(#micGrad)" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round" />
+              <line x1="22" y1="15.5" x2="30" y2="15.5" stroke="url(#micGrad)" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round" />
+              <line x1="22" y1="19" x2="30" y2="19" stroke="url(#micGrad)" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round" />
+
+              {/* Pickup arm + stand */}
+              <path d="M13 24 Q13 36 26 36 Q39 36 39 24"
+                stroke="url(#micGrad)" strokeWidth="2.2" fill="none" strokeLinecap="round"
+              />
+              <line x1="26" y1="36" x2="26" y2="44" stroke="url(#micGrad)" strokeWidth="2.2" strokeLinecap="round" />
+              <line x1="18" y1="44" x2="34" y2="44" stroke="url(#micGrad)" strokeWidth="2.8" strokeLinecap="round" />
+
+              {/* Sound waves LEFT */}
+              <path d="M9 21 Q7 26 9 31" stroke="var(--accent-primary)" strokeWidth="2" fill="none" strokeLinecap="round"
+                style={{ animation: 'wave-in 1.8s ease-in-out infinite' }} />
+              <path d="M5 17 Q2 26 5 35" stroke="var(--accent-primary)" strokeWidth="1.5" fill="none" strokeLinecap="round"
+                style={{ animation: 'wave-out 1.8s ease-in-out infinite 0.3s' }} />
+
+              {/* Sound waves RIGHT */}
+              <path d="M43 21 Q45 26 43 31" stroke="var(--accent-primary)" strokeWidth="2" fill="none" strokeLinecap="round"
+                style={{ animation: 'wave-in 1.8s ease-in-out infinite 0.15s' }} />
+              <path d="M47 17 Q50 26 47 35" stroke="var(--accent-primary)" strokeWidth="1.5" fill="none" strokeLinecap="round"
+                style={{ animation: 'wave-out 1.8s ease-in-out infinite 0.45s' }} />
+            </svg>
           </div>
+
+          {/* Recording live indicator */}
           {recordingState === 'recording' && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full status-ring-error z-20" />
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
           )}
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
             SAMVAD
-            <span className="text-[9px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded-full border border-sky-500/30 font-semibold uppercase tracking-wider">
-              V2.0
+            <span
+              className="text-[10px] font-black tracking-widest self-end mb-0.5"
+              style={{
+                background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-glow))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '0.1em',
+              }}
+            >
+              v2.0
             </span>
           </h1>
           <p className="text-[10.5px] text-slate-400 font-medium font-sans">Offline Meeting Intelligence</p>

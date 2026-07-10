@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  Mic, 
-  Clock, 
+import {
+  Play,
+  Pause,
+  Square,
+  Mic,
+  Clock,
   AlertCircle,
   CheckCircle2,
-  Volume2
+  Volume2,
+  Radio,
+  Monitor,
+  Disc3
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -45,6 +48,8 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  const [audioSource, setAudioSource] = useState<string>('mic');
 
   // 16-bars visualizer frequency factors state (Fix 1B)
   const [barValues, setBarValues] = useState<number[]>(new Array(16).fill(0.125));
@@ -177,12 +182,35 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         <div className="flex flex-col items-center gap-6 w-full mt-4">
           <div className="flex justify-center gap-4">
             {recordingState === 'idle' && (
-              <button 
-                onClick={startRecording}
-                className="w-16 h-16 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-full flex items-center justify-center shadow-lg shadow-sky-500/20 transition-all hover:scale-105"
-              >
-                <Play className="w-6 h-6 fill-slate-950 text-slate-950" />
-              </button>
+              <>
+                <div className="glass-radio-group my-4">
+                  <input type="radio" name="source" id="glass-mic" checked={audioSource === 'mic'}
+                    onChange={() => setAudioSource('mic')} />
+                  <label htmlFor="glass-mic">
+                    <Radio className="w-4 h-4 mr-2" />
+                    Mic
+                  </label>
+                  <input type="radio" name="source" id="glass-system" checked={audioSource === 'system'}
+                    onChange={() => setAudioSource('system')} />
+                  <label htmlFor="glass-system">
+                    <Monitor className="w-4 h-4 mr-2" />
+                    System
+                  </label>
+                  <input type="radio" name="source" id="glass-mix" checked={audioSource === 'mix'}
+                    onChange={() => setAudioSource('mix')} />
+                  <label htmlFor="glass-mix">
+                    <Disc3 className="w-4 h-4 mr-2" />
+                    Mix
+                  </label>
+                  <div className="glass-glider" />
+                </div>
+                <button
+                  onClick={startRecording}
+                  className="w-16 h-16 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-full flex items-center justify-center shadow-lg shadow-sky-500/20 transition-all hover:scale-105"
+                >
+                  <Play className="w-6 h-6 fill-slate-950 text-slate-950" />
+                </button>
+              </>
             )}
 
             {recordingState === 'recording' && (
