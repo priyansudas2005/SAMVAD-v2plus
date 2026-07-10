@@ -387,8 +387,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Core Navigation Links */}
         <div>
-          <h2 className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Workspace</h2>
-          <nav className="space-y-1">
+          <h2 className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Workspace</h2>
+          <nav className="grid grid-cols-2 gap-2 px-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.id;
@@ -396,33 +396,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <motion.button
                   key={item.id}
                   onClick={() => setActivePage(item.id)}
-                  whileHover={{ x: 4, backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive transition-all duration-300 relative overflow-hidden ${
+                  whileHover={{ y: -2, backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+                  whileTap={{ scale: 0.97 }}
+                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
                     isActive
-                      ? 'text-white pl-2.5 font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'text-white border-[rgba(139,92,246,0.3)] shadow-lg'
+                      : 'text-slate-400 border-slate-900/40 hover:text-slate-200'
                   }`}
                   style={isActive ? {
-                    background: 'linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.02) 100%)',
-                    borderLeft: '3px solid #8B5CF6',
-                    borderRight: '1px solid rgba(139, 92, 246, 0.15)',
-                    borderTop: '1px solid rgba(139, 92, 246, 0.1)',
-                    borderBottom: '1px solid rgba(139, 92, 246, 0.1)',
-                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.25), inset 0 0 8px rgba(139, 92, 246, 0.1)',
-                  } : undefined}
+                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 100%)',
+                    boxShadow: '0 8px 20px rgba(139, 92, 246, 0.18), inset 0 0 10px rgba(139, 92, 246, 0.1)',
+                  } : {
+                    background: 'rgba(20, 20, 20, 0.3)',
+                  }}
                 >
                   <motion.div
                     animate={isActive ? { 
                       scale: [1, 1.2, 1],
-                      rotate: [0, 10, -10, 0],
-                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 10px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
+                      rotate: [0, 8, -8, 0],
+                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 8px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
                     } : {}}
                     transition={{ duration: 0.65, ease: "easeInOut" }}
                   >
                     <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#8B5CF6]' : 'text-slate-500 hover:text-[#8B5CF6]'}`} />
                   </motion.div>
-                  <span style={isActive ? { textShadow: '0 0 12px rgba(139, 92, 246, 0.6)' } : undefined}>
+                  <span style={isActive ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.5)' } : undefined}>
                     {item.label}
                   </span>
                 </motion.button>
@@ -433,7 +431,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Active Loaded Meeting Routing */}
         <div>
-          <div className="flex items-center justify-between px-3 mb-2">
+          <div className="flex items-center justify-between px-3 mb-3">
             <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Analysis</h2>
             {currentMeeting && (
               <span className="text-[9px] font-bold text-slate-400 truncate max-w-[120px]">
@@ -441,7 +439,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
             )}
           </div>
-          <nav className="space-y-1">
+          <nav className="grid grid-cols-2 gap-2 px-1">
             {meetingItems.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.id;
@@ -450,35 +448,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
-                  whileHover={item.disabled ? {} : { x: 4, backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
-                  whileTap={item.disabled ? undefined : { scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive transition-all duration-300 relative overflow-hidden ${
+                  whileHover={item.disabled ? {} : { y: -2, backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+                  whileTap={item.disabled ? undefined : { scale: 0.97 }}
+                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border ${
                     item.disabled
-                      ? 'text-slate-700 cursor-not-allowed opacity-35'
+                      ? 'text-slate-700 cursor-not-allowed border-transparent opacity-25'
                       : isActive
-                      ? 'text-white pl-2.5 font-bold'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'text-white border-[rgba(139,92,246,0.3)] shadow-lg'
+                      : 'text-slate-400 border-slate-900/40 hover:text-slate-200'
                   }`}
                   style={isActive && !item.disabled ? {
-                    background: 'linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.02) 100%)',
-                    borderLeft: '3px solid #8B5CF6',
-                    borderRight: '1px solid rgba(139, 92, 246, 0.15)',
-                    borderTop: '1px solid rgba(139, 92, 246, 0.1)',
-                    borderBottom: '1px solid rgba(139, 92, 246, 0.1)',
-                    boxShadow: '0 0 15px rgba(139, 92, 246, 0.25), inset 0 0 8px rgba(139, 92, 246, 0.1)',
-                  } : undefined}
+                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(139, 92, 246, 0.02) 100%)',
+                    boxShadow: '0 8px 20px rgba(139, 92, 246, 0.18), inset 0 0 10px rgba(139, 92, 246, 0.1)',
+                  } : {
+                    background: 'rgba(20, 20, 20, 0.3)',
+                  }}
                 >
                   <motion.div
                     animate={isActive && !item.disabled ? { 
                       scale: [1, 1.2, 1],
-                      rotate: [0, 10, -10, 0],
-                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 10px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
+                      rotate: [0, 8, -8, 0],
+                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 8px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
                     } : {}}
                     transition={{ duration: 0.65, ease: "easeInOut" }}
                   >
                     <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : 'text-slate-500'}`} />
                   </motion.div>
-                  <span style={isActive && !item.disabled ? { textShadow: '0 0 12px rgba(139, 92, 246, 0.6)' } : undefined}>
+                  <span style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.5)' } : undefined}>
                     {item.label}
                   </span>
                 </motion.button>
