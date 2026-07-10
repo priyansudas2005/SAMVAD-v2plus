@@ -265,21 +265,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <Play className="btn-svg text-sky-400 fill-sky-400" style={{ marginRight: '0.3rem', width: '14px', height: '14px' }} />
                   <span className="txt-wrapper text-[10px] uppercase tracking-wider font-bold">
                     <span className="txt-1">
-                      <span className="btn-letter">S</span>
-                      <span className="btn-letter">t</span>
-                      <span className="btn-letter">a</span>
-                      <span className="btn-letter">r</span>
-                      <span className="btn-letter">t</span>
-                      <span className="btn-letter">&nbsp;</span>
                       <span className="btn-letter">R</span>
-                      <span className="btn-letter">e</span>
-                      <span className="btn-letter">c</span>
-                      <span className="btn-letter">o</span>
-                      <span className="btn-letter">r</span>
-                      <span className="btn-letter">d</span>
-                      <span className="btn-letter">i</span>
-                      <span className="btn-letter">n</span>
-                      <span className="btn-letter">g</span>
+                      <span className="btn-letter">E</span>
+                      <span className="btn-letter">C</span>
+                      <span className="btn-letter">O</span>
+                      <span className="btn-letter">R</span>
+                      <span className="btn-letter">D</span>
                     </span>
                   </span>
                 </button>

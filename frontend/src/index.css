@@ -1502,7 +1502,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  /* Accommodate the text width nicely */
+  white-space: nowrap;
+  word-break: keep-all;
   width: auto;
 }
 
