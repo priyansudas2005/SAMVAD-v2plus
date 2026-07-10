@@ -396,14 +396,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <motion.button
                   key={item.id}
                   onClick={() => setActivePage(item.id)}
+                  whileHover={{ x: 3 }}
                   whileTap={{ scale: 0.97 }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive transition-all ${
                     isActive
-                      ? 'hero-gradient-btn text-sky-400 pl-2.5 font-bold shadow-elevation-md'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                      ? 'bg-slate-900 border-l-[3px] border-l-[var(--accent-primary)] text-white pl-2.5 font-bold shadow-lg'
+                      : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
+                  <motion.div
+                    animate={isActive ? { scale: [1, 1.15, 1] } : {}}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[var(--accent-primary)]' : 'text-slate-500 hover:text-[var(--accent-primary)]'}`} />
+                  </motion.div>
                   {item.label}
                 </motion.button>
               );
@@ -430,16 +436,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
+                  whileHover={item.disabled ? {} : { x: 3 }}
                   whileTap={item.disabled ? undefined : { scale: 0.97 }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive transition-all ${
                     item.disabled
-                      ? 'text-slate-600 cursor-not-allowed opacity-50'
+                      ? 'text-slate-700 cursor-not-allowed opacity-35'
                       : isActive
-                      ? 'hero-gradient-btn text-sky-400 pl-2.5 font-bold shadow-elevation-md'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                      ? 'bg-slate-900 border-l-[3px] border-l-[var(--accent-primary)] text-white pl-2.5 font-bold shadow-lg'
+                      : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive && !item.disabled ? 'text-sky-400' : 'text-slate-500'}`} />
+                  <motion.div
+                    animate={isActive && !item.disabled ? { scale: [1, 1.15, 1] } : {}}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[var(--accent-primary)]' : 'text-slate-500'}`} />
+                  </motion.div>
                   {item.label}
                 </motion.button>
               );
