@@ -6,15 +6,15 @@
 
 :root {
   /* Matte Black Luxury & Premium Glassmorphism */
-  --bg-primary: #090909;
-  --bg-secondary: rgba(22, 22, 22, 0.70);
+  --bg-primary: #040404; /* Matches body background */
+  --bg-secondary: rgba(12, 12, 12, 0.96); /* Solid matte black glass */
   --accent-primary: #8B5CF6; /* Electric Violet */
   --accent-glow: rgba(139, 92, 246, 0.5);
   --accent-teal: #14B8A6;
   --accent-blue: #60A5FA;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --border-color: rgba(255, 255, 255, 0.06);
+  --border-color: rgba(255, 255, 255, 0.04);
   --shadow-sm: 0 4px 12px rgba(0,0,0,0.25);
   --shadow-md: 0 12px 28px rgba(0,0,0,0.35);
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.45);
