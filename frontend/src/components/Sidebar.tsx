@@ -16,7 +16,8 @@ import {
   Volume2,
   Activity,
   CheckCircle2,
-  Power
+  Power,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
@@ -413,15 +414,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 placeholder="Meeting name..."
                 className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-semibold transition-all duration-300"
               />
-              <div className="flex gap-2">
-                <motion.button 
+              <div className="flex gap-2.5 items-center">
+                <button 
                   onClick={discardRecording}
-                  whileTap={{ scale: 0.97 }}
                   disabled={uploading}
-                  className="flex-1 py-2 bg-slate-900/40 hover:bg-slate-900 border border-slate-850 hover:border-slate-700 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl btn-interactive transition-all duration-300"
+                  className="btn-discard-round focus:outline-none"
+                  title="Discard Capture"
                 >
-                  Discard
-                </motion.button>
+                  <Trash2 className="svgIcon-discard text-slate-400 group-hover:text-rose-455" />
+                </button>
                 <button 
                   onClick={saveRecording}
                   disabled={uploading}

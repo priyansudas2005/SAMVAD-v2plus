@@ -276,6 +276,62 @@
   50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
 }
 
+/* Premium Expandable Discard Button CSS */
+.btn-discard-round {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(25, 25, 25, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.btn-discard-round .svgIcon-discard {
+  width: 14px;
+  height: 14px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-discard-round:hover {
+  width: 100%;
+  border-radius: 12px;
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0px 4px 20px rgba(239, 68, 68, 0.15);
+}
+
+.btn-discard-round:hover .svgIcon-discard {
+  transform: translateY(60px);
+  opacity: 0;
+}
+
+.btn-discard-round::before {
+  position: absolute;
+  top: -20px;
+  content: "Discard Capture";
+  color: #fca5a5;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+.btn-discard-round:hover::before {
+  font-size: 11px;
+  opacity: 1;
+  transform: translateY(32px);
+}
+
 /* Global Theme Mappings to override hardcoded Tailwind utility classes (Fix 2A) */
 .bg-slate-950, .bg-\[\#020617\] {
   background-color: var(--bg-primary) !important;
