@@ -317,10 +317,9 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-950 p-8 flex flex-col justify-center max-w-4xl mx-auto w-full">
+    <div className="flex-1 overflow-y-auto bg-transparent p-8 flex flex-col justify-center max-w-4xl mx-auto w-full">
       <div className="glass-panel p-8 md:p-12 rounded-3xl flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
-        {/* Glow backdrop */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-500/10 via-slate-900/0 to-slate-950/0 pointer-events-none" />
+        {/* Removed Glow backdrop to prevent color separation */}
 
         <div className="mb-6 flex flex-col items-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border transition-all duration-300 ${
