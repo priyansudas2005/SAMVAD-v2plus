@@ -287,24 +287,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Pause className="w-3 h-3 text-amber-500 fill-amber-500" />
                 Pause
               </motion.button>
-              <motion.button 
+              <button 
                 onClick={stopRecording}
-                whileTap={{ scale: 0.97 }}
-                className="flex-1 py-2 bg-rose-950/20 hover:bg-rose-900/40 border border-rose-900/40 hover:border-rose-500/80 text-rose-300 hover:text-white font-bold rounded-xl text-xs btn-interactive flex items-center justify-center gap-1.5 focus:outline-none transition-all duration-300"
+                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
                 style={{
-                  boxShadow: '0 0 15px rgba(239, 68, 68, 0.15)',
+                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.18)'
                 }}
               >
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-1.5"
+                <span className="absolute inset-0 rounded-xl overflow-hidden">
+                  <span className="inset-0 absolute pointer-events-none select-none">
+                    <span
+                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
+                      style={{ background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))' }}
+                    ></span>
+                  </span>
+                </span>
+                <span
+                  className="inset-0 absolute pointer-events-none select-none"
+                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
                 >
-                  <Square className="w-3 h-3 fill-rose-500 text-rose-500" />
-                  <span>Stop</span>
-                </motion.div>
-              </motion.button>
+                  <span
+                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
+                    style={{
+                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
+                      background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                    }}
+                  ></span>
+                </span>
+                <span
+                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-neutral-950/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
+                >
+                  <span className="relative group-hover:scale-105 transition-transform duration-500">
+                    <Square 
+                      className="w-3 h-3 fill-rose-500 text-rose-500"
+                      style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
+                    />
+                    <span
+                      className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
+                      style={{
+                        animation: '14s ease-in-out 0s infinite alternate none running star-shine',
+                        background: 'linear-gradient(135deg, rgb(59, 196, 242), rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                      }}
+                    ></span>
+                  </span>
+                  <span className="bg-gradient-to-r from-rose-200 via-rose-300 to-amber-200 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                    Stop
+                  </span>
+                </span>
+              </button>
             </div>
           )}
 
@@ -318,24 +348,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Play className="w-3 h-3 fill-[#8B5CF6] text-[#8B5CF6]" />
                 Resume
               </motion.button>
-              <motion.button 
+              <button 
                 onClick={stopRecording}
-                whileTap={{ scale: 0.97 }}
-                className="flex-1 py-2 bg-rose-950/20 hover:bg-rose-900/40 border border-rose-900/40 hover:border-rose-500/80 text-rose-300 hover:text-white font-bold rounded-xl text-xs btn-interactive flex items-center justify-center gap-1.5 focus:outline-none transition-all duration-300"
+                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
                 style={{
-                  boxShadow: '0 0 15px rgba(239, 68, 68, 0.15)',
+                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.18)'
                 }}
               >
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-1.5"
+                <span className="absolute inset-0 rounded-xl overflow-hidden">
+                  <span className="inset-0 absolute pointer-events-none select-none">
+                    <span
+                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
+                      style={{ background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))' }}
+                    ></span>
+                  </span>
+                </span>
+                <span
+                  className="inset-0 absolute pointer-events-none select-none"
+                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
                 >
-                  <Square className="w-3 h-3 fill-rose-500 text-rose-500" />
-                  <span>Stop</span>
-                </motion.div>
-              </motion.button>
+                  <span
+                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
+                    style={{
+                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
+                      background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                    }}
+                  ></span>
+                </span>
+                <span
+                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-neutral-950/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
+                >
+                  <span className="relative group-hover:scale-105 transition-transform duration-500">
+                    <Square 
+                      className="w-3 h-3 fill-rose-500 text-rose-500"
+                      style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
+                    />
+                    <span
+                      className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
+                      style={{
+                        animation: '14s ease-in-out 0s infinite alternate none running star-shine',
+                        background: 'linear-gradient(135deg, rgb(59, 196, 242), rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                      }}
+                    ></span>
+                  </span>
+                  <span className="bg-gradient-to-r from-rose-200 via-rose-300 to-amber-200 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                    Stop
+                  </span>
+                </span>
+              </button>
             </div>
           )}
 
@@ -357,19 +417,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 >
                   Discard
                 </motion.button>
-                <motion.button 
+                <button 
                   onClick={saveRecording}
-                  whileTap={{ scale: 0.97 }}
                   disabled={uploading}
-                  className="flex-1 py-2 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 btn-interactive transition-all duration-300 border"
+                  className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none disabled:opacity-50"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0.05) 100%)',
-                    borderColor: '#8B5CF6',
-                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.2)',
+                    boxShadow: '0 4px 20px rgba(122, 105, 249, 0.22)'
                   }}
                 >
-                  {uploading ? 'Saving...' : 'Save'}
-                </motion.button>
+                  <span className="absolute inset-0 rounded-xl overflow-hidden">
+                    <span className="inset-0 absolute pointer-events-none select-none">
+                      <span
+                        className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
+                        style={{ background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))' }}
+                      ></span>
+                    </span>
+                  </span>
+                  <span
+                    className="inset-0 absolute pointer-events-none select-none"
+                    style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                  >
+                    <span
+                      className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
+                      style={{
+                        animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
+                        background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                      }}
+                    ></span>
+                  </span>
+                  <span
+                    className="flex items-center justify-center gap-1.5 relative z-[1] bg-neutral-950/90 rounded-xl py-2 px-3 w-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300"
+                  >
+                    <span className="relative group-hover:scale-105 transition-transform duration-500">
+                      <Play 
+                        className="w-3 h-3 fill-[#8B5CF6] text-[#8B5CF6]" 
+                        style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
+                      />
+                      <span
+                        className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
+                        style={{
+                          animation: '14s ease-in-out 0s infinite alternate none running star-shine',
+                          background: 'linear-gradient(135deg, rgb(59, 196, 242), rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                        }}
+                      ></span>
+                    </span>
+                    <span className="bg-gradient-to-r from-violet-200 via-rose-200 to-amber-200 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                      {uploading ? 'Saving...' : 'Save'}
+                    </span>
+                  </span>
+                </button>
               </div>
             </div>
           )}
