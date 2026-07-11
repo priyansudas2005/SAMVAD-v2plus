@@ -484,11 +484,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 placeholder="Meeting name..."
                 className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-semibold transition-all duration-300"
               />
-              <div className="flex gap-2.5 items-center">
+              <div className="flex gap-2.5 items-center w-full">
                 <button 
                   onClick={discardRecording}
                   disabled={uploading}
-                  className="btn-discard-round focus:outline-none"
+                  className="btn-discard-round focus:outline-none flex-shrink-0"
                 >
                   <Trash2 className="svgIcon-discard text-slate-400 group-hover:text-rose-455" />
                 </button>

@@ -301,7 +301,7 @@
 }
 
 .btn-discard-round:hover {
-  width: 100%;
+  width: 146px;
   border-radius: 12px;
   background-color: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.4);
@@ -324,12 +324,22 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   opacity: 0;
+  width: 100%;
+  text-align: center;
 }
 
 .btn-discard-round:hover::before {
-  font-size: 10px;
+  font-size: 9.5px;
   opacity: 1;
   transform: translateY(32px);
+}
+
+/* Sidebar scoped variant to prevent page layout shifting */
+.sidebar-glass .btn-discard-round:hover {
+  width: 114px;
+}
+.sidebar-glass .btn-discard-round:hover::before {
+  font-size: 8.5px;
 }
 
 /* Premium Adaptive Dark-Glass Neumorphic/Specular Button styling */
