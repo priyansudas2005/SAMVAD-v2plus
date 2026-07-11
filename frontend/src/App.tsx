@@ -380,6 +380,8 @@ function App() {
                 stopRecording={stopRecording}
                 discardRecording={discardRecording}
                 saveRecording={saveRecording}
+                captureSource={captureSource}
+                setCaptureSource={setCaptureSource}
               />
             </motion.div>
           )}
