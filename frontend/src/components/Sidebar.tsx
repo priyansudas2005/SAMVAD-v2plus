@@ -281,14 +281,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {recordingState === 'recording' && (
             <div className="flex gap-2">
-              <motion.button 
+              <button 
                 onClick={pauseRecording}
-                whileTap={{ scale: 0.97 }}
-                className="flex-1 py-2 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-amber-500/40 text-slate-200 hover:text-amber-400 font-bold rounded-xl text-xs btn-interactive flex items-center justify-center gap-1.5 focus:outline-none transition-all duration-300"
+                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
+                style={{
+                  boxShadow: '0 4px 20px rgba(245, 158, 11, 0.12)'
+                }}
               >
-                <Pause className="w-3 h-3 text-amber-500 fill-amber-500" />
-                Pause
-              </motion.button>
+                <span className="absolute inset-0 rounded-xl overflow-hidden">
+                  <span className="inset-0 absolute pointer-events-none select-none">
+                    <span
+                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
+                      style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(20, 20, 20, 0.8), rgba(245, 158, 11, 0.1))' }}
+                    ></span>
+                  </span>
+                </span>
+                <span
+                  className="inset-0 absolute pointer-events-none select-none"
+                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                >
+                  <span
+                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
+                    style={{
+                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
+                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(20, 20, 20, 0.8), rgba(245, 158, 11, 0.1))'
+                    }}
+                  ></span>
+                </span>
+                <span
+                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-amber-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
+                >
+                  <span className="relative transition-transform duration-500">
+                    <motion.div
+                      animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                    >
+                      <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    </motion.div>
+                  </span>
+                  <span className="bg-gradient-to-r from-amber-200 to-amber-300 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                    Pause
+                  </span>
+                </span>
+              </button>
               <button 
                 onClick={stopRecording}
                 className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
@@ -344,14 +379,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {recordingState === 'paused' && (
             <div className="flex gap-2">
-              <motion.button 
+              <button 
                 onClick={resumeRecording}
-                whileTap={{ scale: 0.97 }}
-                className="flex-1 py-2 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-[#8B5CF6]/40 text-slate-200 hover:text-[#8B5CF6] font-bold rounded-xl text-xs btn-interactive flex items-center justify-center gap-1.5 transition-all duration-300"
+                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
+                style={{
+                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.15)'
+                }}
               >
-                <Play className="w-3 h-3 fill-[#8B5CF6] text-[#8B5CF6]" />
-                Resume
-              </motion.button>
+                <span className="absolute inset-0 rounded-xl overflow-hidden">
+                  <span className="inset-0 absolute pointer-events-none select-none">
+                    <span
+                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
+                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))' }}
+                    ></span>
+                  </span>
+                </span>
+                <span
+                  className="inset-0 absolute pointer-events-none select-none"
+                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                >
+                  <span
+                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
+                    style={{
+                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
+                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))'
+                    }}
+                  ></span>
+                </span>
+                <span
+                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300"
+                >
+                  <span className="relative transition-transform duration-500">
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 0.85, 1.1, 1] }}
+                      transition={{ duration: 1, repeat: Infinity, repeatDelay: 2.5 }}
+                    >
+                      <Play className="w-3.5 h-3.5 fill-[#8B5CF6] text-[#8B5CF6]" />
+                    </motion.div>
+                  </span>
+                  <span className="bg-gradient-to-r from-[#8B5CF6] via-purple-300 to-indigo-250 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                    Resume
+                  </span>
+                </span>
+              </button>
               <button 
                 onClick={stopRecording}
                 className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
