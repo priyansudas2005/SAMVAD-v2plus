@@ -251,7 +251,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   checked={captureSource === 'mic'}
                   onChange={() => setCaptureSource('mic')}
                 />
-                <label htmlFor="glass-silver">Mic</label>
+                <label htmlFor="glass-silver" className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                  Mic
+                </label>
 
                 <input
                   type="radio"
@@ -260,7 +263,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   checked={captureSource === 'system'}
                   onChange={() => setCaptureSource('system')}
                 />
-                <label htmlFor="glass-gold">System</label>
+                <label htmlFor="glass-gold" className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                  System
+                </label>
 
                 <input
                   type="radio"
@@ -269,9 +275,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   checked={captureSource === 'both'}
                   onChange={() => setCaptureSource('both')}
                 />
-                <label htmlFor="glass-platinum">Mix</label>
+                <label htmlFor="glass-platinum" className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4"/><path d="M17.7 6.3a8 8 0 0 1 0 11.4"/><path d="M3.5 3.5a14 14 0 0 0 0 17"/><path d="M20.5 3.5a14 14 0 0 1 0 17"/></svg>
+                  Mix
+                </label>
 
-                <div className="glass-glider" />
+                <div
+                  className="glass-glider"
+                  style={{
+                    transform: `translateX(${captureSource === 'mic' ? 0 : captureSource === 'system' ? 100 : 200}%)`,
+                    background: captureSource === 'mic'
+                      ? 'linear-gradient(135deg, rgba(139,92,246,0.35), rgba(139,92,246,0.6))'
+                      : captureSource === 'system'
+                      ? 'linear-gradient(135deg, rgba(56,189,248,0.35), rgba(56,189,248,0.6))'
+                      : 'linear-gradient(135deg, rgba(52,211,153,0.35), rgba(52,211,153,0.6))',
+                    boxShadow: captureSource === 'mic'
+                      ? '0 0 14px rgba(139,92,246,0.5), inset 0 0 8px rgba(139,92,246,0.3)'
+                      : captureSource === 'system'
+                      ? '0 0 14px rgba(56,189,248,0.5), inset 0 0 8px rgba(56,189,248,0.3)'
+                      : '0 0 14px rgba(52,211,153,0.5), inset 0 0 8px rgba(52,211,153,0.3)',
+                  }}
+                />
               </div>
 
               <div className="btn-wrapper w-full flex justify-center mt-1">
