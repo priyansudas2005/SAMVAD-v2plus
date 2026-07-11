@@ -412,34 +412,28 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
                 <button 
                   onClick={pauseRecording}
                   className="btn-premium-glass-neo focus:outline-none"
-                  style={{ borderRadius: '9999px', padding: '14px', width: '52px', height: '52px' }}
                 >
                   <motion.div
                     animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
                   >
-                    <Pause className="w-4.5 h-4.5 text-amber-500 fill-amber-500" />
+                    <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                   </motion.div>
+                  <span>Pause</span>
                 </button>
 
                 {/* Premium Stop Button */}
                 <button 
                   onClick={stopRecording}
-                  className="btn-premium-glass-neo focus:outline-none"
-                  style={{ 
-                    borderRadius: '9999px', 
-                    padding: '14px', 
-                    width: '52px', 
-                    height: '52px',
-                    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.15)'
-                  }}
+                  className="btn-premium-glass-neo-red focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.15, 1] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Power className="w-5 h-5 text-rose-550 hover:text-rose-400" />
+                    <Power className="w-3.5 h-3.5 text-rose-300" />
                   </motion.div>
+                  <span>Stop</span>
                 </button>
               </>
             )}
@@ -450,34 +444,28 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
                 <button 
                   onClick={resumeRecording}
                   className="btn-premium-glass-neo focus:outline-none"
-                  style={{ borderRadius: '9999px', padding: '14px', width: '52px', height: '52px' }}
                 >
                   <motion.div
                     animate={{ scale: [1, 1.2, 0.85, 1.1, 1] }}
                     transition={{ duration: 1, repeat: Infinity, repeatDelay: 2.5 }}
                   >
-                    <Play className="w-4.5 h-4.5 fill-current text-sky-400" />
+                    <Play className="w-3.5 h-3.5 fill-current text-sky-400" />
                   </motion.div>
+                  <span>Resume</span>
                 </button>
 
                 {/* Premium Stop Button */}
                 <button 
                   onClick={stopRecording}
-                  className="btn-premium-glass-neo focus:outline-none"
-                  style={{ 
-                    borderRadius: '9999px', 
-                    padding: '14px', 
-                    width: '52px', 
-                    height: '52px',
-                    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.15)'
-                  }}
+                  className="btn-premium-glass-neo-red focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.15, 1] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Power className="w-5 h-5 text-rose-550 hover:text-rose-400" />
+                    <Power className="w-3.5 h-3.5 text-rose-300" />
                   </motion.div>
+                  <span>Stop</span>
                 </button>
               </>
             )}
