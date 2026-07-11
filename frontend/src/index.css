@@ -279,8 +279,8 @@
 /* Premium Expandable Discard Button CSS */
 .btn-discard-round {
   width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  height: 34px; /* Matches height of the smaller save button precisely */
+  border-radius: 40px; /* Capsule shape when neutral */
   background-color: rgb(20, 20, 20);
   border: 2px solid rgba(255, 255, 255, 0.08);
   font-weight: 600;
@@ -302,7 +302,7 @@
 
 .btn-discard-round:hover {
   width: 140px;
-  border-radius: 50px;
+  border-radius: 40px;
   background-color: rgb(185, 28, 28); /* Reduced bright red to premium crimson */
   box-shadow: -2px -1px 8px 0px rgba(255, 255, 255, 0.05), 2px 1px 8px 0px rgba(185, 28, 28, 0.38);
 }
@@ -314,7 +314,6 @@
 
 .btn-discard-round::before {
   position: absolute;
-  top: -20px;
   content: "Delete";
   color: white;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -322,12 +321,18 @@
   width: 100%;
   text-align: center;
   left: 0;
+  top: 50%;
+  transform: translateY(-50%) translateY(-20px); /* Stays off-screen top initially */
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-discard-round:hover::before {
   font-size: 11px;
   opacity: 1;
-  transform: translateY(34px);
+  transform: translateY(-50%); /* Centered vertically precisely on hover */
 }
 
 /* Sidebar scoped variant to match capture panel size constraints */
@@ -335,7 +340,7 @@
   width: 110px;
 }
 .sidebar-glass .btn-discard-round:hover::before {
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 /* Premium Adaptive Dark-Glass Neumorphic/Specular Button styling */
