@@ -301,7 +301,7 @@
 }
 
 .btn-discard-round:hover {
-  width: 140px;
+  width: 154px; /* Expanded to prevent layout squishing of larger text */
   border-radius: 40px;
   background-color: rgb(185, 28, 28); /* Reduced bright red to premium crimson */
   box-shadow: -2px -1px 8px 0px rgba(255, 255, 255, 0.05), 2px 1px 8px 0px rgba(185, 28, 28, 0.38);
@@ -315,11 +315,11 @@
 .btn-discard-round::before {
   position: absolute;
   content: "DISCARD AUDIO";
-  color: #fca5a5;
+  color: #ffffff; /* Brighter white for high legibility */
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   font-size: 2px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em; /* Closer spacing to match Save font closely */
   text-transform: uppercase;
   width: 100%;
   text-align: center;
@@ -333,17 +333,17 @@
 }
 
 .btn-discard-round:hover::before {
-  font-size: 10.5px;
+  font-size: 11px; /* Matches Save button's 11px font size precisely */
   opacity: 1;
   transform: translateY(-50%); /* Centered vertically precisely on hover */
 }
 
 /* Sidebar scoped variant to match capture panel size constraints */
 .sidebar-glass .btn-discard-round:hover {
-  width: 132px; /* Slightly wider to fit DISCARD AUDIO text comfortably */
+  width: 136px;
 }
 .sidebar-glass .btn-discard-round:hover::before {
-  font-size: 9.5px;
+  font-size: 10px;
 }
 
 /* Premium Adaptive Dark-Glass Neumorphic/Specular Button styling */
