@@ -50,22 +50,24 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
   captureSource,
   setCaptureSource,
 }) => {
+  // HTML5 Canvas reference for high-fidelity live waveform (Fix 1B)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-
-  // 16-bars visualizer frequency factors state (Fix 1B)
-  const [barValues, setBarValues] = useState<number[]>(new Array(16).fill(0.125));
 
   // Hook to start visualizer when stream changes or starts
   useEffect(() => {
-    if (stream && recordingState === 'recording') {
+    if (stream && recordingState === 'recording' && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const canvasCtx = canvas.getContext('2d');
+      if (!canvasCtx) return;
+
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContextClass();
       const analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
-      analyser.fftSize = 64; // smaller bin size for 16 distinct bands
+      analyser.fftSize = 256; // High frequency resolution for beautiful canvas wave
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
@@ -73,42 +75,94 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      let lastTime = 0;
-      const draw = (now: number) => {
-        animationFrameRef.current = requestAnimationFrame(draw);
-        
-        // Limit state updates to ~30fps (33ms interval)
-        if (now - lastTime < 33) {
-          return;
-        }
-        lastTime = now;
+      let animationFrameId: number;
+      const drawCanvas = () => {
+        animationFrameId = requestAnimationFrame(drawCanvas);
+        analyser.getByteTimeDomainData(dataArray);
 
-        analyser.getByteFrequencyData(dataArray);
+        // Clear canvas
+        canvasCtx.fillStyle = 'rgba(2, 6, 23, 0.2)'; // trail effect
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const nextBars = [];
-        const step = Math.floor(bufferLength / 16) || 1;
-        for (let i = 0; i < 16; i++) {
-          let sum = 0;
-          for (let j = 0; j < step; j++) {
-            sum += dataArray[i * step + j] || 0;
+        // Draw horizontal grid lines
+        canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        canvasCtx.lineWidth = 1;
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(0, canvas.height / 2);
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+
+        // Setup wave style gradient
+        const gradient = canvasCtx.createLinearGradient(0, 0, canvas.width, 0);
+        gradient.addColorStop(0, '#8b5cf6'); // purple
+        gradient.addColorStop(0.5, '#6366f1'); // indigo
+        gradient.addColorStop(1, '#38bdf8'); // sky blue
+
+        canvasCtx.lineWidth = 3.5;
+        canvasCtx.strokeStyle = gradient;
+        canvasCtx.lineCap = 'round';
+        canvasCtx.lineJoin = 'round';
+
+        // Add subtle neon glow outline
+        canvasCtx.shadowBlur = 16;
+        canvasCtx.shadowColor = 'rgba(56, 189, 248, 0.6)';
+
+        canvasCtx.beginPath();
+        const sliceWidth = (canvas.width * 1.0) / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = (v * canvas.height) / 2;
+
+          if (i === 0) {
+            canvasCtx.moveTo(x, y);
+          } else {
+            // Cubic bezier logic for smooth curved points instead of straight lines
+            const prevX = x - sliceWidth;
+            const prevV = dataArray[i - 1] / 128.0;
+            const prevY = (prevV * canvas.height) / 2;
+            const cpX1 = prevX + sliceWidth / 2;
+            const cpY1 = prevY;
+            const cpX2 = prevX + sliceWidth / 2;
+            const cpY2 = y;
+            canvasCtx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, x, y);
           }
-          const avg = sum / step;
-          // Limit max scale to 2.2 so bars never exceed container box height
-          const scaled = 0.125 + (avg / 255) * 2.075;
-          nextBars.push(scaled);
+
+          x += sliceWidth;
         }
-        setBarValues(nextBars);
+
+        // Draw connection to the end point smoothly
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+        
+        // Reset shadow settings for performance
+        canvasCtx.shadowBlur = 0;
       };
 
-      animationFrameRef.current = requestAnimationFrame(draw);
+      drawCanvas();
 
       return () => {
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        cancelAnimationFrame(animationFrameId);
         audioContext.close();
-        setBarValues(new Array(16).fill(0.125));
       };
-    } else {
-      setBarValues(new Array(16).fill(0.125));
+    } else if (canvasRef.current) {
+      // Draw a steady baseline if not recording
+      const canvas = canvasRef.current;
+      const canvasCtx = canvas.getContext('2d');
+      if (canvasCtx) {
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.fillStyle = 'rgb(2, 6, 23)';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw centered flat baseline
+        canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        canvasCtx.lineWidth = 2.5;
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(0, canvas.height / 2);
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+      }
     }
   }, [stream, recordingState]);
 
@@ -155,27 +209,16 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
           </p>
         </div>
 
-        {/* Audio Visualizer (16 bars) */}
-        <div className="w-full max-w-md bg-[#020617]/40 rounded-2xl border border-slate-900/80 px-8 py-8 my-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)] flex items-end justify-center gap-2.5 h-32 overflow-hidden relative">
+        {/* Audio Visualizer (High-Fidelity Live Waveform Canvas) */}
+        <div className="w-full max-w-md bg-[#020617]/50 rounded-2xl border border-slate-900/80 my-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)] h-32 overflow-hidden relative flex items-center justify-center p-px">
           {/* Subtle live sound background mesh grids */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:100%_8px] pointer-events-none" />
-          
-          {barValues.map((val, idx) => (
-            <motion.div
-              key={idx}
-              animate={{ scaleY: val }}
-              transition={recordingState === 'recording'
-                ? { type: "spring", stiffness: 350, damping: 15 }
-                : { duration: 0.3, ease: "easeInOut" }
-              }
-              style={{ originY: 1 }}
-              className={`w-3.5 h-12 bg-gradient-to-t from-violet-500 via-indigo-400 to-sky-400 rounded-full flex-shrink-0 transition-all ${
-                recordingState === 'recording' 
-                  ? 'shadow-[0_0_15px_rgba(56,189,248,0.7),0_0_30px_rgba(139,92,246,0.3)] opacity-100' 
-                  : 'opacity-35'
-              }`}
-            />
-          ))}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:100%_8px] pointer-events-none z-10" />
+          <canvas 
+            ref={canvasRef} 
+            width={446} 
+            height={126} 
+            className="w-full h-full rounded-2xl z-0" 
+          />
         </div>
 
         {/* Time duration indicator */}
