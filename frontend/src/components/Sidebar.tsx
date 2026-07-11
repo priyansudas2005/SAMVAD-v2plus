@@ -218,8 +218,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Audio Capture</h2>
             {recordingState !== 'idle' && (
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full premium-sidebar-timer ${
-                recordingState === 'recording' ? 'text-rose-455 border-rose-500/25 bg-rose-500/5' : ''
+              <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md font-mono ${
+                recordingState === 'recording' ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-400'
               }`}>
                 {formatTime(duration)}
               </span>

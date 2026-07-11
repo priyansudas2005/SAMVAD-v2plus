@@ -349,9 +349,9 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         </div>
 
         {/* Audio Visualizer (High-Fidelity Live Waveform Canvas) */}
-        <div className="w-full max-w-md bg-[#020617]/50 rounded-2xl border border-slate-900/80 my-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.6)] h-32 overflow-hidden relative flex items-center justify-center p-px">
+        <div className="w-full max-w-md bg-[#080808]/90 rounded-2xl border border-white/5 my-4 shadow-[inset_0_2px_12px_rgba(0,0,0,0.8)] h-32 overflow-hidden relative flex items-center justify-center p-px">
           {/* Subtle live sound background mesh grids */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:100%_8px] pointer-events-none z-10" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:100%_8px] pointer-events-none z-10" />
           <canvas 
             ref={canvasRef} 
             width={446} 
@@ -362,9 +362,10 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
         {/* Time duration indicator */}
         {recordingState !== 'idle' && (
-          <div className="flex items-center gap-2 px-5 py-2 rounded-full text-slate-200 premium-timer-glow my-4 shadow-md">
-            <Clock className={`w-4 h-4 ${recordingState === 'recording' ? 'text-rose-500 animate-pulse' : 'text-slate-500'}`} />
-            {formatTime(duration)}
+          <div className="flex items-center gap-2 px-5 py-2 rounded-full text-slate-100 bg-[#0c0c0c]/80 border border-white/5 font-bold font-sans text-xs tracking-wider my-4 shadow-md uppercase">
+            <Clock className={`w-3.5 h-3.5 ${recordingState === 'recording' ? 'text-rose-500 animate-pulse' : 'text-slate-500'}`} />
+            <span>Time Elapsed:</span>
+            <span className="font-mono text-sm">{formatTime(duration)}</span>
           </div>
         )}
 
