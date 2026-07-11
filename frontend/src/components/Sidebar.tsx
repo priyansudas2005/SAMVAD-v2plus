@@ -488,10 +488,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button 
                   onClick={discardRecording}
                   disabled={uploading}
-                  className="btn-premium-glass-neo-red flex-1 focus:outline-none disabled:opacity-50"
+                  className="btn-discard-round focus:outline-none flex-shrink-0"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Discard Audio</span>
+                  <Trash2 className="svgIcon-discard text-slate-400 group-hover:text-rose-455" />
                 </button>
                 <button 
                   onClick={saveRecording}

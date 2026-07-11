@@ -281,13 +281,13 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: rgba(25, 25, 25, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgb(20, 20, 20);
+  border: 2px solid rgba(255, 255, 255, 0.08);
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
@@ -301,45 +301,40 @@
 }
 
 .btn-discard-round:hover {
-  width: 146px;
-  border-radius: 12px;
-  background-color: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0px 4px 20px rgba(239, 68, 68, 0.15);
+  width: 140px;
+  border-radius: 50px;
+  background-color: rgb(255, 69, 69);
+  box-shadow: -2px -1px 8px 0px #ffffff, 2px 1px 8px 0px rgba(255, 69, 69, 0.48);
 }
 
 .btn-discard-round:hover .svgIcon-discard {
-  transform: translateY(60px);
-  opacity: 0;
+  transform: translateY(60%);
+  width: 50px;
 }
 
 .btn-discard-round::before {
   position: absolute;
   top: -20px;
-  content: "Discard Audio";
-  color: #fca5a5;
+  content: "Delete";
+  color: white;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  opacity: 0;
+  font-size: 2px;
   width: 100%;
   text-align: center;
 }
 
 .btn-discard-round:hover::before {
-  font-size: 9.5px;
+  font-size: 13px;
   opacity: 1;
-  transform: translateY(32px);
+  transform: translateY(30px);
 }
 
-/* Sidebar scoped variant to prevent page layout shifting */
+/* Sidebar scoped variant to match capture panel size constraints */
 .sidebar-glass .btn-discard-round:hover {
-  width: 114px;
+  width: 110px;
 }
 .sidebar-glass .btn-discard-round:hover::before {
-  font-size: 8.5px;
+  font-size: 11px;
 }
 
 /* Premium Adaptive Dark-Glass Neumorphic/Specular Button styling */
