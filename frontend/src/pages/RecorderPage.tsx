@@ -87,14 +87,42 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
+      const frequencyDataArray = new Uint8Array(bufferLength); // FFT frequency data (Fix 1B)
 
       const drawCanvas = () => {
         animationFrameId = requestAnimationFrame(drawCanvas);
         analyser.getByteTimeDomainData(dataArray);
+        analyser.getByteFrequencyData(frequencyDataArray);
 
         // Clear canvas with trail opacity
         canvasCtx.fillStyle = 'rgba(2, 6, 23, 0.25)';
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Compute average volume for reactive aura glow intensity
+        let sumVolume = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sumVolume += Math.abs(dataArray[i] - 128);
+        }
+        const avgVolume = sumVolume / bufferLength;
+        const volumeFactor = Math.min(avgVolume / 32, 1.0); // normalized factor 0.0 - 1.0
+
+        // ── 1. Draw Radial Freq-Burst Aura Background Glow ──
+        if (volumeFactor > 0.05) {
+          const auraRadius = 25 + volumeFactor * 70;
+          const auraGlow = canvasCtx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 5,
+            canvas.width / 2, canvas.height / 2, auraRadius
+          );
+          // Transition color from purple to sky-blue as volume increases
+          const alphaGlow = volumeFactor * 0.14;
+          const glowColor = volumeFactor > 0.5 ? 'rgba(56, 189, 248,' : 'rgba(139, 92, 246,';
+          auraGlow.addColorStop(0, `${glowColor}${alphaGlow})`);
+          auraGlow.addColorStop(1, 'rgba(2, 6, 23, 0)');
+          canvasCtx.fillStyle = auraGlow;
+          canvasCtx.beginPath();
+          canvasCtx.arc(canvas.width / 2, canvas.height / 2, auraRadius, 0, Math.PI * 2);
+          canvasCtx.fill();
+        }
 
         // Draw horizontal grid lines
         canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
@@ -104,7 +132,23 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
 
-        // 1. Setup gradients
+        // ── 2. Draw Soft Blurred Frequency Bars (Silhouette Background) ──
+        const barWidth = (canvas.width / 32);
+        canvasCtx.fillStyle = 'rgba(99, 102, 241, 0.055)';
+        for (let i = 0; i < 32; i++) {
+          // Use low-frequency bins for a clean visual rise
+          const freqVal = frequencyDataArray[i * 2] || 0;
+          const barHeight = (freqVal / 255) * (canvas.height * 0.7);
+          const bx = i * barWidth + (barWidth / 2) - 1.5;
+          const by = (canvas.height / 2) - (barHeight / 2);
+          
+          canvasCtx.beginPath();
+          // Draw smooth rounded vertical bar silhouettes
+          canvasCtx.roundRect(bx, by, 3, barHeight, 1.5);
+          canvasCtx.fill();
+        }
+
+        // Setup gradients for waves
         const gradientPrimary = canvasCtx.createLinearGradient(0, 0, canvas.width, 0);
         gradientPrimary.addColorStop(0, '#a78bfa'); // lighter purple
         gradientPrimary.addColorStop(0.5, '#6366f1'); // indigo
@@ -117,14 +161,13 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
         const sliceWidth = (canvas.width * 1.0) / bufferLength;
 
-        // ── Render Secondary Background Wave (slightly offset in time and height) ──
+        // ── Render Secondary Background Wave ──
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = gradientSecondary;
         canvasCtx.beginPath();
         let sx = 0;
         for (let i = 0; i < bufferLength; i++) {
           const v = (dataArray[i] / 128.0);
-          // Invert or scale offset slightly to separate background wave visually
           const y = (canvas.height / 2) + ((v - 1.0) * (canvas.height / 2) * 0.7);
           if (i === 0) {
             canvasCtx.moveTo(sx, y);
@@ -175,7 +218,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         }
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
-        canvasCtx.shadowBlur = 0; // reset glow shadow for other draws
+        canvasCtx.shadowBlur = 0; // reset glow shadow
 
         // ── Update and Render Particles ──
         for (let idx = particles.length - 1; idx >= 0; idx--) {
