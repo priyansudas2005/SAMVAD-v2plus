@@ -411,7 +411,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
                 {/* Premium Pause Button */}
                 <button 
                   onClick={pauseRecording}
-                  className="btn-premium-glass-neo focus:outline-none"
+                  className="btn-premium-glass-neo-amber focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}

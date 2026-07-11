@@ -283,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex gap-2.5">
               <button 
                 onClick={pauseRecording}
-                className="btn-premium-glass-neo flex-1 focus:outline-none"
+                className="btn-premium-glass-neo-amber flex-1 focus:outline-none"
               >
                 <motion.div
                   animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
