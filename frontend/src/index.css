@@ -303,13 +303,13 @@
 .btn-discard-round:hover {
   width: 140px;
   border-radius: 50px;
-  background-color: rgb(255, 69, 69);
-  box-shadow: -2px -1px 8px 0px #ffffff, 2px 1px 8px 0px rgba(255, 69, 69, 0.48);
+  background-color: rgb(185, 28, 28); /* Reduced bright red to premium crimson */
+  box-shadow: -2px -1px 8px 0px rgba(255, 255, 255, 0.05), 2px 1px 8px 0px rgba(185, 28, 28, 0.38);
 }
 
 .btn-discard-round:hover .svgIcon-discard {
-  transform: translateY(60%);
-  width: 50px;
+  transform: translateY(50px);
+  opacity: 0;
 }
 
 .btn-discard-round::before {
@@ -321,12 +321,13 @@
   font-size: 2px;
   width: 100%;
   text-align: center;
+  left: 0;
 }
 
 .btn-discard-round:hover::before {
-  font-size: 13px;
+  font-size: 11px;
   opacity: 1;
-  transform: translateY(30px);
+  transform: translateY(34px);
 }
 
 /* Sidebar scoped variant to match capture panel size constraints */
