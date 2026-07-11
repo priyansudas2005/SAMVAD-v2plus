@@ -362,7 +362,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
         {/* Time duration indicator */}
         {recordingState !== 'idle' && (
-          <div className="flex items-center gap-2 px-5 py-2 bg-slate-950/80 rounded-full border border-slate-850 text-slate-200 font-mono text-lg font-extrabold my-4 shadow-md">
+          <div className="flex items-center gap-2 px-5 py-2 rounded-full text-slate-200 premium-timer-glow my-4 shadow-md">
             <Clock className={`w-4 h-4 ${recordingState === 'recording' ? 'text-rose-500 animate-pulse' : 'text-slate-500'}`} />
             {formatTime(duration)}
           </div>

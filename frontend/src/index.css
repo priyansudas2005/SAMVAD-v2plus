@@ -449,6 +449,34 @@
   transform: translateY(0.5px);
 }
 
+/* Premium Neumorphic/Glow Timer Styling */
+.premium-timer-glow {
+  font-family: 'Outfit', 'Inter', monospace !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.08), 
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+/* Sidebar timer badge styling */
+.premium-sidebar-timer {
+  font-family: 'Outfit', 'Inter', monospace !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.07);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.12);
+  text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
 /* Light mode specific override for Neumorphic Specular buttons */
 .theme-light .btn-premium-glass-neo {
   color: #516d91;
