@@ -405,13 +405,13 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
           )}
 
-          <div className="flex justify-center gap-6">
+          <div className="flex justify-center gap-6 w-full max-w-xs mx-auto">
             {recordingState === 'recording' && (
               <>
                 {/* Premium Pause Button */}
                 <button 
                   onClick={pauseRecording}
-                  className="btn-premium-glass-neo-amber focus:outline-none"
+                  className="btn-premium-glass-neo-amber flex-1 focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
@@ -425,7 +425,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
                 {/* Premium Stop Button */}
                 <button 
                   onClick={stopRecording}
-                  className="btn-premium-glass-neo-red focus:outline-none"
+                  className="btn-premium-glass-neo-red flex-1 focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.15, 1] }}
@@ -443,7 +443,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
                 {/* Premium Resume Button */}
                 <button 
                   onClick={resumeRecording}
-                  className="btn-premium-glass-neo focus:outline-none"
+                  className="btn-premium-glass-neo flex-1 focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.2, 0.85, 1.1, 1] }}
@@ -457,7 +457,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
                 {/* Premium Stop Button */}
                 <button 
                   onClick={stopRecording}
-                  className="btn-premium-glass-neo-red focus:outline-none"
+                  className="btn-premium-glass-neo-red flex-1 focus:outline-none"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.15, 1] }}
