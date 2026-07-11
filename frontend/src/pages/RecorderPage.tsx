@@ -57,11 +57,24 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
   // Hook to start visualizer when stream changes or starts
   useEffect(() => {
-    if (stream && recordingState === 'recording' && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const canvasCtx = canvas.getContext('2d');
-      if (!canvasCtx) return;
+    let animationFrameId: number;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const canvasCtx = canvas.getContext('2d');
+    if (!canvasCtx) return;
 
+    // Track active particles floating up from voice wave crests (Fix 1B)
+    interface Particle {
+      x: number;
+      y: number;
+      size: number;
+      speedY: number;
+      alpha: number;
+      color: string;
+    }
+    let particles: Particle[] = [];
+
+    if (stream && recordingState === 'recording') {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContextClass();
       const analyser = audioContext.createAnalyser();
@@ -75,13 +88,12 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      let animationFrameId: number;
       const drawCanvas = () => {
         animationFrameId = requestAnimationFrame(drawCanvas);
         analyser.getByteTimeDomainData(dataArray);
 
-        // Clear canvas
-        canvasCtx.fillStyle = 'rgba(2, 6, 23, 0.2)'; // trail effect
+        // Clear canvas with trail opacity
+        canvasCtx.fillStyle = 'rgba(2, 6, 23, 0.25)';
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw horizontal grid lines
@@ -92,52 +104,95 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
 
-        // Setup wave style gradient
-        const gradient = canvasCtx.createLinearGradient(0, 0, canvas.width, 0);
-        gradient.addColorStop(0, '#8b5cf6'); // purple
-        gradient.addColorStop(0.5, '#6366f1'); // indigo
-        gradient.addColorStop(1, '#38bdf8'); // sky blue
+        // 1. Setup gradients
+        const gradientPrimary = canvasCtx.createLinearGradient(0, 0, canvas.width, 0);
+        gradientPrimary.addColorStop(0, '#a78bfa'); // lighter purple
+        gradientPrimary.addColorStop(0.5, '#6366f1'); // indigo
+        gradientPrimary.addColorStop(1, '#38bdf8'); // sky blue
 
-        canvasCtx.lineWidth = 3.5;
-        canvasCtx.strokeStyle = gradient;
-        canvasCtx.lineCap = 'round';
-        canvasCtx.lineJoin = 'round';
+        const gradientSecondary = canvasCtx.createLinearGradient(0, 0, canvas.width, 0);
+        gradientSecondary.addColorStop(0, 'rgba(167, 139, 250, 0.15)');
+        gradientSecondary.addColorStop(0.5, 'rgba(99, 102, 241, 0.2)');
+        gradientSecondary.addColorStop(1, 'rgba(56, 189, 248, 0.15)');
 
-        // Add subtle neon glow outline
-        canvasCtx.shadowBlur = 16;
-        canvasCtx.shadowColor = 'rgba(56, 189, 248, 0.6)';
-
-        canvasCtx.beginPath();
         const sliceWidth = (canvas.width * 1.0) / bufferLength;
-        let x = 0;
 
+        // ── Render Secondary Background Wave (slightly offset in time and height) ──
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = gradientSecondary;
+        canvasCtx.beginPath();
+        let sx = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = (dataArray[i] / 128.0);
+          // Invert or scale offset slightly to separate background wave visually
+          const y = (canvas.height / 2) + ((v - 1.0) * (canvas.height / 2) * 0.7);
+          if (i === 0) {
+            canvasCtx.moveTo(sx, y);
+          } else {
+            const prevX = sx - sliceWidth;
+            const prevV = dataArray[i - 1] / 128.0;
+            const prevY = (canvas.height / 2) + ((prevV - 1.0) * (canvas.height / 2) * 0.7);
+            canvasCtx.bezierCurveTo(prevX + sliceWidth / 2, prevY, prevX + sliceWidth / 2, y, sx, y);
+          }
+          sx += sliceWidth;
+        }
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+
+        // ── Render Primary Glow Wave ──
+        canvasCtx.lineWidth = 3.5;
+        canvasCtx.strokeStyle = gradientPrimary;
+        canvasCtx.shadowBlur = 12;
+        canvasCtx.shadowColor = 'rgba(56, 189, 248, 0.5)';
+        canvasCtx.beginPath();
+        let px = 0;
         for (let i = 0; i < bufferLength; i++) {
           const v = dataArray[i] / 128.0;
           const y = (v * canvas.height) / 2;
 
           if (i === 0) {
-            canvasCtx.moveTo(x, y);
+            canvasCtx.moveTo(px, y);
           } else {
-            // Cubic bezier logic for smooth curved points instead of straight lines
-            const prevX = x - sliceWidth;
+            const prevX = px - sliceWidth;
             const prevV = dataArray[i - 1] / 128.0;
             const prevY = (prevV * canvas.height) / 2;
-            const cpX1 = prevX + sliceWidth / 2;
-            const cpY1 = prevY;
-            const cpX2 = prevX + sliceWidth / 2;
-            const cpY2 = y;
-            canvasCtx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, x, y);
+            canvasCtx.bezierCurveTo(prevX + sliceWidth / 2, prevY, prevX + sliceWidth / 2, y, px, y);
           }
 
-          x += sliceWidth;
-        }
+          // Emit particles from peaks of wave where amplitude is substantial
+          if (Math.abs(v - 1.0) > 0.12 && Math.random() < 0.12 && px > 20 && px < canvas.width - 20) {
+            particles.push({
+              x: px,
+              y: y,
+              size: 1 + Math.random() * 2.5,
+              speedY: -0.4 - Math.random() * 1.2,
+              alpha: 0.9,
+              color: i % 2 === 0 ? '#38bdf8' : '#a78bfa'
+            });
+          }
 
-        // Draw connection to the end point smoothly
+          px += sliceWidth;
+        }
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
-        
-        // Reset shadow settings for performance
-        canvasCtx.shadowBlur = 0;
+        canvasCtx.shadowBlur = 0; // reset glow shadow for other draws
+
+        // ── Update and Render Particles ──
+        for (let idx = particles.length - 1; idx >= 0; idx--) {
+          const p = particles[idx];
+          p.y += p.speedY;
+          p.alpha -= 0.02;
+          if (p.alpha <= 0) {
+            particles.splice(idx, 1);
+            continue;
+          }
+          canvasCtx.fillStyle = p.color;
+          canvasCtx.globalAlpha = p.alpha;
+          canvasCtx.beginPath();
+          canvasCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          canvasCtx.fill();
+        }
+        canvasCtx.globalAlpha = 1.0; // reset opacity
       };
 
       drawCanvas();
@@ -146,23 +201,64 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         cancelAnimationFrame(animationFrameId);
         audioContext.close();
       };
-    } else if (canvasRef.current) {
-      // Draw a steady baseline if not recording
-      const canvas = canvasRef.current;
-      const canvasCtx = canvas.getContext('2d');
-      if (canvasCtx) {
-        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+    } else {
+      // Gentle sine wave generator (sleeping mode when idle or paused)
+      let phase = 0;
+      const drawIdleWave = () => {
+        animationFrameId = requestAnimationFrame(drawIdleWave);
+        phase += 0.045; // Speed of sine wave drift
+
+        // Clear canvas
         canvasCtx.fillStyle = 'rgb(2, 6, 23)';
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw centered flat baseline
-        canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        canvasCtx.lineWidth = 2.5;
+
+        // Draw horizontal grid lines
+        canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        canvasCtx.lineWidth = 1;
         canvasCtx.beginPath();
         canvasCtx.moveTo(0, canvas.height / 2);
         canvasCtx.lineTo(canvas.width, canvas.height / 2);
         canvasCtx.stroke();
-      }
+
+        const amplitude1 = recordingState === 'paused' ? 3.5 : 6;
+        const amplitude2 = recordingState === 'paused' ? 1.5 : 3;
+
+        // Draw sleeping/resting backwave
+        canvasCtx.strokeStyle = 'rgba(99, 102, 241, 0.08)';
+        canvasCtx.lineWidth = 1.5;
+        canvasCtx.beginPath();
+        for (let x = 0; x < canvas.width; x++) {
+          const y = (canvas.height / 2) + Math.sin(x * 0.012 - phase * 0.7) * amplitude2;
+          if (x === 0) canvasCtx.moveTo(x, y);
+          else canvasCtx.lineTo(x, y);
+        }
+        canvasCtx.stroke();
+
+        // Draw primary resting wave
+        const gradientIdle = canvasCtx.createLinearGradient(0, 0, canvas.width, 0);
+        gradientIdle.addColorStop(0, 'rgba(139, 92, 246, 0.25)');
+        gradientIdle.addColorStop(0.5, 'rgba(56, 189, 248, 0.35)');
+        gradientIdle.addColorStop(1, 'rgba(139, 92, 246, 0.25)');
+
+        canvasCtx.strokeStyle = gradientIdle;
+        canvasCtx.lineWidth = 2.5;
+        canvasCtx.shadowBlur = 8;
+        canvasCtx.shadowColor = 'rgba(56, 189, 248, 0.2)';
+        canvasCtx.beginPath();
+        for (let x = 0; x < canvas.width; x++) {
+          const y = (canvas.height / 2) + Math.sin(x * 0.015 + phase) * amplitude1;
+          if (x === 0) canvasCtx.moveTo(x, y);
+          else canvasCtx.lineTo(x, y);
+        }
+        canvasCtx.stroke();
+        canvasCtx.shadowBlur = 0;
+      };
+
+      drawIdleWave();
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
     }
   }, [stream, recordingState]);
 
