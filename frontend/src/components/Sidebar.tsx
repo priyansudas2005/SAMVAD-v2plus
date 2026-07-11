@@ -291,14 +291,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={stopRecording}
                 className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
                 style={{
-                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.18)'
+                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.12)'
                 }}
               >
                 <span className="absolute inset-0 rounded-xl overflow-hidden">
                   <span className="inset-0 absolute pointer-events-none select-none">
                     <span
                       className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))' }}
+                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))' }}
                     ></span>
                   </span>
                 </span>
@@ -310,27 +310,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
                     style={{
                       animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))'
                     }}
                   ></span>
                 </span>
                 <span
-                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-neutral-950/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
+                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
                 >
                   <span className="relative group-hover:scale-105 transition-transform duration-500">
                     <Square 
-                      className="w-3 h-3 fill-rose-500 text-rose-500"
+                      className="w-3 h-3 fill-rose-455 text-rose-455"
                       style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
                     />
                     <span
                       className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
                       style={{
                         animation: '14s ease-in-out 0s infinite alternate none running star-shine',
-                        background: 'linear-gradient(135deg, rgb(59, 196, 242), rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(242, 99, 120, 0.3))'
                       }}
                     ></span>
                   </span>
-                  <span className="bg-gradient-to-r from-rose-200 via-rose-300 to-amber-200 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                  <span className="bg-gradient-to-r from-rose-300 to-rose-400 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
                     Stop
                   </span>
                 </span>
@@ -352,14 +352,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={stopRecording}
                 className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
                 style={{
-                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.18)'
+                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.12)'
                 }}
               >
                 <span className="absolute inset-0 rounded-xl overflow-hidden">
                   <span className="inset-0 absolute pointer-events-none select-none">
                     <span
                       className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))' }}
+                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))' }}
                     ></span>
                   </span>
                 </span>
@@ -371,27 +371,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
                     style={{
                       animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))'
                     }}
                   ></span>
                 </span>
                 <span
-                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-neutral-950/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
+                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
                 >
                   <span className="relative group-hover:scale-105 transition-transform duration-500">
                     <Square 
-                      className="w-3 h-3 fill-rose-500 text-rose-500"
+                      className="w-3 h-3 fill-rose-455 text-rose-455"
                       style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
                     />
                     <span
                       className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
                       style={{
                         animation: '14s ease-in-out 0s infinite alternate none running star-shine',
-                        background: 'linear-gradient(135deg, rgb(59, 196, 242), rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(242, 99, 120, 0.3))'
                       }}
                     ></span>
                   </span>
-                  <span className="bg-gradient-to-r from-rose-200 via-rose-300 to-amber-200 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                  <span className="bg-gradient-to-r from-rose-300 to-rose-400 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
                     Stop
                   </span>
                 </span>
@@ -422,14 +422,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   disabled={uploading}
                   className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none disabled:opacity-50"
                   style={{
-                    boxShadow: '0 4px 20px rgba(122, 105, 249, 0.22)'
+                    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.15)'
                   }}
                 >
                   <span className="absolute inset-0 rounded-xl overflow-hidden">
                     <span className="inset-0 absolute pointer-events-none select-none">
                       <span
                         className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                        style={{ background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))' }}
+                        style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))' }}
                       ></span>
                     </span>
                   </span>
@@ -441,12 +441,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
                       style={{
                         animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                        background: 'linear-gradient(135deg, rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))'
                       }}
                     ></span>
                   </span>
                   <span
-                    className="flex items-center justify-center gap-1.5 relative z-[1] bg-neutral-950/90 rounded-xl py-2 px-3 w-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300"
+                    className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300"
                   >
                     <span className="relative group-hover:scale-105 transition-transform duration-500">
                       <Play 
@@ -457,7 +457,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
                         style={{
                           animation: '14s ease-in-out 0s infinite alternate none running star-shine',
-                          background: 'linear-gradient(135deg, rgb(59, 196, 242), rgb(122, 105, 249), rgb(242, 99, 120), rgb(245, 131, 63))'
+                          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(122, 105, 249, 0.3))'
                         }}
                       ></span>
                     </span>
