@@ -397,48 +397,10 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
               {/* Premium Start Button */}
               <button 
                 onClick={startRecording}
-                className="group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none w-52 h-11 flex items-center justify-center transition-all duration-300"
-                style={{
-                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.22)'
-                }}
+                className="btn-premium-glass-neo focus:outline-none"
               >
-                <span className="absolute inset-0 rounded-xl overflow-hidden">
-                  <span className="inset-0 absolute pointer-events-none select-none">
-                    <span
-                      className="block -translate-x-1/2 -translate-y-1/3 size-36 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))' }}
-                    ></span>
-                  </span>
-                </span>
-                <span
-                  className="inset-0 absolute pointer-events-none select-none"
-                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
-                >
-                  <span
-                    className="block z-0 h-full w-16 blur-xl -translate-x-1/2 rounded-full"
-                    style={{
-                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))'
-                    }}
-                  ></span>
-                </span>
-                <span
-                  className="flex items-center justify-center gap-2 relative z-[1] bg-[#121212]/90 rounded-xl w-full h-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300 px-4"
-                >
-                  <span className="relative">
-                    <Play className="w-3.5 h-3.5 fill-[#8B5CF6] text-[#8B5CF6] translate-x-[0.5px] group-hover:scale-110 transition-transform" />
-                    <span
-                      className="rounded-full size-8 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-md"
-                      style={{
-                        animation: '14s ease-in-out 0s infinite alternate none running star-shine',
-                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(122, 105, 249, 0.3))'
-                      }}
-                    ></span>
-                  </span>
-                  <span className="bg-gradient-to-r from-violet-200 via-purple-300 to-violet-300 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
-                    Start Recording
-                  </span>
-                </span>
+                <Play className="w-3.5 h-3.5 fill-current text-sky-400 group-hover:scale-110 transition-transform" />
+                <span>Start Recording</span>
               </button>
             </div>
           )}
