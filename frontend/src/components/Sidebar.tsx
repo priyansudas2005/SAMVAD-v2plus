@@ -280,197 +280,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           {recordingState === 'recording' && (
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <button 
                 onClick={pauseRecording}
-                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
-                style={{
-                  boxShadow: '0 4px 20px rgba(245, 158, 11, 0.12)'
-                }}
+                className="btn-premium-glass-neo flex-1 focus:outline-none"
               >
-                <span className="absolute inset-0 rounded-xl overflow-hidden">
-                  <span className="inset-0 absolute pointer-events-none select-none">
-                    <span
-                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(20, 20, 20, 0.8), rgba(245, 158, 11, 0.1))' }}
-                    ></span>
-                  </span>
-                </span>
-                <span
-                  className="inset-0 absolute pointer-events-none select-none"
-                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                <motion.div
+                  animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
                 >
-                  <span
-                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
-                    style={{
-                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(20, 20, 20, 0.8), rgba(245, 158, 11, 0.1))'
-                    }}
-                  ></span>
-                </span>
-                <span
-                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-amber-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
-                >
-                  <span className="relative transition-transform duration-500">
-                    <motion.div
-                      animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
-                    >
-                      <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                    </motion.div>
-                  </span>
-                  <span className="bg-gradient-to-r from-amber-200 to-amber-300 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
-                    Pause
-                  </span>
-                </span>
+                  <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                </motion.div>
+                <span>Pause</span>
               </button>
               <button 
                 onClick={stopRecording}
-                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
-                style={{
-                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.12)'
-                }}
+                className="btn-premium-glass-neo-red flex-1 focus:outline-none"
               >
-                <span className="absolute inset-0 rounded-xl overflow-hidden">
-                  <span className="inset-0 absolute pointer-events-none select-none">
-                    <span
-                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))' }}
-                    ></span>
-                  </span>
-                </span>
-                <span
-                  className="inset-0 absolute pointer-events-none select-none"
-                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <span
-                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
-                    style={{
-                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))'
-                    }}
-                  ></span>
-                </span>
-                <span
-                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
-                >
-                  <span className="relative transition-transform duration-500">
-                    <motion.div
-                      animate={{ scale: [1, 1.15, 1] }}
-                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Power className="w-3.5 h-3.5 text-rose-455 hover:text-rose-400" />
-                    </motion.div>
-                    <span
-                      className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
-                      style={{
-                        animation: '14s ease-in-out 0s infinite alternate none running star-shine',
-                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(242, 99, 120, 0.3))'
-                      }}
-                    ></span>
-                  </span>
-                  <span className="bg-gradient-to-r from-rose-300 to-rose-400 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
-                    Stop
-                  </span>
-                </span>
+                  <Power className="w-3.5 h-3.5 text-rose-300" />
+                </motion.div>
+                <span>Stop</span>
               </button>
             </div>
           )}
 
           {recordingState === 'paused' && (
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <button 
                 onClick={resumeRecording}
-                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
-                style={{
-                  boxShadow: '0 4px 20px rgba(139, 92, 246, 0.15)'
-                }}
+                className="btn-premium-glass-neo flex-1 focus:outline-none"
               >
-                <span className="absolute inset-0 rounded-xl overflow-hidden">
-                  <span className="inset-0 absolute pointer-events-none select-none">
-                    <span
-                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))' }}
-                    ></span>
-                  </span>
-                </span>
-                <span
-                  className="inset-0 absolute pointer-events-none select-none"
-                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                <motion.div
+                  animate={{ scale: [1, 1.2, 0.85, 1.1, 1] }}
+                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 2.5 }}
                 >
-                  <span
-                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
-                    style={{
-                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(122, 105, 249, 0.4))'
-                    }}
-                  ></span>
-                </span>
-                <span
-                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300"
-                >
-                  <span className="relative transition-transform duration-500">
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 0.85, 1.1, 1] }}
-                      transition={{ duration: 1, repeat: Infinity, repeatDelay: 2.5 }}
-                    >
-                      <Play className="w-3.5 h-3.5 fill-[#8B5CF6] text-[#8B5CF6]" />
-                    </motion.div>
-                  </span>
-                  <span className="bg-gradient-to-r from-violet-200 via-purple-300 to-violet-300 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
-                    Resume
-                  </span>
-                </span>
+                  <Play className="w-3.5 h-3.5 fill-current text-sky-400" />
+                </motion.div>
+                <span>Resume</span>
               </button>
               <button 
                 onClick={stopRecording}
-                className="flex-1 group relative bg-neutral-800 rounded-xl p-px overflow-hidden focus:outline-none"
-                style={{
-                  boxShadow: '0 4px 20px rgba(242, 99, 120, 0.12)'
-                }}
+                className="btn-premium-glass-neo-red flex-1 focus:outline-none"
               >
-                <span className="absolute inset-0 rounded-xl overflow-hidden">
-                  <span className="inset-0 absolute pointer-events-none select-none">
-                    <span
-                      className="block -translate-x-1/2 -translate-y-1/3 size-24 blur-xl"
-                      style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))' }}
-                    ></span>
-                  </span>
-                </span>
-                <span
-                  className="inset-0 absolute pointer-events-none select-none"
-                  style={{ animation: '10s ease-in-out 0s infinite alternate none running border-glow-translate' }}
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <span
-                    className="block z-0 h-full w-12 blur-xl -translate-x-1/2 rounded-full"
-                    style={{
-                      animation: '10s ease-in-out 0s infinite alternate none running border-glow-scale',
-                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(20, 20, 20, 0.8), rgba(242, 99, 120, 0.4))'
-                    }}
-                  ></span>
-                </span>
-                <span
-                  className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
-                >
-                  <span className="relative transition-transform duration-500">
-                    <motion.div
-                      animate={{ scale: [1, 1.15, 1] }}
-                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Power className="w-3.5 h-3.5 text-rose-455 hover:text-rose-400" />
-                    </motion.div>
-                    <span
-                      className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
-                      style={{
-                        animation: '14s ease-in-out 0s infinite alternate none running star-shine',
-                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(242, 99, 120, 0.3))'
-                      }}
-                    ></span>
-                  </span>
-                  <span className="bg-gradient-to-r from-rose-300 to-rose-400 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
-                    Stop
-                  </span>
-                </span>
+                  <Power className="w-3.5 h-3.5 text-rose-300" />
+                </motion.div>
+                <span>Stop</span>
               </button>
             </div>
           )}
