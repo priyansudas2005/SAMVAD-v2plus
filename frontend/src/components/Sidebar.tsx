@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   LayoutDashboard, 
   Mic, 
@@ -15,7 +14,9 @@ import {
   RefreshCw,
   FolderSync,
   Volume2,
-  Activity
+  Activity,
+  CheckCircle2,
+  Power
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
@@ -317,11 +318,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span
                   className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
                 >
-                  <span className="relative group-hover:scale-105 transition-transform duration-500">
-                    <Square 
-                      className="w-3 h-3 fill-rose-455 text-rose-455"
-                      style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
-                    />
+                  <span className="relative transition-transform duration-500">
+                    <motion.div
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Power className="w-3.5 h-3.5 text-rose-455 hover:text-rose-400" />
+                    </motion.div>
                     <span
                       className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
                       style={{
@@ -378,11 +381,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span
                   className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-rose-300 font-bold text-xs group-hover:text-white transition-colors duration-300"
                 >
-                  <span className="relative group-hover:scale-105 transition-transform duration-500">
-                    <Square 
-                      className="w-3 h-3 fill-rose-455 text-rose-455"
-                      style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
-                    />
+                  <span className="relative transition-transform duration-500">
+                    <motion.div
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Power className="w-3.5 h-3.5 text-rose-455 hover:text-rose-400" />
+                    </motion.div>
                     <span
                       className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
                       style={{
@@ -448,11 +453,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span
                     className="flex items-center justify-center gap-1.5 relative z-[1] bg-[#121212]/90 rounded-xl py-2 px-3 w-full text-white font-bold text-xs group-hover:text-white transition-colors duration-300"
                   >
-                    <span className="relative group-hover:scale-105 transition-transform duration-500">
-                      <Play 
-                        className="w-3 h-3 fill-[#8B5CF6] text-[#8B5CF6]" 
-                        style={{ animation: '14s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0s infinite alternate none running star-rotate' }}
-                      />
+                    <span className="relative transition-transform duration-500">
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 0.9, 1.1, 1] }}
+                        transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 3 }}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#8B5CF6]" />
+                      </motion.div>
                       <span
                         className="rounded-full size-11 absolute opacity-0 dark:opacity-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-lg"
                         style={{
