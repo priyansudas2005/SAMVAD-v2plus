@@ -316,7 +316,7 @@
 .btn-discard-round::before {
   position: absolute;
   top: -20px;
-  content: "Discard Capture";
+  content: "Discard Audio";
   color: #fca5a5;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   font-size: 8px;
@@ -327,7 +327,7 @@
 }
 
 .btn-discard-round:hover::before {
-  font-size: 11px;
+  font-size: 10px;
   opacity: 1;
   transform: translateY(32px);
 }
