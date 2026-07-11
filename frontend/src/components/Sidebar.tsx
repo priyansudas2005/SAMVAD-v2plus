@@ -419,7 +419,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={discardRecording}
                   disabled={uploading}
                   className="btn-discard-round focus:outline-none"
-                  title="Discard Capture"
                 >
                   <Trash2 className="svgIcon-discard text-slate-400 group-hover:text-rose-455" />
                 </button>
