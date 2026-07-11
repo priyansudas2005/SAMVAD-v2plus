@@ -215,8 +215,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         
         {/* Live Audio Capture Module in Sidebar */}
         <div className="glass-panel p-4 rounded-xl border border-slate-800/60 flex flex-col gap-3 shadow-inner">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Audio Capture</h2>
+          <div
+            className={`flex items-center justify-between ${activePage !== 'recorder' ? 'cursor-pointer group' : ''}`}
+            onClick={() => activePage !== 'recorder' && setActivePage('recorder')}
+            title={activePage !== 'recorder' ? 'Go to Recorder' : undefined}
+          >
+            <h2 className={`text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 ${
+              activePage !== 'recorder' ? 'text-slate-400 group-hover:text-violet-400' : 'text-slate-400'
+            }`}>
+              Audio Capture
+              {activePage !== 'recorder' && (
+                <span className="ml-1.5 text-[9px] text-slate-600 group-hover:text-violet-500 normal-case tracking-normal font-normal transition-colors duration-200">
+                  ↗ open
+                </span>
+              )}
+            </h2>
             {recordingState !== 'idle' && (
               <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md font-mono ${
                 recordingState === 'recording' ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-400'
