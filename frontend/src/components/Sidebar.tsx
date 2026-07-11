@@ -417,7 +417,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <Play className="w-3.5 h-3.5 fill-[#8B5CF6] text-[#8B5CF6]" />
                     </motion.div>
                   </span>
-                  <span className="bg-gradient-to-r from-[#8B5CF6] via-purple-300 to-indigo-250 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
+                  <span className="bg-gradient-to-r from-violet-200 via-purple-300 to-violet-300 bg-clip-text text-transparent group-hover:scale-105 transition transform-gpu">
                     Resume
                   </span>
                 </span>
