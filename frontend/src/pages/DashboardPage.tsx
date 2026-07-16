@@ -179,7 +179,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-950 p-8 space-y-8 h-screen relative">
+    <div className="flex-1 overflow-y-auto bg-transparent p-8 space-y-8 h-screen relative">
 
       {/* ── Ambient Mesh Orbs ─────────────────────────── */}
       <div className="ambient-orbs" aria-hidden="true">
