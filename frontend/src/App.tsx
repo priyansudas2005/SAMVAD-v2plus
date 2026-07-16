@@ -276,11 +276,26 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#070913] text-slate-100 relative z-10">
-      {/* Background ambient glow circles */}
-      <div className="fixed -top-40 -left-40 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[140px] pointer-events-none z-0" />
-      <div className="fixed -bottom-40 -right-40 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none z-0" />
-      <div className="fixed top-1/3 left-1/3 w-[450px] h-[450px] bg-sky-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
+    <div className="flex h-screen w-screen overflow-hidden bg-[#05070f] text-slate-100 relative z-10">
+      {/* ── Layered Atmospheric Environment ─────────────────── */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Deep radial ambient lighting vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#030408_100%)] opacity-85 z-10" />
+        
+        {/* Volumetric mesh gradients (violet bloom, indigo center, cyan lower-right) */}
+        <div 
+          className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-violet-600/12 to-transparent blur-[130px] opacity-90"
+          style={{ animation: 'orb-slow-drift 45s infinite alternate ease-in-out' }}
+        />
+        <div 
+          className="absolute top-[20%] left-[20%] w-[55%] h-[55%] rounded-full bg-gradient-to-tr from-indigo-600/10 to-transparent blur-[140px] opacity-80"
+          style={{ animation: 'orb-slow-drift-rev 55s infinite alternate ease-in-out' }}
+        />
+        <div 
+          className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-sky-500/8 to-transparent blur-[120px] opacity-85"
+          style={{ animation: 'orb-slow-drift 60s infinite alternate ease-in-out' }}
+        />
+      </div>
 
       <Sidebar 
         activePage={activePage}
