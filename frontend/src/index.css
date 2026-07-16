@@ -481,7 +481,7 @@
 }
 
 .stat-card-premium:hover {
-  transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg)) translateY(-4px) scale(1.01) !important;
+  transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg)) translateY(-4px) !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
   box-shadow: 
     0 2px 4px rgba(0, 0, 0, 0.4),
