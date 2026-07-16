@@ -17,7 +17,7 @@ import {
 import { Meeting } from '../types';
 import { api } from '../services/api';
 
-// Mouse-tracking spotlight bento card
+// Mouse-tracking spotlight and 3D parallax tilt bento card widget
 const BentoItem: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = '', children }) => {
   const itemRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -25,14 +25,38 @@ const BentoItem: React.FC<{ className?: string; children: React.ReactNode }> = (
     if (!item) return;
     const handleMouseMove = (e: MouseEvent) => {
       const rect = item.getBoundingClientRect();
-      item.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-      item.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Calculate rotation angles based on cursor offset
+      const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 3; // Max 3 degrees tilt
+      const rotateX = -((y - rect.height / 2) / (rect.height / 2)) * 3;
+      
+      item.style.setProperty('--mouse-x', `${x}px`);
+      item.style.setProperty('--mouse-y', `${y}px`);
+      item.style.setProperty('--rotate-y', `${rotateY}deg`);
+      item.style.setProperty('--rotate-x', `${rotateX}deg`);
+    };
+    const handleMouseLeave = () => {
+      item.style.setProperty('--rotate-y', '0deg');
+      item.style.setProperty('--rotate-x', '0deg');
     };
     item.addEventListener('mousemove', handleMouseMove);
-    return () => item.removeEventListener('mousemove', handleMouseMove);
+    item.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      item.removeEventListener('mousemove', handleMouseMove);
+      item.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, []);
   return (
-    <div ref={itemRef} className={`bento-item ${className}`}>
+    <div 
+      ref={itemRef} 
+      className={`bento-item ${className}`}
+      style={{
+        transform: 'perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg))',
+        transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
+    >
       {children}
     </div>
   );
@@ -223,7 +247,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {/* ── Stats Cards ──────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-        <div className="stat-card-premium p-6">
+        <BentoItem className="stat-card-premium !p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Meetings</span>
@@ -233,8 +257,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <Layers className="w-5 h-5" />
             </div>
           </div>
-        </div>
-        <div className="stat-card-premium p-6">
+        </BentoItem>
+        <BentoItem className="stat-card-premium !p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Duration Processed</span>
@@ -246,8 +270,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <Clock className="w-5 h-5" />
             </div>
           </div>
-        </div>
-        <div className="stat-card-premium p-6">
+        </BentoItem>
+        <BentoItem className="stat-card-premium !p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Words Transcribed</span>
@@ -259,8 +283,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <FileText className="w-5 h-5" />
             </div>
           </div>
-        </div>
-        <div className="stat-card-premium p-6">
+        </BentoItem>
+        <BentoItem className="stat-card-premium !p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Action Items</span>
@@ -270,7 +294,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <CheckSquare className="w-5 h-5" />
             </div>
           </div>
-        </div>
+        </BentoItem>
       </div>
 
       {/* ── Upload + Telemetry Row ────────────────────── */}
