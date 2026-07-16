@@ -100,39 +100,37 @@
   /* Continuous Apple-style squircle curves using custom clipping & border radius transitions */
   border-radius: 0 32px 32px 0;
   
-  /* Thick Frosted Optical Glass: Multi-layered transparent linear gradients */
+  /* Thick Frosted Optical Glass: Multi-layered transparent linear gradients with 20% reduced effect */
   background: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0%, transparent 60%),
-    linear-gradient(180deg, rgba(16, 18, 27, 0.52) 0%, rgba(9, 10, 15, 0.42) 100%) !important;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(16, 18, 27, 0.48) 0%, rgba(9, 10, 15, 0.38) 100%) !important;
   
-  /* Floating Depth Layered Shadow System (Contact, Ambient, Elevation, Color Bounce) */
+  /* Environmental shadow physics: lifted approximately 6-10px from the background */
   box-shadow: 
-    /* Contact edge shadow */
-    1px 0 0px 0px rgba(0, 0, 0, 0.8),
     /* Ambient occlusion shadow */
-    4px 0 16px -2px rgba(0, 0, 0, 0.65),
-    /* Elevation shadow */
-    16px 0 36px -4px rgba(0, 0, 0, 0.55),
-    /* Soft color bounce (violet/sky blue undertones) */
-    24px 0 64px -8px rgba(139, 92, 246, 0.08),
-    /* Faint inner structural border */
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    inset -1px 0 0 0 rgba(255, 255, 255, 0.02);
+    2px 0 8px -1px rgba(0, 0, 0, 0.5),
+    /* Soft environment desktop shadow */
+    8px 0 24px -3px rgba(0, 0, 0, 0.4),
+    /* Color bounce */
+    12px 0 32px -4px rgba(139, 92, 246, 0.04),
+    /* Inner highlights outline */
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.015);
   
   border: none !important;
   position: relative;
   will-change: transform;
 }
 
-/* Glass Noise Texture Layer (1.5% Opacity SVG Noise overlay for real frosted look) */
+/* Glass Noise Texture Layer (1% Opacity SVG Noise overlay for real frosted look) */
 .sidebar-glass::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   border-radius: inherit;
-  opacity: 0.015;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%35%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.01;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%35%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   z-index: 1;
 }
 
@@ -174,21 +172,21 @@
   -webkit-mask-image: linear-gradient(to right, black 35%, transparent 100%);
 }
 
-/* Faint inner highlight outline */
+/* Faint inner highlight outline - wraps naturally around corners */
 .sidebar-specular-highlight {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent 45%) border-box;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent 45%) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   z-index: 2;
 }
 
-/* Wide, low-opacity diagonal glass reflection sweep */
+/* Wide, low-opacity diagonal glass reflection sweep - opacity reduced by 30% */
 .sidebar-glass .sidebar-specular-highlight::before {
   content: '';
   position: absolute;
@@ -199,30 +197,30 @@
   background: linear-gradient(
     45deg,
     transparent 45%,
-    rgba(255, 255, 255, 0.015) 50%,
+    rgba(255, 255, 255, 0.01) 50%,
     transparent 55%
   );
   pointer-events: none;
   z-index: 1;
 }
 
-/* Soft specular reflection along the right edge - reduced intensity by 20% */
+/* Soft specular edge outline simulating realistic glass corner light wrap refraction */
 .sidebar-glass::after {
   content: '';
   position: absolute;
-  top: 10%;
+  top: 5%;
   right: 0;
-  height: 80%;
+  height: 90%;
   width: 1px;
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(56, 189, 248, 0.32) 25%,
-    rgba(139, 92, 246, 0.4) 50%,
-    rgba(56, 189, 248, 0.32) 75%,
+    rgba(56, 189, 248, 0.22) 20%,
+    rgba(139, 92, 246, 0.28) 50%,
+    rgba(56, 189, 248, 0.22) 80%,
     transparent
   );
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.24);
+  box-shadow: 0 0 6px rgba(139, 92, 246, 0.16);
   pointer-events: none;
   z-index: 3;
 }
