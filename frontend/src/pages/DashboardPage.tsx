@@ -380,8 +380,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
           </div>
 
-          {/* AI Pipeline steps — overflow-visible so banner isn't clipped */}
-          <div className="stat-card-premium flex-1 p-6" style={{ overflow: 'visible' }}>
+          {/* AI Pipeline steps — overflow-hidden to prevent glaze sweep bleeding */}
+          <div className="stat-card-premium flex-1 p-6" style={{ overflow: 'hidden' }}>
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
                 <div className="icon-container-premium !w-7 !h-7 !rounded-lg text-slate-400">
