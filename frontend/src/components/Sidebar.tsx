@@ -564,11 +564,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
         )}
-        <div className="flex items-center justify-between px-3 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider text-slate-400" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-          <span>Engine Status</span>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
-            <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0" />
-            <span>Active</span>
+        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[10px] font-semibold text-slate-400/90 transition-all duration-300" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.03)', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
+          <span className="tracking-wide">Engine Status</span>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-[9.5px] font-bold">
+            <span className="relative w-2 h-2 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0" />
+            <span className="tracking-wider">ACTIVE</span>
           </div>
         </div>
       </div>
