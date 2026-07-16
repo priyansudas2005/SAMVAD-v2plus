@@ -441,22 +441,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <motion.button
                   key={`workspace-nav-${item.id}-${isActive}`}
                   onClick={() => setActivePage(item.id)}
-                  whileHover={{ y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border focus:outline-none ${
+                  whileHover={{ y: -1.5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-[11px] font-semibold transition-all duration-[200ms] ease-out border focus:outline-none ${
                     isActive
-                      ? 'text-white shadow-lg'
-                      : 'text-slate-300 hover:text-white'
+                      ? 'btn-nav-liquid-active text-white'
+                      : 'btn-nav-liquid-inactive text-slate-350 hover:text-white'
                   }`}
-                  style={{
-                    borderColor: isActive ? '#8B5CF6' : 'rgba(255, 255, 255, 0.12)',
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.03) 100%)' 
-                      : 'rgba(20, 20, 20, 0.45)',
-                    boxShadow: isActive 
-                      ? '0 8px 22px rgba(139, 92, 246, 0.25), inset 0 0 10px rgba(139, 92, 246, 0.15)' 
-                      : '0 4px 12px rgba(0, 0, 0, 0.2)',
-                  }}
                 >
                   <motion.div
                     animate={isActive ? { 
@@ -496,25 +487,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={`meeting-nav-${item.id}-${isActive}`}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
-                  whileHover={item.disabled ? {} : { y: -3, borderColor: 'rgba(139, 92, 246, 0.45)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)' }}
-                  whileTap={item.disabled ? undefined : { scale: 0.97 }}
-                  className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-semibold btn-interactive transition-all duration-300 relative overflow-hidden text-center border focus:outline-none ${
+                  whileHover={item.disabled ? {} : { y: -1.5 }}
+                  whileTap={item.disabled ? undefined : { scale: 0.98 }}
+                  className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-[11px] font-semibold transition-all duration-[200ms] ease-out border focus:outline-none ${
                     item.disabled
-                      ? 'text-slate-700 cursor-not-allowed border-transparent opacity-25'
+                      ? 'text-slate-700 cursor-not-allowed border-transparent opacity-20'
                       : isActive
-                      ? 'text-white shadow-lg'
-                      : 'text-slate-300 hover:text-white'
+                      ? 'btn-nav-liquid-active text-white'
+                      : 'btn-nav-liquid-inactive text-slate-350 hover:text-white'
                   }`}
                   style={{
-                    borderColor: item.disabled ? 'transparent' : isActive ? '#8B5CF6' : 'rgba(255, 255, 255, 0.12)',
-                    background: item.disabled 
-                      ? 'rgba(20, 20, 20, 0.15)' 
-                      : isActive 
-                      ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.03) 100%)' 
-                      : 'rgba(20, 20, 20, 0.45)',
-                    boxShadow: isActive && !item.disabled
-                      ? '0 8px 22px rgba(139, 92, 246, 0.25), inset 0 0 10px rgba(139, 92, 246, 0.15)' 
-                      : item.disabled ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.2)',
+                    borderColor: item.disabled ? 'transparent' : 'rgba(255, 255, 255, 0.12)',
+                    background: item.disabled ? 'rgba(20, 20, 20, 0.15)' : undefined
                   }}
                 >
                   <motion.div
