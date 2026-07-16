@@ -276,11 +276,11 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#020617] text-slate-100 relative z-10">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#070913] text-slate-100 relative z-10">
       {/* Background ambient glow circles */}
-      <div className="fixed -top-40 -left-40 w-[450px] h-[450px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed -bottom-40 -right-40 w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed top-1/2 left-1/3 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="fixed -top-40 -left-40 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="fixed -bottom-40 -right-40 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="fixed top-1/3 left-1/3 w-[450px] h-[450px] bg-sky-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
       <Sidebar 
         activePage={activePage}
