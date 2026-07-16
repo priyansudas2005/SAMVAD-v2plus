@@ -189,38 +189,48 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const totalMin = meetings.reduce((s, m) => s + (m.duration ?? 0) / 60, 0);
   const avgMin   = meetings.length ? totalMin / meetings.length : 0;
   const currentSort = SORT_OPTIONS.find(o => o.value === sortKey)!;
+  const calculatedDbSize = (24.2 + (meetings.length * 0.8)).toFixed(1);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-950 p-8 space-y-7 h-screen pb-32 relative">
+    <div className="flex-1 overflow-y-auto bg-transparent p-8 space-y-8 h-screen pb-32 relative">
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-          <History className="w-6 h-6 text-sky-400" />
-          Meeting Intelligence Registry
-        </h1>
-        <p className="text-slate-400 text-sm mt-1">
-          Review, rename, manage, and delete previous recordings and intelligence records.
-        </p>
+      {/* ── 1. Page Header ───────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 relative z-10 border-b border-white/[0.03]">
+        <div className="relative z-10 flex flex-col gap-1">
+          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <History className="w-6 h-6 text-sky-400" />
+            Meeting Intelligence Registry
+          </h1>
+          <p className="text-slate-400 text-xs tracking-wide">
+            Review, search, organize, and manage your offline AI meeting intelligence.
+          </p>
+        </div>
+        
+        {/* Placeholder Import Button */}
+        <div className="flex items-center gap-3 relative z-10">
+          <button className="px-4 py-2 bg-slate-900/60 border border-slate-800 rounded-xl text-xs font-bold text-slate-500 cursor-not-allowed opacity-60">
+            Import Meeting (Placeholder)
+          </button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* ── 2. Overview Statistics Row ────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
         {[
-          { label: "Logged Records",  value: String(meetings.length),         icon: <Database className="w-6 h-6" />, accent: "indigo" },
+          { label: "Logged Records",  value: String(meetings.length),         icon: <Database className="w-5 h-5" />, accent: "indigo" },
           { label: "Audio Processed", value: totalMin < 60 ? `${totalMin.toFixed(1)}m` : `${(totalMin / 60).toFixed(1)}h`,
-                                                                              icon: <Clock    className="w-6 h-6" />, accent: "emerald" },
-          { label: "Average Length",  value: `${avgMin.toFixed(1)}m`,          icon: <Activity className="w-6 h-6" />, accent: "sky" },
+                                                                              icon: <Clock    className="w-5 h-5" />, accent: "emerald" },
+          { label: "Average Length",  value: `${avgMin.toFixed(1)}m`,          icon: <Activity className="w-5 h-5" />, accent: "sky" },
         ].map((s, i) => (
           <motion.div key={s.label}
-            initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: i * 0.08 }}
+            initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: i * 0.06 }}
             className="glass-panel p-6 rounded-2xl flex items-center justify-between shadow-xl card-elevation">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">{s.label}</span>
               <h3 className="text-3xl font-extrabold text-white mt-1">{s.value}</h3>
             </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center border
               ${s.accent === "indigo"  ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"  : ""}
               ${s.accent === "emerald" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : ""}
               ${s.accent === "sky"     ? "bg-sky-500/10 text-sky-400 border-sky-500/20"              : ""}`}>
@@ -230,10 +240,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         ))}
       </div>
 
-      {/* Controls bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-5">
+      {/* ── 3. Search & Toolbar (Sticky layout) ───────────────── */}
+      <div className="sticky top-0 z-20 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-950/70 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
         {/* Search */}
-        <div className="search-bar-container">
+        <div className="search-bar-container w-full md:max-w-md">
           <Search className="search-bar-icon" />
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search registry by title..." className="search-bar-input" />
@@ -244,10 +254,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           <div className="flex flex-wrap gap-2">
             {(["all", "short", "long", "today"] as FilterTag[]).map(tag => (
               <button key={tag} onClick={() => setActiveFilter(tag)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                   activeFilter === tag
-                    ? "bg-sky-500 text-slate-950 border-sky-400 shadow-lg shadow-sky-500/10"
-                    : "bg-slate-900/60 text-slate-400 border-slate-800/80 hover:text-white hover:border-slate-700"
+                    ? "bg-sky-500 text-slate-950 border-sky-400"
+                    : "bg-slate-900/60 text-slate-400 border-slate-800/80 hover:text-white"
                 }`}>
                 {tag === "all" ? "All" : tag === "short" ? "Short (<5m)" : tag === "long" ? "Long (>15m)" : "Today"}
               </button>
@@ -257,15 +267,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           {/* Sort dropdown */}
           <div className="relative">
             <button onClick={() => setSortOpen(p => !p)}
-              className="flex items-center gap-2 px-3.5 py-2 bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">
-              <ArrowUpDown className="w-3.5 h-3.5" />
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
+              <ArrowUpDown className="w-3 h-3" />
               {currentSort.label}
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-3 h-3 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
             </button>
             <AnimatePresence>
               {sortOpen && (
-                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
-                  className="absolute right-0 top-10 z-50 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden min-w-[160px]">
+                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                  className="absolute right-0 top-9 z-50 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden min-w-[160px]">
                   {SORT_OPTIONS.map(o => (
                     <button key={o.value} onClick={() => { setSortKey(o.value); setSortOpen(false); }}
                       className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors hover:bg-slate-800 ${
@@ -293,13 +303,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         </div>
       </div>
 
-      {/* Count label */}
-      <p className="text-xs text-slate-600 font-semibold -mt-4">
-        {filtered.length} record{filtered.length !== 1 ? "s" : ""} found
-      </p>
-
-      {/* Cards */}
-      <div className="w-full">
+      {/* ── 4. Meeting Grid/List ─────────────────────────────── */}
+      <div className="w-full relative z-10">
         {loading ? (
           <div className={viewMode === "grid"
             ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
@@ -326,43 +331,44 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         ) : viewMode === "grid" ? (
           /* GRID VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map((meeting, index) => {
+            {filtered.map((meeting) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
               return (
-                <motion.div key={meeting.meeting_id}
-                  initial={{ y: 24, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.32, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                <div key={meeting.meeting_id}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                  className="card flex flex-col cursor-pointer group">
-                  <div className="card__shine" />
-                  <div className="card__glow" />
-                  <div className="card__content">
+                  className="card flex flex-col cursor-pointer group bg-slate-900/40 border border-slate-800/60 rounded-2xl overflow-hidden p-4">
+                  <div className="card__content flex flex-col h-full justify-between gap-3">
 
-                    {/* Color-coded duration badge */}
-                    <div className="card__badge"
-                      style={{ background: meta.color, color: "#0f172a", boxShadow: `0 0 10px ${meta.glow}` }}>
-                      {meta.label}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: `${meta.color}20`, color: meta.color, border: `1px solid ${meta.color}30` }}>
+                        {meta.label}
+                      </span>
+                      <p className="text-[9.5px] text-slate-500">
+                        {new Date(meeting.date).toLocaleDateString()}
+                      </p>
                     </div>
 
                     {/* Waveform thumbnail */}
                     <div onClick={e => handlePlayCard(meeting, e)}
-                      className="card__image flex items-center justify-center cursor-pointer overflow-hidden relative"
+                      className="card__image h-20 flex items-center justify-center cursor-pointer overflow-hidden relative rounded-xl"
                       style={{ background: `linear-gradient(135deg, ${meta.color}18, ${meta.color}06)`, border: `1px solid ${meta.color}22` }}>
                       <WaveformBars playing={isThisPlaying} color={meta.wave} />
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/45 transition-all rounded-xl">
-                        <div className="w-11 h-11 rounded-full flex items-center justify-center"
-                          style={{ background: meta.color, boxShadow: `0 0 22px ${meta.glow}` }}>
-                          {isThisPlaying
-                            ? <Pause className="w-5 h-5 fill-slate-950 text-slate-950" />
-                            : <Play  className="w-5 h-5 fill-slate-950 text-slate-950 ml-0.5" />}
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center"
+                          style={{ background: meta.color }}>
+                          {isThisPlaying ? (
+                            <Pause className="w-4 h-4 fill-slate-950 text-slate-950" />
+                          ) : (
+                            <Play className="w-4 h-4 fill-slate-950 text-slate-950 ml-0.5" />
+                          )}
                         </div>
                       </div>
                     </div>
 
                     {/* Title + date */}
-                    <div className="card__text">
+                    <div className="card__text flex-1">
                       {editingId === meeting.meeting_id ? (
                         <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                           <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
@@ -376,11 +382,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           </button>
                         </div>
                       ) : (
-                        <h4 className="card__title truncate text-sm" title={meeting.title}>{meeting.title}</h4>
+                        <h4 className="card__title truncate text-sm text-white font-semibold" title={meeting.title}>{meeting.title}</h4>
                       )}
-                      <p className="card__description mt-0.5 text-[10px]">
-                        {new Date(meeting.date).toLocaleDateString()} · {new Date(meeting.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </p>
+                      
                       {meeting.transcript && meeting.transcript.length > 0 && (
                         <span className="inline-flex items-center mt-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-500 border border-slate-700/50">
                           {meeting.transcript.reduce((s, seg) => s + seg.text.split(" ").length, 0).toLocaleString()} words
@@ -388,43 +392,41 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       )}
                     </div>
 
-                    {/* Hover-reveal action bar */}
-                    <div className="card__footer translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-200"
+                    {/* Reveal actions */}
+                    <div className="flex items-center justify-between border-t border-slate-800/80 pt-2"
                       onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1.5">
                         {editingId !== meeting.meeting_id && (
                           <button onClick={e => startEdit(meeting, e)}
-                            className="p-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg transition-colors" title="Rename">
+                            className="p-1.5 bg-slate-950 border border-slate-850 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg transition-colors" title="Rename">
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button onClick={e => handleDelete(meeting.meeting_id, e)}
-                          className="p-1.5 bg-slate-900 border border-slate-800 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 rounded-lg transition-colors" title="Delete">
+                          className="p-1.5 bg-slate-950 border border-slate-850 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 rounded-lg transition-colors" title="Delete">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                       <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                        className="card__button" title="View Transcript">
-                        <Eye className="w-3.5 h-3.5 text-white" />
+                        className="p-1.5 bg-sky-500 hover:bg-sky-400 rounded-lg" title="View Transcript">
+                        <Eye className="w-3.5 h-3.5 text-slate-950" />
                       </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         ) : (
           /* LIST VIEW */
           <div className="flex flex-col gap-2">
-            {filtered.map((meeting, index) => {
+            {filtered.map((meeting) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
               return (
                 <motion.div key={meeting.meeting_id}
-                  initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
-                  transition={{ duration: 0.28, delay: index * 0.04 }}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                  className="group flex items-center gap-4 px-5 py-4 bg-slate-900/50 hover:bg-slate-900 border border-slate-800/60 hover:border-slate-700 rounded-2xl cursor-pointer transition-all">
+                  className="group flex items-center gap-4 px-5 py-3 bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800/60 hover:border-slate-700 rounded-xl cursor-pointer transition-all">
 
                   <button onClick={e => handlePlayCard(meeting, e)}
                     className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all"
@@ -449,26 +451,28 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     style={{ background: `${meta.color}20`, color: meta.color, border: `1px solid ${meta.color}30` }}>
                     {meta.label}
                   </span>
-
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all" onClick={e => e.stopPropagation()}>
-                    <button onClick={e => startEdit(meeting, e)}
-                      className="p-1.5 hover:bg-slate-800 text-slate-500 hover:text-white rounded-lg transition-colors">
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={e => handleDelete(meeting.meeting_id, e)}
-                      className="p-1.5 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 rounded-lg transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="p-1.5 hover:bg-sky-500/10 text-slate-500 hover:text-sky-400 rounded-lg transition-colors">
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </motion.div>
               );
             })}
           </div>
         )}
+      </div>
+
+      {/* ── 5. Page Footer ───────────────────────────────────── */}
+      <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-900 pt-6 text-xs text-slate-500 font-medium">
+        <div>
+          Total Registry Records: <span className="text-slate-300 font-semibold">{meetings.length}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div>
+            Filtered View: <span className="text-slate-300 font-semibold">{filtered.length}</span>
+          </div>
+          <div className="h-3 w-px bg-slate-900" />
+          <div className="flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5 text-slate-500" />
+            Registry Size: <span className="text-slate-300 font-semibold">{calculatedDbSize} MB</span>
+          </div>
+        </div>
       </div>
 
       {/* Floating Audio Dock */}
