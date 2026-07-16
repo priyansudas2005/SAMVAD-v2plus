@@ -1864,38 +1864,99 @@
 /* =====================================================
    AI Pipeline Steps
    ===================================================== */
+/* Progress bar customization simulating layered glass tracks */
+.progress-track-premium {
+  height: 6px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill-premium {
+  height: 100%;
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+  transition: width 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Flowing highlight shine animation across active progress bar tracks */
+.progress-fill-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 100%
+  );
+  animation: progress-fill-shine 3.5s infinite linear;
+}
+
+@keyframes progress-fill-shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* AI Pipeline Steps */
 .pipeline-step {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  transition: all 0.35s ease;
-  background: transparent;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.005);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.01);
+  transition: 
+    background-color 220ms ease,
+    border-color 220ms ease,
+    transform 220ms ease;
+}
+
+.pipeline-step:hover {
+  background: rgba(255, 255, 255, 0.015);
+  border-color: rgba(255, 255, 255, 0.05);
+  transform: translateX(2px);
 }
 
 .pipeline-active {
-  background: rgba(56, 189, 248, 0.06);
-  border-color: rgba(56, 189, 248, 0.2);
-  box-shadow: 0 0 16px var(--step-glow, rgba(56,189,248,0.2));
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(56, 189, 248, 0.15) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
 }
 
-.pipeline-done { opacity: 0.45; }
+.pipeline-done { 
+  opacity: 0.85; 
+}
 
 .pipeline-dot {
-  width: 8px; height: 8px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: rgba(56,189,248,0.5);
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+  transition: background-color 300ms ease, box-shadow 300ms ease;
 }
 
 .pipeline-active .pipeline-dot {
   background: #38bdf8;
-  box-shadow: 0 0 8px rgba(56,189,248,0.7);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
 }
 
-.pipeline-done .pipeline-dot { background: #34d399; }
+.pipeline-done .pipeline-dot { 
+  background: #34d399; 
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+}
 
 @keyframes pipeline-blink-anim {
   0%, 100% { opacity: 1; }

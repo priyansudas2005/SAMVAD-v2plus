@@ -45,23 +45,25 @@ const TelemetryBar: React.FC<{
 }> = ({ label, value, max, unit, color, glowColor, icon }) => {
   const pct = Math.min((value / max) * 100, 100);
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {icon}
-          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+          <div className="icon-container-premium !w-7 !h-7 !rounded-lg text-slate-400">
+            {icon}
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
         </div>
         <span className="text-xs font-mono font-bold" style={{ color }}>
-          {value.toFixed(1)}<span className="text-slate-600 text-[10px] ml-0.5">{unit}</span>
+          {value.toFixed(1)}<span className="text-slate-550 text-[10px] ml-0.5">{unit}</span>
         </span>
       </div>
-      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+      <div className="progress-track-premium">
         <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
+          className="progress-fill-premium transition-all duration-700 ease-out"
           style={{
             width: `${pct}%`,
             background: `linear-gradient(90deg, ${color}99, ${color})`,
-            boxShadow: `0 0 8px ${glowColor}`,
+            boxShadow: `0 0 6px ${glowColor}`,
           }}
         />
       </div>
@@ -322,12 +324,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="lg:col-span-2 flex flex-col gap-4">
 
           {/* System Resources — horizontal bar meters */}
-          <BentoItem className="flex-1">
+          <div className="stat-card-premium flex-1 p-6">
             <div className="flex items-center justify-between mb-5">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5 text-amber-400" /> System Resources
+                <div className="icon-container-premium !w-7 !h-7 !rounded-lg text-slate-400">
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                </div>
+                <span className="tracking-wide">System Resources</span>
               </p>
-              <span className="text-[10px] font-mono text-emerald-500 font-bold tracking-wider">● LIVE</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-[9px] font-bold">
+                <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0" />
+                <span className="tracking-wider">LIVE</span>
+              </div>
             </div>
             <div className="flex flex-col gap-4">
               <TelemetryBar
@@ -346,18 +354,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 icon={<Zap className="w-3.5 h-3.5 text-indigo-400" />}
               />
             </div>
-          </BentoItem>
+          </div>
 
           {/* AI Pipeline steps — overflow-visible so banner isn't clipped */}
-          <div className="bento-item flex-1" style={{ overflow: 'visible' }}>
+          <div className="stat-card-premium flex-1 p-6" style={{ overflow: 'visible' }}>
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                <Cpu className="w-3.5 h-3.5 text-sky-400" /> AI Pipeline
+                <div className="icon-container-premium !w-7 !h-7 !rounded-lg text-slate-400">
+                  <Cpu className="w-3.5 h-3.5 text-sky-400" />
+                </div>
+                <span className="tracking-wide">AI Pipeline</span>
               </p>
-              {pipelineDone
-                ? <span className="text-[10px] font-mono text-emerald-500 font-bold tracking-wider">● READY</span>
-                : <span className="text-[10px] font-mono text-sky-400 font-bold tracking-wider pipeline-blink">● RUNNING</span>
-              }
+              {pipelineDone ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-[9px] font-bold">
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0" />
+                  <span className="tracking-wider">READY</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/15 text-sky-400 text-[9px] font-bold">
+                  <span className="relative w-1.5 h-1.5 rounded-full bg-sky-400 status-ring-ready flex-shrink-0 pipeline-blink" />
+                  <span className="tracking-wider">RUNNING</span>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               {PIPELINE_STEPS.map((step, idx) => {
@@ -369,18 +387,33 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   <div key={step.id}
                     className={`pipeline-step ${isActive ? 'pipeline-active' : ''} ${isDone ? 'pipeline-done' : ''}`}
                     style={{ '--step-glow': step.glow } as React.CSSProperties}>
-                    <div className={`pipeline-dot ${isActive ? 'animate-pulse' : ''}`} />
-                    <Icon className={`w-3.5 h-3.5 ${
-                      isDone ? 'text-emerald-500' : isActive ? step.color : 'text-slate-700'
-                    }`} />
+                    <div className="icon-container-premium !w-6 !h-6 !rounded-md text-slate-400 flex-shrink-0">
+                      <Icon className={`w-3.5 h-3.5 ${
+                        isDone ? 'text-emerald-400' : isActive ? step.color : 'text-slate-650'
+                      }`} />
+                    </div>
                     <span className={`text-xs font-bold tracking-wide ${
-                      isDone ? 'text-slate-400' : isActive ? 'text-white' : 'text-slate-700'
+                      isDone ? 'text-slate-400' : isActive ? 'text-white' : 'text-slate-600'
                     }`}>
                       {step.label}
                     </span>
-                    {isDone && <span className="ml-auto text-[10px] text-emerald-500 font-bold">✓ Done</span>}
-                    {isActive && <span className="ml-auto text-[10px] text-sky-400 font-bold pipeline-blink">● Running</span>}
-                    {isPending && <span className="ml-auto text-[10px] text-slate-700 font-bold">Queued</span>}
+                    {isDone && (
+                      <div className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[9px] font-bold border border-emerald-500/10">
+                        <span className="relative w-1 h-1 rounded-full bg-emerald-400 status-ring-ready" />
+                        <span>Done</span>
+                      </div>
+                    )}
+                    {isActive && (
+                      <div className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 text-[9px] font-bold border border-sky-500/10">
+                        <span className="relative w-1 h-1 rounded-full bg-sky-400 status-ring-ready pipeline-blink" />
+                        <span>Running</span>
+                      </div>
+                    )}
+                    {isPending && (
+                      <div className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900/60 text-slate-600 text-[9px] font-bold border border-slate-800">
+                        <span>Queued</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
