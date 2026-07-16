@@ -367,6 +367,64 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Premium Dashboard stats card overlay */
+.stat-card-premium {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, transparent 60%), rgba(10, 12, 18, 0.48) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(12px) saturate(110%);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
+  position: relative;
+  overflow: hidden;
+  
+  /* Layered environmental shadow mapping for lift of 8px */
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    
+  transition: 
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform;
+}
+
+.stat-card-premium:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 16px 36px -4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Premium Illuminated Glass Icon container */
+.icon-container-premium {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-container-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, currentColor 0%, transparent 70%);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
 /* Spotlight radial glow that follows cursor */
 .bento-item::before {
   content: '';

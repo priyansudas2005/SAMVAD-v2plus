@@ -221,18 +221,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {/* ── Stats Cards ──────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-        <BentoItem>
+        <div className="stat-card-premium p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Meetings</span>
               <h3 className="text-3xl font-extrabold text-white mt-1">{totalMeetings}</h3>
             </div>
-            <div className="w-12 h-12 bg-[var(--accent-glow)]/10 rounded-xl flex items-center justify-center text-[var(--accent-primary)] border border-[var(--accent-glow)]/20">
-              <Layers className="w-6 h-6" />
+            <div className="icon-container-premium text-[var(--accent-primary)]">
+              <Layers className="w-5 h-5" />
             </div>
           </div>
-        </BentoItem>
-        <BentoItem>
+        </div>
+        <div className="stat-card-premium p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Duration Processed</span>
@@ -240,12 +240,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {totalDurationMin < 60 ? `${totalDurationMin.toFixed(1)}m` : `${(totalDurationMin / 60).toFixed(1)}h`}
               </h3>
             </div>
-            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 border border-emerald-500/20">
-              <Clock className="w-6 h-6" />
+            <div className="icon-container-premium text-emerald-400">
+              <Clock className="w-5 h-5" />
             </div>
           </div>
-        </BentoItem>
-        <BentoItem>
+        </div>
+        <div className="stat-card-premium p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Words Transcribed</span>
@@ -253,22 +253,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {totalWords > 1000 ? `${(totalWords / 1000).toFixed(1)}k` : totalWords}
               </h3>
             </div>
-            <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-              <FileText className="w-6 h-6" />
+            <div className="icon-container-premium text-indigo-400">
+              <FileText className="w-5 h-5" />
             </div>
           </div>
-        </BentoItem>
-        <BentoItem>
+        </div>
+        <div className="stat-card-premium p-6">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Action Items</span>
               <h3 className="text-3xl font-extrabold text-white mt-1">{actionItemsCount}</h3>
             </div>
-            <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 border border-amber-500/20">
-              <CheckSquare className="w-6 h-6" />
+            <div className="icon-container-premium text-amber-400">
+              <CheckSquare className="w-5 h-5" />
             </div>
           </div>
-        </BentoItem>
+        </div>
       </div>
 
       {/* ── Upload + Telemetry Row ────────────────────── */}
