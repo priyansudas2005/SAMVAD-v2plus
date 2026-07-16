@@ -119,41 +119,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-specular-highlight" />
 
       {/* Brand Section */}
-      <div className="p-6 border-b border-slate-900/40 flex items-center gap-3 relative z-10">
+      <div className="p-6 border-b border-slate-900/20 flex items-center gap-3.5 relative z-10">
         <div
           className="relative flex items-center justify-center cursor-pointer"
           onClick={() => {}}
         >
-          {/* App icon box */}
+          {/* App icon box - Apple-style glass surface with soft inner highlights */}
           <div
-            className="relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-500 hover:scale-105"
+            className="relative w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-500 hover:scale-102"
             style={{
-              background: 'linear-gradient(145deg, #0f1a2e 0%, #070d1a 100%)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              boxShadow: `0 0 0 1px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.4)`,
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: `0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)`,
             }}
           >
             {/* Inner top shine */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-            {/* Active glow halo — pulses like a live mic */}
+            {/* Faint violet ambient glow behind the icon only */}
             <div
               className="absolute rounded-full pointer-events-none"
               style={{
-                width: 48, height: 48,
-                background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-                opacity: recordingState === 'recording' ? 0.35 : 0.12,
-                filter: 'blur(10px)',
-                animation: 'logo-halo 2.5s ease-in-out infinite',
+                width: 38, height: 38,
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
+                filter: 'blur(6px)',
               }}
             />
 
             {/* Microphone + Sound Waves SVG — scaled down to fit box */}
             <svg
-              width="36" height="36" viewBox="0 0 52 52" fill="none"
+              width="32" height="32" viewBox="0 0 52 52" fill="none"
               xmlns="http://www.w3.org/2000/svg"
               className="relative z-10"
-              style={{ filter: 'drop-shadow(0 0 4px var(--accent-glow))' }}
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
             >
               <defs>
                 <linearGradient id="micGrad" x1="26" y1="4" x2="26" y2="30" gradientUnits="userSpaceOnUse">
@@ -197,26 +195,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Recording live indicator */}
           {recordingState === 'recording' && (
-            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
+            <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
           )}
         </div>
-        <div>
-          <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
-            SAMVAD
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2">
+            <h1 className="text-md font-bold tracking-tight text-white font-sans">
+              SAMVAD
+            </h1>
             <span
-              className="text-[10px] font-black tracking-widest self-end mb-0.5"
-              style={{
-                background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-glow))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                letterSpacing: '0.1em',
-              }}
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide"
             >
               v2.0
             </span>
-          </h1>
-          <p className="text-[10.5px] text-slate-400 font-medium font-sans">Offline Meeting Intelligence</p>
+          </div>
+          <p className="text-[10px] text-slate-400 font-medium font-sans">Offline Intelligence</p>
         </div>
       </div>
 
