@@ -204,19 +204,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             { label: 'Whisper: Ready', color: 'bg-emerald-400' },
             { label: 'VAD: Active',    color: 'bg-emerald-400' },
             { label: `CPU: ${telemetry.cpu.toFixed(1)}%`, color: 'bg-emerald-400' },
-            { label: `RAM: ${(telemetry.ram / 1024).toFixed(2)} GB`, color: 'bg-sky-450' },
+            { label: `RAM: ${(telemetry.ram / 1024).toFixed(2)} GB`, color: 'bg-sky-400' },
           ].map(b => (
             <div 
               key={b.label} 
-              className="px-3 py-1.5 rounded-xl flex items-center gap-2 transition-all duration-300"
-              style={{
-                background: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(255, 255, 255, 0.04)',
-                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)'
-              }}
+              className="telemetry-capsule"
             >
               <span className={`w-1.5 h-1.5 rounded-full ${b.color} status-ring-ready`} />
-              <span className="text-[9px] font-mono font-bold text-slate-300 uppercase tracking-wider">{b.label}</span>
+              <span className="text-[9px] font-mono font-bold text-slate-350 uppercase tracking-wider">{b.label}</span>
             </div>
           ))}
         </div>
