@@ -187,21 +187,36 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* ── Header ───────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-5 relative z-10">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Meeting Intelligence Studio</h1>
-          <p className="text-slate-400 mt-1 text-sm">Secure local speech extraction &amp; semantic pipeline workspace.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 relative z-10 border-b border-white/[0.03]">
+        {/* Soft environmental lighting glow behind the title info */}
+        <div className="absolute -top-12 -left-12 w-64 h-64 bg-violet-500/5 rounded-full blur-[60px] pointer-events-none z-0" />
+        
+        <div className="relative z-10 flex flex-col gap-1">
+          <h1 className="text-2xl font-extrabold text-white tracking-tight font-sans">
+            Meeting Intelligence Studio
+          </h1>
+          <p className="text-slate-450 text-xs tracking-wide">
+            Secure local speech extraction &amp; semantic pipeline workspace.
+          </p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2.5 relative z-10">
           {[
-            { label: 'Whisper: Ready', color: 'bg-emerald-500' },
-            { label: 'VAD: Active',    color: 'bg-emerald-500' },
-            { label: `CPU: ${telemetry.cpu.toFixed(1)}%`, color: 'bg-emerald-500' },
-            { label: `RAM: ${(telemetry.ram / 1024).toFixed(2)} GB`, color: 'bg-sky-500' },
+            { label: 'Whisper: Ready', color: 'bg-emerald-400' },
+            { label: 'VAD: Active',    color: 'bg-emerald-400' },
+            { label: `CPU: ${telemetry.cpu.toFixed(1)}%`, color: 'bg-emerald-400' },
+            { label: `RAM: ${(telemetry.ram / 1024).toFixed(2)} GB`, color: 'bg-sky-450' },
           ].map(b => (
-            <div key={b.label} className="px-3.5 py-2 bg-slate-900/60 border border-slate-800 rounded-xl flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${b.color} status-ring-ready`} />
-              <span className="text-[10px] font-mono font-bold text-white uppercase tracking-wider">{b.label}</span>
+            <div 
+              key={b.label} 
+              className="px-3 py-1.5 rounded-xl flex items-center gap-2 transition-all duration-300"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.04)',
+                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)'
+              }}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${b.color} status-ring-ready`} />
+              <span className="text-[9px] font-mono font-bold text-slate-300 uppercase tracking-wider">{b.label}</span>
             </div>
           ))}
         </div>
