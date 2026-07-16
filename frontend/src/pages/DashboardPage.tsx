@@ -188,8 +188,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {/* ── Header ───────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 relative z-10 border-b border-white/[0.03]">
-        {/* Soft environmental lighting glow behind the title info */}
-        <div className="absolute -top-12 -left-12 w-64 h-64 bg-violet-500/5 rounded-full blur-[60px] pointer-events-none z-0" />
+        {/* Soft environmental indirect lighting glow (violet, indigo, sky blue layers) */}
+        <div className="absolute -top-16 -left-16 w-80 h-32 bg-violet-600/5 rounded-full blur-[80px] pointer-events-none z-0" />
+        <div className="absolute -top-8 left-8 w-60 h-24 bg-indigo-600/5 rounded-full blur-[70px] pointer-events-none z-0" />
+        <div className="absolute top-0 -left-12 w-48 h-20 bg-sky-500/3 rounded-full blur-[60px] pointer-events-none z-0" />
         
         <div className="relative z-10 flex flex-col gap-1">
           <h1 className="text-2xl font-extrabold text-white tracking-tight font-sans">
