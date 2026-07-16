@@ -107,9 +107,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10">
+    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10 relative overflow-hidden">
+      {/* Apple VisionOS Progressive Blur Layering */}
+      <div className="sidebar-progressive-blur">
+        <div className="sidebar-blur-layer sidebar-blur-layer--8" />
+        <div className="sidebar-blur-layer sidebar-blur-layer--16" />
+        <div className="sidebar-blur-layer sidebar-blur-layer--32" />
+      </div>
+      
+      {/* Specular highlight border overlay */}
+      <div className="sidebar-specular-highlight" />
+
       {/* Brand Section */}
-      <div className="p-6 border-b border-slate-900/40 flex items-center gap-3">
+      <div className="p-6 border-b border-slate-900/40 flex items-center gap-3 relative z-10">
         <div
           className="relative flex items-center justify-center cursor-pointer"
           onClick={() => {}}
@@ -211,7 +221,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 relative z-10">
         
         {/* Live Audio Capture Module in Sidebar */}
         <div className="glass-panel p-4 rounded-xl border border-slate-800/60 flex flex-col gap-3 shadow-inner">
@@ -567,7 +577,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-4 border-t border-slate-900/40 bg-transparent flex flex-col gap-2">
+      <div className="p-4 border-t border-slate-900/40 bg-transparent flex flex-col gap-2 relative z-10">
         {currentMeeting && (
           <div className="p-3 bg-slate-950/40 backdrop-blur-md rounded-lg border border-slate-850/40 flex flex-col gap-1">
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider font-semibold">Loaded Meeting</span>
