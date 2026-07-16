@@ -370,6 +370,8 @@
 /* Premium Dashboard stats card overlay */
 .stat-card-premium {
   background: 
+    radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.05) 0%, transparent 55%),
+    radial-gradient(circle at 90% 90%, rgba(56, 189, 248, 0.04) 0%, transparent 55%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
     rgba(13, 15, 24, 0.45) !important;
   border-radius: 16px !important;
