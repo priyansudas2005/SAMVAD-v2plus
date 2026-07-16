@@ -1596,9 +1596,9 @@
 }
 
 .folder3d-container {
-  --transition: 250ms;
-  --folder-W: 130px;
-  --folder-H: 84px;
+  --transition: 280ms;
+  --folder-W: 146px; /* Scaled up by ~12.5% */
+  --folder-H: 94px;  /* Scaled up by ~12% */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1607,23 +1607,23 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  height: calc(var(--folder-H) * 2);
-  width: calc(var(--folder-W) * 1.5);
+  height: calc(var(--folder-H) * 2.2);
+  width: calc(var(--folder-W) * 1.6);
   position: relative;
   transition: transform var(--transition) cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
-/* Slow breathing glow behind the folder */
+/* Faint purple-blue breathing lighting glow behind the folder */
 .folder3d-container::after {
   content: '';
   position: absolute;
-  width: 100px;
-  height: 20px;
+  width: 120px;
+  height: 25px;
   bottom: 35px;
-  left: calc(50% - 50px);
-  background: rgba(139, 92, 246, 0.15);
-  filter: blur(14px);
+  left: calc(50% - 60px);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.22) 0%, rgba(56, 189, 248, 0.08) 60%, transparent 100%);
+  filter: blur(16px);
   border-radius: 50%;
   pointer-events: none;
   animation: folder-breath-glow 8s ease-in-out infinite alternate;
@@ -1631,20 +1631,20 @@
 }
 
 .folder3d-container:hover {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-5px) scale(1.025) rotateX(3deg) rotateY(1deg);
 }
 
 .folder3d {
   position: absolute;
   top: 10px;
-  left: calc(50% - 65px);
+  left: calc(50% - 73px);
   animation: folder3d-float 3.5s infinite ease-in-out;
-  transition: transform var(--transition) ease;
+  transition: transform var(--transition) cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1;
 }
 
 .folder3d-container:hover .folder3d {
-  transform: rotateY(12deg) rotateX(8deg) translateY(-2px);
+  transform: rotateY(14deg) rotateX(10deg) translateY(-4px);
 }
 
 .folder3d .folder3d-front-side,
