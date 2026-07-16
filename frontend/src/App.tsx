@@ -9,6 +9,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { Meeting } from './types';
 import { api } from './services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { WebGLShader } from './components/ui/web-gl-shader';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -276,7 +277,10 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#05070f] text-slate-100 relative z-10">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#020617] text-slate-100 relative z-10">
+      {/* ── WebGL Shader Background ────────────────────────── */}
+      <WebGLShader />
+      
       {/* ── Layered Atmospheric Environment ─────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Deep radial ambient lighting vignette */}
