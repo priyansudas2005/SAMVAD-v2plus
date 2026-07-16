@@ -223,12 +223,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => activePage !== 'recorder' && setActivePage('recorder')}
             title={activePage !== 'recorder' ? 'Go to Recorder' : undefined}
           >
-            <h2 className={`text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500/80 transition-colors duration-200 ${
+            <h2 className={`text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400/90 transition-colors duration-200 ${
               activePage !== 'recorder' ? 'group-hover:text-violet-400' : ''
             }`}>
               Audio Capture
               {activePage !== 'recorder' && (
-                <span className="ml-1.5 text-[8.5px] text-slate-600 group-hover:text-violet-500 normal-case tracking-normal font-normal transition-colors duration-200">
+                <span className="ml-1.5 text-[8.5px] text-slate-550 group-hover:text-violet-500 normal-case tracking-normal font-normal transition-colors duration-200">
                   ↗ open
                 </span>
               )}
@@ -425,7 +425,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Core Navigation Links */}
         <div>
-          <h2 className="px-3 text-[9px] font-semibold text-slate-500/80 uppercase tracking-[0.14em] mb-2.5">Workspace</h2>
+          <h2 className="px-3 text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em] mb-2.5">Workspace</h2>
           <nav className="grid grid-cols-2 gap-2 px-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -464,7 +464,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Active Loaded Meeting Routing */}
         <div>
           <div className="flex items-center justify-between px-3 mb-2.5">
-            <h2 className="text-[9px] font-semibold text-slate-500/80 uppercase tracking-[0.14em]">Active Analysis</h2>
+            <h2 className="text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em]">Active Analysis</h2>
             {currentMeeting && (
               <span className="text-[9px] font-bold text-slate-400 truncate max-w-[120px]">
                 {currentMeeting.title}
@@ -515,7 +515,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Model parameters selectors inside sidebar */}
         <div className="p-4 rounded-2xl space-y-3.5" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}>
-          <h2 className="text-[9px] font-semibold text-slate-500/80 uppercase tracking-[0.14em]">AI parameters</h2>
+          <h2 className="text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em]">AI parameters</h2>
           
           <div className="space-y-2">
             <div>
