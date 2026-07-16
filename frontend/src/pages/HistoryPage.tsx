@@ -243,13 +243,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       {/* ── 3. Search & Toolbar (Sticky layout) ───────────────── */}
       <div className="sticky top-0 z-20 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-950/70 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
         {/* Search */}
-        <div className="search-bar-container w-full md:max-w-md">
+        <div className="search-bar-container w-full md:w-80">
           <Search className="search-bar-icon" />
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search registry by title..." className="search-bar-input" />
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* Filter pills, sort dropdown, and grid selectors */}
+        <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
           {/* Filter pills */}
           <div className="flex flex-wrap gap-2">
             {(["all", "short", "long", "today"] as FilterTag[]).map(tag => (
@@ -263,6 +264,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               </button>
             ))}
           </div>
+
+          <div className="h-4 w-px bg-slate-900 hidden md:block" />
 
           {/* Sort dropdown */}
           <div className="relative">
@@ -288,6 +291,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               )}
             </AnimatePresence>
           </div>
+
+          <div className="h-4 w-px bg-slate-900 hidden md:block" />
 
           {/* Grid / List toggle */}
           <div className="flex bg-slate-900/60 border border-slate-800 rounded-xl p-1 gap-1">
