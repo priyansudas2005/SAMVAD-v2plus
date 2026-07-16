@@ -97,44 +97,46 @@
 }
 
 .sidebar-glass {
-  /* Continuous Apple-style squircle curves using custom clipping & border radius transitions */
-  border-radius: 0 32px 32px 0;
+  /* Continuous Apple-style Squircle Curve Geometry */
+  border-radius: 0 36px 36px 0;
   
-  /* Thick Frosted Optical Glass: Multi-layered transparent linear gradients with 20% reduced effect */
+  /* Thick Frosted Optical Glass: Strong optical depth transparent linear gradients */
   background: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, transparent 60%),
-    linear-gradient(180deg, rgba(16, 18, 27, 0.48) 0%, rgba(9, 10, 15, 0.38) 100%) !important;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(10, 12, 18, 0.65) 0%, rgba(5, 6, 8, 0.55) 100%) !important;
   
-  /* Environmental shadow physics: lifted approximately 6-10px from the background */
+  /* Layered Environmental Shadows to lift panel cleanly off main workspace by 8px */
   box-shadow: 
-    /* Ambient occlusion shadow */
-    2px 0 8px -1px rgba(0, 0, 0, 0.5),
-    /* Soft environment desktop shadow */
-    8px 0 24px -3px rgba(0, 0, 0, 0.4),
-    /* Color bounce */
-    12px 0 32px -4px rgba(139, 92, 246, 0.04),
-    /* Inner highlights outline */
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-    inset -1px 0 0 0 rgba(255, 255, 255, 0.015);
+    /* High-contrast contact shadow close to the edge */
+    2px 0 6px -1px rgba(0, 0, 0, 0.65),
+    /* Soft ambient shadow extending into dashboard space */
+    12px 0 32px -4px rgba(0, 0, 0, 0.55),
+    /* Elevation shadow for deep contrast */
+    24px 0 64px -8px rgba(0, 0, 0, 0.45),
+    /* Subtle color bounce undertones */
+    32px 0 80px -12px rgba(139, 92, 246, 0.06),
+    /* Inner light refraction outline */
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.025);
   
   border: none !important;
   position: relative;
   will-change: transform;
 }
 
-/* Glass Noise Texture Layer (1% Opacity SVG Noise overlay for real frosted look) */
+/* Real Frosted Glass Noise Texture (1.5% Opacity SVG Turbulence overlay) */
 .sidebar-glass::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   border-radius: inherit;
-  opacity: 0.01;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%35%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%35%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   z-index: 1;
 }
 
-/* Progressive blur layer system simulating physical optical materials */
+/* Progressive blur system simulating physical optical depth (increased blur by 30%) */
 .sidebar-progressive-blur {
   position: absolute;
   inset: 0;
@@ -150,43 +152,43 @@
   border-radius: inherit;
 }
 
-/* Smooth continuous progressive blurring passes */
+/* Progressive blur pass mappings simulating optical glass refraction */
 .sidebar-blur-layer--8 {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   mask-image: linear-gradient(to right, black 0%, transparent 45%);
   -webkit-mask-image: linear-gradient(to right, black 0%, transparent 45%);
 }
 
 .sidebar-blur-layer--16 {
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   mask-image: linear-gradient(to right, black 15%, transparent 75%);
   -webkit-mask-image: linear-gradient(to right, black 15%, transparent 75%);
 }
 
 .sidebar-blur-layer--32 {
-  backdrop-filter: blur(36px);
-  -webkit-backdrop-filter: blur(36px);
+  backdrop-filter: blur(52px);
+  -webkit-backdrop-filter: blur(52px);
   mask-image: linear-gradient(to right, black 35%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, black 35%, transparent 100%);
 }
 
-/* Faint inner highlight outline - wraps naturally around corners */
+/* Curved highlight outline - follows squircle edges perfectly */
 .sidebar-specular-highlight {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   border: 1px solid transparent;
-  background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent 45%) border-box;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 50%) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   z-index: 2;
 }
 
-/* Wide, low-opacity diagonal glass reflection sweep - opacity reduced by 30% */
+/* Wide, soft diagonal glass light reflection sweep across the entire panel */
 .sidebar-glass .sidebar-specular-highlight::before {
   content: '';
   position: absolute;
@@ -196,31 +198,31 @@
   height: 200%;
   background: linear-gradient(
     45deg,
-    transparent 45%,
-    rgba(255, 255, 255, 0.01) 50%,
-    transparent 55%
+    transparent 42%,
+    rgba(255, 255, 255, 0.015) 50%,
+    transparent 58%
   );
   pointer-events: none;
   z-index: 1;
 }
 
-/* Soft specular edge outline simulating realistic glass corner light wrap refraction */
+/* Ambient optical edge lighting: wraps softly around continuous corners (no neon RGB glow) */
 .sidebar-glass::after {
   content: '';
   position: absolute;
-  top: 5%;
+  top: 2%;
   right: 0;
-  height: 90%;
-  width: 1px;
+  height: 96%;
+  width: 1.5px;
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(56, 189, 248, 0.22) 20%,
-    rgba(139, 92, 246, 0.28) 50%,
-    rgba(56, 189, 248, 0.22) 80%,
+    rgba(56, 189, 248, 0.28) 25%,
+    rgba(139, 92, 246, 0.35) 50%,
+    rgba(56, 189, 248, 0.28) 75%,
     transparent
   );
-  box-shadow: 0 0 6px rgba(139, 92, 246, 0.16);
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.18);
   pointer-events: none;
   z-index: 3;
 }
