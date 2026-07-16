@@ -874,17 +874,18 @@
 
 /* Glassmorphic Radio Selector (V2.0 Glider) */
 .glass-radio-group {
-  --bg: rgba(255, 255, 255, 0.06);
-  --text: #e5e5e5;
+  --bg: rgba(255, 255, 255, 0.04);
+  --text: rgba(255, 255, 255, 0.45);
 
   display: flex;
   position: relative;
   background: var(--bg);
-  border-radius: 1rem;
-  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow:
-    inset 1px 1px 4px rgba(255, 255, 255, 0.2),
-    inset -1px -1px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
     0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   width: calc(100% - 4px);
@@ -900,19 +901,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  padding: 0.6rem 0.5rem;
+  font-size: 11px;
+  padding: 0.55rem 0.5rem;
   cursor: pointer;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.04em;
   color: var(--text);
   position: relative;
   z-index: 2;
-  transition: color 0.3s ease-in-out;
+  transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-radio-group label:hover {
-  color: white;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .glass-radio-group input:checked + label {
@@ -921,42 +922,45 @@
 
 .glass-glider {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: calc(100% / 3);
-  border-radius: 1rem;
+  top: 2px;
+  bottom: 2px;
+  width: calc((100% - 4px) / 3);
+  border-radius: 10px;
   z-index: 1;
   transition:
-    transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56),
-    background 0.4s ease-in-out,
-    box-shadow 0.4s ease-in-out;
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Silver */
+/* Silver / Mic */
 #glass-silver:checked ~ .glass-glider {
   transform: translateX(0%);
-  background: linear-gradient(135deg, #c0c0c055, #e0e0e0);
-  box-shadow:
-    0 0 18px rgba(192, 192, 192, 0.5),
-    0 0 10px rgba(255, 255, 255, 0.4) inset;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Gold */
+/* Gold / System */
 #glass-gold:checked ~ .glass-glider {
   transform: translateX(100%);
-  background: linear-gradient(135deg, #ffd70055, #ffcc00);
-  box-shadow:
-    0 0 18px rgba(255, 215, 0, 0.5),
-    0 0 10px rgba(255, 235, 150, 0.4) inset;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Platinum */
+/* Platinum / Mix */
 #glass-platinum:checked ~ .glass-glider {
   transform: translateX(200%);
-  background: linear-gradient(135deg, #d0e7ff55, #a0d8ff);
-  box-shadow:
-    0 0 18px rgba(160, 216, 255, 0.5),
-    0 0 10px rgba(200, 240, 255, 0.4) inset;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Premium Card Design for Meeting History (V2.0 Card) */
