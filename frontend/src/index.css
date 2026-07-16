@@ -19,13 +19,13 @@
   --shadow-md: 0 12px 28px rgba(0,0,0,0.35);
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.45);
   --shadow-glow-sky: 0 0 25px rgba(139,92,246,0.2);
-  --space-xxs: 4px;
-  --space-xs: 8px;
-  --space-sm: 12px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-xxl: 48px;
+  /* Unified Motion Language Variables (Apple VisionOS / Arc Easing) */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --hover-lift: -3px;
+  --glow-intensity-hover: 0.15;
 }
 
 .theme-light {
@@ -60,7 +60,26 @@
   }
   
   body, aside, main, div, button, select, input, p, span, a, h1, h2, h3 {
-    transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: 
+      background-color var(--duration-normal) var(--ease-spring), 
+      border-color var(--duration-normal) var(--ease-spring), 
+      color var(--duration-normal) var(--ease-spring),
+      transform var(--duration-normal) var(--ease-spring),
+      box-shadow var(--duration-normal) var(--ease-spring) !important;
+  }
+}
+
+/* Accessibility Standard: Respect prefers-reduced-motion settings */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    transform: none !important;
   }
 }
 
