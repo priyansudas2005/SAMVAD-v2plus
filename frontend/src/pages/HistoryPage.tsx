@@ -976,13 +976,13 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* ── SECTION 3 — MEETING OVERVIEW ── */}
-                  <div className="mb-3.5">
+                  <div className="mb-4">
                     {editingId === meeting.meeting_id ? (
                       <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-sky-400 font-semibold" />
+                          className="w-full bg-slate-950 border border-slate-900 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-purple-400 font-semibold" />
                         <button onClick={e => saveEdit(meeting.meeting_id, e)} disabled={saving}
-                          className="p-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded">
+                          className="p-1 bg-purple-500 text-white rounded">
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button onClick={cancelEdit} className="p-1 bg-slate-800 text-slate-400 rounded">
@@ -991,62 +991,65 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       </div>
                     ) : (
                       <>
-                        <h4 className="text-sm font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-sky-400 transition-colors animate-fade-in" title={meeting.title}>
+                        <h4 className="text-[13.5px] font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-purple-400 transition-colors duration-200" title={meeting.title}>
                           {highlightText(meeting.title, debouncedQuery)}
                         </h4>
-                        <p className="text-[9.5px] text-slate-500 font-semibold mt-1 leading-none">{startTimeStr || "12:00 PM"}</p>
+                        <p className="text-[9px] text-slate-500 font-medium mt-1 uppercase tracking-wider">{startTimeStr || "12:00 PM"}</p>
                       </>
                     )}
                     
-                    <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed bg-white/[0.01] border border-white/[0.02] p-2.5 rounded-xl mt-2 group-hover:opacity-90 transition-opacity">
-                      {meeting.memo?.summary || "No summary available."}
-                    </p>
+                    {/* Soft glass summary box panel with fade overflow */}
+                    <div className="relative rounded-xl overflow-hidden bg-slate-950/30 border border-white/[0.02] p-3 mt-2.5 group-hover:bg-slate-950/50 transition-colors duration-250">
+                      <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
+                        {meeting.memo?.summary || "No summary available."}
+                      </p>
+                    </div>
 
-                    {/* Metadata Badges strip */}
-                    <div className="flex flex-wrap gap-1 mt-2.5">
-                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-slate-400 font-medium">
+                    {/* Minimalist Metric chips with soft background fills */}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      <span className="px-2 py-1 bg-slate-900/50 text-[9px] text-slate-400 font-semibold rounded-lg border border-transparent">
                         👥 {speakersCount} Speakers
                       </span>
-                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-slate-400 font-medium">
+                      <span className="px-2 py-1 bg-slate-900/50 text-[9px] text-slate-400 font-semibold rounded-lg border border-transparent">
                         📝 {wordsCount.toLocaleString()} Words
                       </span>
-                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-sky-400 font-semibold">
-                        🎙 {confidenceVal}% Conf.
+                      <span className="px-2 py-1 bg-[#8b5cf6]/5 text-[#c084fc] text-[9px] font-semibold rounded-lg border border-transparent">
+                        🎯 {confidenceVal}% Confidence
                       </span>
-                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-emerald-400 font-semibold">
-                        ⚡ {audioQuality}% Qual.
+                      <span className="px-2 py-1 bg-emerald-500/5 text-emerald-400 text-[9px] font-semibold rounded-lg border border-transparent">
+                        🎙 {audioQuality}% Quality
                       </span>
                     </div>
                   </div>
 
                   {/* ── SECTION 4 — QUICK INSIGHTS ── */}
-                  <div className="flex flex-wrap gap-1.5 mb-4 border-t border-slate-900/60 pt-2.5">
-                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
-                      actionItemsCount > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-slate-950/20 text-slate-650 border-transparent"
+                  <div className="flex flex-wrap gap-1.5 mb-4 pt-1">
+                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
+                      actionItemsCount > 0 ? "bg-emerald-500/5 text-emerald-400 border-emerald-500/10" : "bg-slate-950/20 text-slate-650 border-transparent"
                     }`} title="Action Items count">
                       ✓ {actionItemsCount} Actions
                     </span>
-                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
-                      decisionsCount > 0 ? "bg-sky-500/10 text-sky-400 border-sky-500/20" : "bg-slate-950/20 text-slate-650 border-transparent"
+                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
+                      decisionsCount > 0 ? "bg-purple-500/5 text-purple-400 border-purple-500/10" : "bg-slate-950/20 text-slate-650 border-transparent"
                     }`} title="Decisions count">
                       ⚖ {decisionsCount} Decisions
                     </span>
-                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
-                      questionsCount > 0 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" : "bg-slate-950/20 text-slate-655 border-transparent"
+                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
+                      questionsCount > 0 ? "bg-[#3b82f6]/5 text-[#60a5fa] border-[#3b82f6]/10" : "bg-slate-950/20 text-slate-655 border-transparent"
                     }`} title="Questions count">
                       ❓ {questionsCount} Questions
                     </span>
-                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
-                      topicsList.length > 0 ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-slate-950/20 text-slate-655 border-transparent"
+                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
+                      topicsList.length > 0 ? "bg-amber-500/5 text-amber-400 border-amber-500/10" : "bg-slate-950/20 text-slate-655 border-transparent"
                     }`} title="Topics tag count">
                       💡 {topicsList.length} Topics
                     </span>
                   </div>
 
-                  {/* ── SECTION 5 — QUICK ACTIONS ── */}
+                  {/* BOTTOM ACTION BAR - Always visible premium layout buttons */}
                   <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-sky-500/10 border border-slate-800 hover:border-sky-500/20 text-slate-400 hover:text-sky-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Open Meeting">
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-[#8b5cf6]/10 border border-slate-800 hover:border-[#8b5cf6]/20 text-slate-400 hover:text-purple-300 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Open Meeting">
                       ▶ Open
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
