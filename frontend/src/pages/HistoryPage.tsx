@@ -776,6 +776,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               const decisionsCount = meeting.memo?.decisions?.length 
                 || meeting.transcript?.reduce((acc, s) => acc + (s.metadata?.decisions?.length || 0), 0) 
                 || 0;
+              const questionsCount = meeting.transcript?.reduce((acc, s) => acc + (s.metadata?.questions?.length || 0), 0) || 0;
               
               const topicsList: string[] = meeting.metadata?.keywords 
                 ? (Array.isArray(meeting.metadata.keywords) 
@@ -834,39 +835,41 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       meetingId: meeting.meeting_id
                     });
                   }}
-                  className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-5 transition-all duration-250 relative border shadow-lg ${
+                  className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-5 transition-all duration-300 relative border shadow-lg ${
                     isSelected 
-                      ? "border-sky-500/60 bg-slate-900/90 shadow-sky-500/5 ring-1 ring-sky-500/20" 
-                      : "bg-slate-950/40 border-slate-900 hover:bg-slate-900/60 hover:border-slate-800 hover:shadow-2xl hover:shadow-black/70"
+                      ? "border-sky-500 bg-slate-900/90 shadow-xl shadow-sky-500/10 ring-2 ring-sky-500/30 -translate-y-1.5" 
+                      : "bg-slate-950/40 border-slate-900 hover:bg-slate-900/60 hover:border-slate-800 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/70"
                   }`}
                 >
-                  {/* SECTION 1: TOP SECTION */}
+                  {/* ── SECTION 1 — HEADER ── */}
                   <div className="flex items-center justify-between gap-2 pb-3 mb-2.5 border-b border-white/[0.02]">
-                    <span className={`px-2 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 ${statusBg}`}>
-                      <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
-                      {statusLabel}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 ${statusBg}`}>
+                        <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                        {statusLabel}
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-bold">{durationStr}</span>
+                    </div>
 
-                    {/* Subtle Icons Container */}
-                    <div className="flex items-center gap-2 opacity-40 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
-                      <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-800 rounded-md transition-colors ${isBookmarked ? "text-sky-400" : "text-slate-400"}`}>
+                    <div className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
+                      <span className="text-[8.5px] text-slate-500 font-semibold">{formattedDate}</span>
+                      <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-850 rounded-md transition-all ${isBookmarked ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" : "text-slate-400"}`}>
                         <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-sky-400" : ""}`} />
                       </button>
-                      <button onClick={(e) => toggleFavorite(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-800 rounded-md transition-colors ${isFavorite ? "text-amber-400" : "text-slate-400"}`}>
+                      <button onClick={(e) => toggleFavorite(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-850 rounded-md transition-all ${isFavorite ? "text-amber-400" : "text-slate-400"}`}>
                         <Star className={`w-3.5 h-3.5 ${isFavorite ? "fill-amber-400" : ""}`} />
                       </button>
                       <button onClick={(e) => {
                         e.stopPropagation();
                         setContextMenu({ x: e.clientX, y: e.clientY, meetingId: meeting.meeting_id });
-                      }} className="p-1 hover:bg-slate-800 rounded-md text-slate-400 hover:text-white transition-colors">
+                      }} className="p-1 hover:bg-slate-855 rounded-md text-slate-400 hover:text-white transition-colors">
                         <MoreVertical className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  {/* SECTION 2: AUDIO WAVEFORM & PREVIEW BAR */}
-                  <div className="relative rounded-xl overflow-hidden bg-slate-950/80 border border-slate-900 p-3 mb-4 group-hover:border-slate-800 transition-colors" onClick={e => e.stopPropagation()}>
-                    {/* Visual waveform identity featuring responsive seeker overlay */}
+                  {/* ── SECTION 2 — AUDIO PREVIEW ── */}
+                  <div className="relative rounded-xl overflow-hidden bg-slate-950/80 border border-slate-900 p-3 mb-3.5 group-hover:border-slate-800 transition-colors" onClick={e => e.stopPropagation()}>
                     <div 
                       className="h-14 flex items-end justify-center gap-0.5 relative cursor-pointer opacity-80 group-hover:opacity-100 transition-opacity pb-1"
                       onClick={(e) => {
@@ -878,129 +881,40 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         }
                       }}
                     >
-                      {/* CSS-Hardware generated realistic audio waveforms */}
-                      {Array.from({ length: 30 }).map((_, wIdx) => {
-                        const h = 15 + Math.sin(wIdx * 0.4) * 18 + Math.cos(wIdx * 0.7) * 10;
-                        const isFilled = isThisPlaying && (wIdx / 30) <= (duration ? (currentTime / duration) : 0.4);
+                      {Array.from({ length: 28 }).map((_, wIdx) => {
+                        const h = 10 + Math.sin(wIdx * 0.55) * 16 + Math.cos(wIdx * 0.8) * 8;
+                        const isFilled = isThisPlaying && (wIdx / 28) <= (duration ? (currentTime / duration) : 0.4);
                         return (
                           <div 
                             key={wIdx} 
-                            style={{ height: `${Math.max(6, h)}px` }}
+                            style={{ height: `${Math.max(4, h)}px` }}
                             className={`w-1 rounded-full transition-all duration-200 ${
-                              isFilled ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]" : "bg-slate-800"
+                              isFilled ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]" : "bg-slate-850"
                             }`} 
                           />
                         );
                       })}
-
-                      {/* AI Timeline markers overlay */}
-                      <div className="absolute top-0 inset-x-0 h-1 flex items-center justify-between pointer-events-none opacity-60">
-                        {actionItemsCount > 0 && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Action Items Marker" style={{ marginLeft: "25%" }} />
-                        )}
-                        {decisionsCount > 0 && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" title="Decisions Marker" style={{ marginLeft: "55%" }} />
-                        )}
-                        {isBookmarked && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-sky-400" title="Bookmark Marker" style={{ marginLeft: "75%" }} />
-                        )}
-                      </div>
                     </div>
 
-                    {/* Integrated audio play control row */}
-                    <div className="flex flex-col gap-2.5 mt-2.5 pt-2.5 border-t border-white/[0.03]">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          {/* Play/Pause Button */}
-                          <button 
-                            type="button"
-                            onClick={(e) => handlePlayCard(meeting, e)}
-                            className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-sky-500/10 border border-white/[0.08] hover:border-sky-500/30 text-slate-200 hover:text-sky-400 transition-all shadow-sm active:scale-95"
-                          >
-                            {isThisPlaying ? <Pause className="w-3 h-3 text-sky-400 fill-sky-400" /> : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
-                          </button>
-
-                          {/* Skip 5s Backwards */}
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
-                                audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 5);
-                              }
-                            }}
-                            className="p-1 hover:bg-slate-900 border border-transparent hover:border-slate-800 rounded text-slate-500 hover:text-slate-300 transition-all"
-                            title="Skip Back 5s"
-                          >
-                            <span className="text-[9px] font-bold">⏪ 5s</span>
-                          </button>
-
-                          {/* Skip 5s Forwards */}
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
-                                audioRef.current.currentTime = Math.min(audioRef.current.duration || 999, audioRef.current.currentTime + 5);
-                              }
-                            }}
-                            className="p-1 hover:bg-slate-900 border border-transparent hover:border-slate-800 rounded text-slate-500 hover:text-slate-300 transition-all"
-                            title="Skip Forward 5s"
-                          >
-                            <span className="text-[9px] font-bold">5s ⏩</span>
-                          </button>
-                        </div>
-
-                        {/* Volume controls */}
-                        <div className="flex items-center gap-1.5">
-                          <button 
-                            type="button"
-                            onClick={toggleMute}
-                            className="text-slate-500 hover:text-white transition-colors"
-                          >
-                            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-                          </button>
-                          <input 
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={isMuted ? 0 : volume}
-                            onChange={handleVolume}
-                            className="w-12 accent-sky-500 h-1 bg-slate-900 rounded-lg cursor-pointer"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Mini progress bar & timestamps */}
-                      <div className="flex flex-col gap-1.5">
-                        <div 
-                          className="w-full h-1 bg-slate-900 rounded-full overflow-hidden relative cursor-pointer"
-                          onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const clickX = e.clientX - rect.left;
-                            const clickPercent = clickX / rect.width;
-                            if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
-                              audioRef.current.currentTime = clickPercent * audioRef.current.duration;
-                            }
-                          }}
-                        >
-                          <div 
-                            className={`h-full rounded-full transition-all ${isThisPlaying ? "bg-sky-400" : "bg-slate-700"}`} 
-                            style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : "0%" }} 
-                          />
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/[0.03]">
+                      <button onClick={(e) => handlePlayCard(meeting, e)}
+                        className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-sky-500/10 border border-white/[0.08] hover:border-sky-500/30 text-slate-200 hover:text-sky-400 transition-all shadow-sm active:scale-95">
+                        {isThisPlaying ? <Pause className="w-3 h-3 text-sky-400 fill-sky-400" /> : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
+                      </button>
+                      <div className="flex-1 flex flex-col leading-none gap-1">
+                        <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${isThisPlaying ? "bg-sky-400" : "bg-slate-700"}`} style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : "0%" }} />
                         </div>
                         <div className="flex items-center justify-between text-[8px] text-slate-500 font-mono">
                           <span>{isThisPlaying ? fmtTime(currentTime) : "00:00"}</span>
-                          <span className="text-[7.5px] uppercase tracking-wider text-slate-600 font-sans">
-                            {meeting.metadata?.recording_format || "wav"} · {meeting.metadata?.sample_rate || "48kHz"} · {fileSizeStr}
-                          </span>
                           <span>{durationStr}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* SECTION 3: MEETING TITLE & SUB-METADATA */}
-                  <div className="mb-3">
+                  {/* ── SECTION 3 — MEETING OVERVIEW ── */}
+                  <div className="mb-3.5">
                     {editingId === meeting.meeting_id ? (
                       <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
@@ -1015,104 +929,71 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       </div>
                     ) : (
                       <>
-                        <h4 className="text-sm font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-sky-400 transition-colors" title={meeting.title}>
+                        <h4 className="text-sm font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-sky-400 transition-colors animate-fade-in" title={meeting.title}>
                           {highlightText(meeting.title, debouncedQuery)}
                         </h4>
-                        <div className="flex items-center gap-2 mt-1.5 text-[9.5px] text-slate-500 font-semibold leading-none">
-                          <span>{formattedDate}</span>
-                          <span>•</span>
-                          <span>{startTimeStr || "12:00 PM"}</span>
-                          <span>•</span>
-                          <span>{durationStr}</span>
-                        </div>
+                        <p className="text-[9.5px] text-slate-500 font-semibold mt-1 leading-none">{startTimeStr || "12:00 PM"}</p>
                       </>
                     )}
-                  </div>
-
-                  {/* SECTION 4: AI SUMMARY */}
-                  <div className="mb-3.5">
-                    <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed bg-white/[0.01] border border-white/[0.02] p-2.5 rounded-xl hover:border-white/[0.06] transition-colors">
+                    
+                    <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed bg-white/[0.01] border border-white/[0.02] p-2.5 rounded-xl mt-2 group-hover:opacity-90 transition-opacity">
                       {meeting.memo?.summary || "No summary available."}
                     </p>
-                  </div>
 
-                  {/* SECTION 5: SPEAKER PREVIEW */}
-                  <div className="flex items-center justify-between gap-2 mb-3 bg-white/[0.01] border border-white/[0.02] p-2 rounded-xl">
-                    <div className="flex items-center -space-x-1.5">
-                      {speakersList.slice(0, 3).map((sp, sIdx) => {
-                        const letter = sp.charAt(0).toUpperCase() || "S";
-                        return (
-                          <div key={sIdx} className="w-5 h-5 rounded-full bg-slate-800 border border-slate-950 flex items-center justify-center text-[9px] font-bold text-sky-400" title={sp}>
-                            {letter}
-                          </div>
-                        );
-                      })}
-                      {speakersCount > 3 && (
-                        <div className="w-5 h-5 rounded-full bg-sky-950/80 border border-slate-950 flex items-center justify-center text-[8px] font-bold text-sky-400" title={speakersList.slice(3).join(", ")}>
-                          +{speakersCount - 3}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right leading-none">
-                      <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider block">Total Speakers</span>
-                      <span className="text-[10px] text-slate-300 font-semibold">{speakersCount} Speakers</span>
+                    {/* Metadata Badges strip */}
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-slate-400 font-medium">
+                        👥 {speakersCount} Speakers
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-slate-400 font-medium">
+                        📝 {wordsCount.toLocaleString()} Words
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-sky-400 font-semibold">
+                        🎙 {confidenceVal}% Conf.
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-850 rounded text-[9px] text-emerald-400 font-semibold">
+                        ⚡ {audioQuality}% Qual.
+                      </span>
                     </div>
                   </div>
 
-                  {/* SECTION 6: TOPICS */}
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {topicsList.length > 0 ? (
-                      topicsList.slice(0, 4).map((topic, tIdx) => (
-                        <span key={tIdx} className="px-2 py-0.5 bg-slate-900 border border-slate-800/80 text-slate-400 rounded-full text-[9px] font-medium uppercase tracking-wider">
-                          {topic}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-[9px] text-slate-600 italic">No Topics</span>
-                    )}
+                  {/* ── SECTION 4 — QUICK INSIGHTS ── */}
+                  <div className="flex flex-wrap gap-1.5 mb-4 border-t border-slate-900/60 pt-2.5">
+                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
+                      actionItemsCount > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-slate-950/20 text-slate-650 border-transparent"
+                    }`} title="Action Items count">
+                      ✓ {actionItemsCount} Actions
+                    </span>
+                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
+                      decisionsCount > 0 ? "bg-sky-500/10 text-sky-400 border-sky-500/20" : "bg-slate-950/20 text-slate-650 border-transparent"
+                    }`} title="Decisions count">
+                      ⚖ {decisionsCount} Decisions
+                    </span>
+                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
+                      questionsCount > 0 ? "bg-purple-500/10 text-purple-400 border-purple-500/20" : "bg-slate-950/20 text-slate-655 border-transparent"
+                    }`} title="Questions count">
+                      ❓ {questionsCount} Questions
+                    </span>
+                    <span className={`px-2 py-1 rounded-lg text-[9.5px] font-bold border transition-colors flex items-center gap-1 ${
+                      topicsList.length > 0 ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-slate-950/20 text-slate-655 border-transparent"
+                    }`} title="Topics tag count">
+                      💡 {topicsList.length} Topics
+                    </span>
                   </div>
 
-                  {/* SECTION 7: MEETING METRICS GRID */}
-                  <div className="grid grid-cols-2 gap-1.5 mb-4 p-2 bg-slate-950/40 rounded-xl border border-white/[0.02]">
-                    <div className="flex items-center justify-between text-[9px] leading-none px-1.5 py-1">
-                      <span className="text-slate-500">Words</span>
-                      <span className="text-slate-300 font-bold">{wordsCount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] leading-none px-1.5 py-1">
-                      <span className="text-slate-500">Segments</span>
-                      <span className="text-slate-300 font-bold">{meeting.transcript?.length || 0}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] leading-none px-1.5 py-1">
-                      <span className="text-slate-500">Confidence</span>
-                      <span className="text-sky-400 font-bold">{confidenceVal}%</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] leading-none px-1.5 py-1">
-                      <span className="text-slate-500">Quality</span>
-                      <span className="text-emerald-400 font-bold">{audioQuality}%</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] leading-none px-1.5 py-1">
-                      <span className="text-slate-500">Actions</span>
-                      <span className="text-amber-400 font-bold">{actionItemsCount}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[9px] leading-none px-1.5 py-1">
-                      <span className="text-slate-500">Decisions</span>
-                      <span className="text-indigo-400 font-bold">{decisionsCount}</span>
-                    </div>
-                  </div>
-
-                  {/* BOTTOM ACTION BAR - Always visible premium layout buttons */}
+                  {/* ── SECTION 5 — QUICK ACTIONS ── */}
                   <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-sky-500/10 border border-slate-800 hover:border-sky-500/20 text-slate-400 hover:text-sky-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="View Transcript">
-                      Transcript
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-sky-500/10 border border-slate-800 hover:border-sky-500/20 text-slate-400 hover:text-sky-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Open Meeting">
+                      ▶ Open
+                    </button>
+                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="View Transcript">
+                      📄 Transcript
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="View Summary">
-                      Summary
-                    </button>
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-purple-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Analytics Stats">
-                      Stats
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-purple-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Meeting Intelligence">
+                      🧠 Intel
                     </button>
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleExport(meeting)}
