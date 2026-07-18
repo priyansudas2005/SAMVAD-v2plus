@@ -1642,17 +1642,12 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* BOTTOM TOOLBAR — professional compact glass toolbar */}
-                  <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center justify-between gap-1" onClick={e => e.stopPropagation()}>
+                  <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center justify-between gap-1.5" onClick={e => e.stopPropagation()}>
                     {[
                       { icon: <ExternalLink className="w-3.5 h-3.5" />, tooltip: "Open Full", action: () => { onSelectMeeting(meeting); setActivePage("transcript"); trackOpen(meeting); }, disabled: false },
                       { icon: <FileText className="w-3.5 h-3.5" />, tooltip: "Transcript", action: () => { onSelectMeeting(meeting); setActivePage("transcript"); }, disabled: false },
                       { icon: <Sparkles className="w-3.5 h-3.5" />, tooltip: "Intelligence", action: () => { onSelectMeeting(meeting); setActivePage("summary"); }, disabled: false },
-                      { icon: <Download className="w-3.5 h-3.5" />, tooltip: "Export", action: (e: any) => handleExport(meeting, e), disabled: false },
-                      { icon: <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-sky-400 text-sky-400" : ""}`} />, tooltip: isBookmarked ? "Saved" : "Save", action: (e: any) => toggleBookmark(meeting.meeting_id, e), disabled: false },
-                      { icon: <Edit3 className="w-3.5 h-3.5" />, tooltip: "Rename", action: (e: any) => startEdit(meeting, e), disabled: false },
-                      { icon: <Copy className="w-3.5 h-3.5" />, tooltip: saving ? "Copying..." : "Duplicate", action: (e: any) => handleDuplicate(meeting, e), disabled: saving },
-                      { icon: <Trash2 className="w-3.5 h-3.5 text-rose-500/80 group-hover/tooltip:text-rose-400" />, tooltip: "Delete", action: (e: any) => handleDelete(meeting.meeting_id, e), disabled: saving },
-                      { icon: <MoreVertical className="w-3.5 h-3.5" />, tooltip: "More Options", action: (e: any) => setContextMenu({ x: e.clientX, y: e.clientY, meetingId: meeting.meeting_id }), disabled: false }
+                      { icon: <Download className="w-3.5 h-3.5" />, tooltip: "Export", action: (e: any) => handleExport(meeting, e), disabled: false }
                     ].map((btn, bIdx) => (
                       <button
                         key={bIdx}
