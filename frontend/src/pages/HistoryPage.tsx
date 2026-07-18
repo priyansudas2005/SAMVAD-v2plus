@@ -704,8 +704,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         )}
       </div>
 
-      {/* ══ MAIN SCROLL AREA ═════════════════════════════════════════════ */}
-      <div className="flex-1 overflow-y-auto bg-transparent p-6 space-y-6 pb-32 relative min-w-0">
+      {/* ══ MAIN WORKSPACE WRAPPER ═══════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col relative h-full min-w-0">
+        <div className="flex-1 overflow-y-auto bg-transparent p-6 space-y-6 pb-32 min-w-0">
       {/* Floating Selection Toolbar */}
       <AnimatePresence>
         {selectedIds.size > 0 && (
@@ -1544,76 +1545,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         </div>
       </div>
 
-      {/* Floating Audio Dock */}
-      <AnimatePresence>
-        {playingMeeting && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-4xl bg-slate-900/90 backdrop-blur-md border border-[#38bdf8]/20 p-4 rounded-2xl flex flex-col md:flex-row items-center gap-4 shadow-2xl z-50"
-          >
-            <div className="flex items-center gap-3.5 w-full md:w-auto">
-              <button
-                onClick={() => {
-                  if (isPlaying) {
-                    audioRef.current?.pause();
-                  } else {
-                    audioRef.current?.play().catch(console.error);
-                  }
-                }}
-                className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:brightness-110 text-white flex items-center justify-center transition-all shadow-lg shadow-sky-500/20"
-              >
-                {isPlaying ? <Pause className="w-4 h-4 fill-white text-white" /> : <Play className="w-4 h-4 fill-white text-white ml-0.5" />}
-              </button>
-              <div className="min-w-0 max-w-[200px]">
-                <h4 className="text-xs font-bold text-white truncate">{playingMeeting.title}</h4>
-                <p className="text-[10px] text-slate-500">Offline Playback</p>
-              </div>
-            </div>
-            <div className="flex-1 flex items-center gap-3 w-full">
-              <span className="text-[10px] font-mono font-bold text-slate-400">{fmtTime(currentTime)}</span>
-              <div
-                ref={progressRef}
-                onClick={handleSeek}
-                className="flex-1 h-2 bg-slate-950 border border-slate-800 rounded-full cursor-pointer relative group overflow-hidden"
-              >
-                <div
-                  className="h-full bg-gradient-to-r from-[#38bdf8] to-[#8b5cf6] rounded-full relative transition-all"
-                  style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                />
-              </div>
-              <span className="text-[10px] font-mono font-bold text-slate-400">{fmtTime(duration || 0)}</span>
-            </div>
-            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start border-t md:border-t-0 border-slate-800 pt-3 md:pt-0">
-              <div className="flex items-center gap-2">
-                <button onClick={toggleMute} className="text-slate-400 hover:text-white transition-colors">
-                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolume}
-                  className="w-20 accent-sky-500 h-1 bg-slate-950 rounded-lg cursor-pointer"
-                />
-              </div>
-              <button
-                onClick={() => {
-                  setPlayingMeeting(null);
-                  setIsPlaying(false);
-                }}
-                className="text-slate-500 hover:text-rose-500 transition-colors"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Right-click Context Menu Portal */}
       <AnimatePresence>
@@ -1701,7 +1632,76 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         })()}
       </AnimatePresence>
 
-      </div>{/* end main scroll */}
+        </div>{/* end scroll area */}
+
+        {/* Floating Audio Dock */}
+        <AnimatePresence>
+          {playingMeeting && (
+            <motion.div
+              initial={{ y: 80, opacity: 0, x: "-50%" }}
+              animate={{ y: 0, opacity: 1, x: "-50%" }}
+              exit={{ y: 80, opacity: 0, x: "-50%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute bottom-6 left-1/2 w-[92%] max-w-3xl bg-slate-950/85 backdrop-blur-md border border-white/[0.06] p-3 rounded-2xl flex items-center justify-between gap-4 shadow-2xl z-40"
+            >
+              {/* Left: Play/Pause + Title */}
+              <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    if (isPlaying) {
+                      audioRef.current?.pause();
+                    } else {
+                      audioRef.current?.play().catch(console.error);
+                    }
+                  }}
+                  className="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center transition-all shadow-md"
+                >
+                  {isPlaying ? <Pause className="w-3.5 h-3.5 fill-white text-white" /> : <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />}
+                </button>
+                <div className="min-w-0">
+                  <h4 className="text-[11px] font-bold text-white truncate max-w-[120px]">{playingMeeting.title}</h4>
+                  <p className="text-[9px] text-slate-500">Offline Playback</p>
+                </div>
+              </div>
+
+              {/* Center: Seek Progress Bar */}
+              <div className="flex-1 flex items-center gap-2.5 min-w-0">
+                <span className="text-[9px] font-mono font-bold text-slate-400">{fmtTime(currentTime)}</span>
+                <div
+                  ref={progressRef}
+                  onClick={handleSeek}
+                  className="flex-1 h-1.5 bg-slate-900 border border-slate-800 rounded-full cursor-pointer relative group overflow-hidden"
+                >
+                  <div
+                    className="h-full bg-gradient-to-r from-sky-500 to-purple-500 rounded-full relative transition-all"
+                    style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                  />
+                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400">{fmtTime(duration || 0)}</span>
+              </div>
+
+              {/* Right: Volume + Close */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button onClick={toggleMute} className="text-slate-500 hover:text-white transition-colors p-1">
+                  {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                </button>
+                <div className="h-4 w-px bg-white/[0.06]" />
+                <button
+                  onClick={() => {
+                    setPlayingMeeting(null);
+                    setIsPlaying(false);
+                  }}
+                  className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-white/[0.04] transition-all"
+                  title="Close player"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>{/* end main workspace wrapper */}
 
       {/* ══ PREVIEW DRAWER ═════════════════════════════════════ */}
       <AnimatePresence>
