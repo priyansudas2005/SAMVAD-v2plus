@@ -454,11 +454,38 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                               </>
                             )}
                             
-                            {meeting.transcript && meeting.transcript.length > 0 && (
-                              <span className="inline-flex items-center mt-2 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-500 border border-slate-700/50">
-                                {meeting.transcript.reduce((s, seg) => s + seg.text.split(" ").length, 0).toLocaleString()} words
-                              </span>
-                            )}
+                            {/* Metadata grid chips */}
+                            {(() => {
+                              // Dynamic calculations based on processed details
+                              const speakersCount = meeting.metadata?.speakers ? (Array.isArray(meeting.metadata.speakers) ? meeting.metadata.speakers.length : Number(meeting.metadata.speakers)) : 0;
+                              const wordsCount = meeting.transcript ? meeting.transcript.reduce((acc, seg) => acc + (seg.text ? seg.text.split(" ").length : 0), 0) : 0;
+                              const segmentsCount = meeting.transcript ? meeting.transcript.length : 0;
+                              const confidenceVal = meeting.metadata?.confidence ? Math.round(Number(meeting.metadata.confidence) * 100) : 0;
+
+                              const chips = [
+                                { show: speakersCount > 0, icon: <span className="text-sky-400">👥</span>, label: "Speakers", value: String(speakersCount) },
+                                { show: (meeting.duration || 0) > 0, icon: <span className="text-emerald-400">⏱</span>, label: "Duration", value: durationStr },
+                                { show: wordsCount > 0, icon: <span className="text-purple-400">📝</span>, label: "Words", value: wordsCount.toLocaleString() },
+                                { show: segmentsCount > 0, icon: <span className="text-indigo-400">📄</span>, label: "Segments", value: String(segmentsCount) },
+                                { show: confidenceVal > 0, icon: <span className="text-amber-400">🎙</span>, label: "Confidence", value: `${confidenceVal}%` }
+                              ].filter(c => c.show);
+
+                              if (chips.length === 0) return null;
+
+                              return (
+                                <div className="grid grid-cols-2 gap-1.5 mt-2.5">
+                                  {chips.slice(0, 4).map((chip, idx) => (
+                                    <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.02] border border-white/[0.04] rounded-[12px] backdrop-blur-sm transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:-translate-y-[1px] duration-200">
+                                      <span className="text-[11px] leading-none flex-shrink-0">{chip.icon}</span>
+                                      <div className="flex flex-col min-w-0 leading-none gap-0.5">
+                                        <span className="text-[8px] text-slate-500 font-medium truncate uppercase tracking-wider">{chip.label}</span>
+                                        <span className="text-[10px] text-slate-200 font-semibold truncate">{chip.value}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </>
                       );
