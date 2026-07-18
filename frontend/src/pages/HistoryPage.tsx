@@ -87,6 +87,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [filterStatus, setFilterStatus] = useState<string>("all"); // all, completed, recording, processing, failed
   const [filterSpeakers, setFilterSpeakers] = useState<string>("all"); // all, 1, 2, 3, 4+
   const [filterContains, setFilterContains] = useState<string>("all"); // all, action_items, decisions, transcripts
+  const [showStarredOnly, setShowStarredOnly] = useState<boolean>(false);
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState<boolean>(false);
 
   // Keyboard navigation & Result index matching pointer
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -383,6 +385,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         if (filterStatus === "failed" && !rawStatus.includes("fail")) return false;
       }
 
+      // Starred and Bookmarked toggles
+      if (showStarredOnly && !favoriteIds.has(m.meeting_id)) return false;
+      if (showBookmarkedOnly && !bookmarkedIds.has(m.meeting_id)) return false;
+
       return true;
     })
     .sort((a, b) => {
@@ -431,6 +437,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     setFilterSpeakers("all");
     setFilterContains("all");
     setSearchQuery("");
+    setShowStarredOnly(false);
+    setShowBookmarkedOnly(false);
   };
 
   // Keyboard navigation & accessibility event hook
@@ -562,6 +570,26 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
           {/* Controls button actions */}
           <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+            {/* Quick Bookmark and Favorite Filter Toggles */}
+            <div className="flex items-center gap-1 bg-slate-900/40 border border-slate-800 rounded-lg p-0.5">
+              <button 
+                type="button"
+                onClick={() => setShowBookmarkedOnly(p => !p)}
+                className={`p-1.5 rounded transition-all ${showBookmarkedOnly ? "bg-sky-500/20 text-sky-400" : "text-slate-500 hover:text-slate-300"}`}
+                title="Filter Bookmarked Meetings"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+              </button>
+              <button 
+                type="button"
+                onClick={() => setShowStarredOnly(p => !p)}
+                className={`p-1.5 rounded transition-all ${showStarredOnly ? "bg-amber-500/20 text-amber-400" : "text-slate-500 hover:text-slate-300"}`}
+                title="Filter Starred Meetings"
+              >
+                <Star className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
             {/* Advanced filter toggle button */}
             <button 
               type="button"
