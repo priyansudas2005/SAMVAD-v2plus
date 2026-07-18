@@ -3,7 +3,8 @@ import {
   History, Search, Trash2, Eye, Clock, Edit3, Check, X,
   Play, Pause, Volume2, VolumeX, XCircle, Database, Activity,
   LayoutGrid, List, ArrowUpDown, ChevronDown, SlidersHorizontal,
-  Calendar, Award, User, AlertCircle, HelpCircle, FileText, CheckCircle2
+  Calendar, Award, User, AlertCircle, HelpCircle, FileText, CheckCircle2,
+  Bookmark, Star, Copy, Share2, Download, Files, MoreVertical, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Meeting } from "../types";
@@ -113,6 +114,73 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [saving,    setSaving]    = useState(false);
+
+  // Bookmark and Favorite toggle state collections
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => new Set());
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set());
+
+  // Right-click context menu coordinates and target configurations
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; meetingId: string } | null>(null);
+
+  // Close context menu on window click
+  useEffect(() => {
+    const closeMenu = () => setContextMenu(null);
+    window.addEventListener("click", closeMenu);
+    return () => window.removeEventListener("click", closeMenu);
+  }, []);
+
+  const toggleBookmark = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setBookmarkedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleFavorite = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setFavoriteIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleDuplicate = async (meeting: Meeting, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      setSaving(true);
+      const res = await fetch(`/api/meetings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `${meeting.title} (Copy)`,
+          duration: meeting.duration,
+          date: new Date().toISOString(),
+          metadata: { ...(meeting.metadata || {}), is_duplicate: true }
+        })
+      });
+      if (!res.ok) throw new Error();
+      await refreshMeetings();
+    } catch {
+      alert("Failed to duplicate meeting.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleExport = (meeting: Meeting, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    // Simulate raw text JSON file export download
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(meeting, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href",     dataStr);
+    dlAnchorElem.setAttribute("download", `${meeting.title || "meeting"}_intelligence.json`);
+    dlAnchorElem.click();
+  };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -690,13 +758,55 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
               const isSelected = idx === selectedIndex;
+
+              // Parse details and AI metadata metrics
+              const speakersList: string[] = meeting.metadata?.speakers 
+                ? (Array.isArray(meeting.metadata.speakers) 
+                    ? meeting.metadata.speakers 
+                    : String(meeting.metadata.speakers).split(",").map(s => s.trim()))
+                : [];
+              const speakersCount = speakersList.length;
+              const wordsCount = meeting.transcript ? meeting.transcript.reduce((acc, seg) => acc + (seg.text ? seg.text.split(/\s+/).length : 0), 0) : 0;
+              const confidenceVal = meeting.metadata?.confidence ? Math.round(Number(meeting.metadata.confidence) * 100) : 0;
+              const audioQuality = meeting.metadata?.audio_quality ? Math.round(Number(meeting.metadata.audio_quality) * 100) : 88; // Default placeholder quality
+              const fileSizeStr = meeting.metadata?.file_size ? String(meeting.metadata.file_size) : "12.4 MB"; // Fallback file size
+              
+              // Count Action Items, Decisions, and Questions from memo or transcript segments
+              const actionItemsCount = meeting.memo?.action_items?.length 
+                || meeting.transcript?.reduce((acc, s) => acc + (s.metadata?.action_items?.length || 0), 0) 
+                || 0;
+              const decisionsCount = meeting.memo?.decisions?.length 
+                || meeting.transcript?.reduce((acc, s) => acc + (s.metadata?.decisions?.length || 0), 0) 
+                || 0;
+              const questionsCount = meeting.transcript?.reduce((acc, s) => acc + (s.metadata?.questions?.length || 0), 0) || 0;
+              
+              // Extract Topics/Keywords
+              const topicsList: string[] = meeting.metadata?.keywords 
+                ? (Array.isArray(meeting.metadata.keywords) 
+                    ? meeting.metadata.keywords 
+                    : String(meeting.metadata.keywords).split(",").map(k => k.trim()))
+                : (meeting.metadata?.tags ? (Array.isArray(meeting.metadata.tags) ? meeting.metadata.tags : [String(meeting.metadata.tags)]) : []);
+
+              const isBookmarked = bookmarkedIds.has(meeting.meeting_id);
+              const isFavorite = favoriteIds.has(meeting.meeting_id);
+
               return (
                 <div key={meeting.meeting_id}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                  className={`card flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 transition-all ${
-                    isSelected ? "border-sky-500 bg-slate-900/70 shadow-lg shadow-sky-500/5 ring-1 ring-sky-500/20" : "bg-slate-900/40 border-slate-800/60"
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setContextMenu({
+                      x: e.clientX,
+                      y: e.clientY,
+                      meetingId: meeting.meeting_id
+                    });
+                  }}
+                  className={`card flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 transition-all duration-200 relative ${
+                    isSelected 
+                      ? "border-sky-500 bg-slate-900/80 shadow-xl shadow-sky-500/5 ring-1 ring-sky-500/20" 
+                      : "bg-slate-900/40 border border-slate-800/60 hover:bg-slate-900/60 hover:border-slate-700/80 hover:shadow-2xl hover:shadow-black/60"
                   }`}>
-                  <div className="card__content flex flex-col h-full justify-between gap-3">
+                  <div className="card__content flex flex-col h-full justify-between gap-2.5">
 
                     {/* Card Header Top Strip */}
                     {(() => {
@@ -742,20 +852,21 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
                       return (
                         <>
-                          <div className="flex items-center justify-between gap-2 w-full text-[10px] pb-1">
+                          <div className="flex items-center justify-between gap-2 w-full text-[10px] pb-0.5">
                             {/* LEFT: Status Badge */}
                             <span className={`px-2 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 ${statusBg}`}>
                               <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                               {statusLabel}
                             </span>
 
-                            {/* CENTER: CSS Waveform placeholder */}
-                            <div className="flex-1 max-w-[60px] h-3 flex items-center justify-center gap-0.5 opacity-40 px-1">
-                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-1" />
-                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-2 [animation-delay:0.1s]" />
-                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-3 [animation-delay:0.2s]" />
-                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-2 [animation-delay:0.3s]" />
-                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-1 [animation-delay:0.4s]" />
+                            {/* CENTER: Quick toggle indicators */}
+                            <div className="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                              {isBookmarked && (
+                                <Bookmark className="w-3.5 h-3.5 fill-sky-400 text-sky-400" />
+                              )}
+                              {isFavorite && (
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              )}
                             </div>
 
                             {/* RIGHT: Duration and date info */}
@@ -765,25 +876,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                             </div>
                           </div>
 
-                          {/* Waveform thumbnail */}
-                          <div onClick={e => handlePlayCard(meeting, e)}
-                            className="card__image h-16 flex items-center justify-center cursor-pointer overflow-hidden relative rounded-xl"
-                            style={{ background: `linear-gradient(135deg, ${meta.color}18, ${meta.color}06)`, border: `1px solid ${meta.color}22` }}>
-                            <WaveformBars playing={isThisPlaying} color={meta.wave} />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/45 transition-all rounded-xl">
-                              <div className="w-8 h-8 rounded-full flex items-center justify-center"
-                                style={{ background: meta.color }}>
-                                {isThisPlaying ? (
-                                  <Pause className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                                ) : (
-                                  <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950 ml-0.5" />
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
                           {/* Title & subtitle info */}
-                          <div className="card__text flex-1">
+                          <div className="card__text flex-1 flex flex-col gap-1.5">
                             {editingId === meeting.meeting_id ? (
                               <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                                 <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
@@ -798,119 +892,128 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                               </div>
                             ) : (
                               <>
-                                <h4 className="card__title text-sm text-white font-bold tracking-tight line-clamp-2 leading-snug" title={meeting.title}>
+                                <h4 className="card__title text-sm text-white font-bold tracking-tight line-clamp-1 leading-snug" title={meeting.title}>
                                   {highlightText(meeting.title, debouncedQuery)}
                                 </h4>
                                 {startTimeStr && endTimeStr && (
-                                  <p className="text-[10px] text-slate-500 font-medium mt-1 leading-none">
+                                  <p className="text-[9.5px] text-slate-500 font-medium leading-none">
                                     {startTimeStr} — {endTimeStr}
                                   </p>
                                 )}
                               </>
                             )}
+
+                            {/* Meeting AI Summary Block */}
+                            <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed bg-white/[0.01] border border-white/[0.02] p-1.5 rounded-lg mt-0.5">
+                              {meeting.memo?.summary || "No summary generated."}
+                            </p>
                             
-                            {/* Metadata grid chips */}
-                            {(() => {
-                              // Dynamic calculations based on processed details
-                              const speakersCount = meeting.metadata?.speakers ? (Array.isArray(meeting.metadata.speakers) ? meeting.metadata.speakers.length : Number(meeting.metadata.speakers)) : 0;
-                              const wordsCount = meeting.transcript ? meeting.transcript.reduce((acc, seg) => acc + (seg.text ? seg.text.split(" ").length : 0), 0) : 0;
-                              const segmentsCount = meeting.transcript ? meeting.transcript.length : 0;
-                              const confidenceVal = meeting.metadata?.confidence ? Math.round(Number(meeting.metadata.confidence) * 100) : 0;
+                            {/* Speakers Preview Section */}
+                            {speakersCount > 0 ? (
+                              <div className="flex items-center gap-1.5 flex-wrap mt-0.5 text-[10px] text-slate-300">
+                                <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Speakers:</span>
+                                {speakersList.slice(0, 2).map((sp, sIdx) => (
+                                  <span key={sIdx} className="inline-flex items-center gap-1 bg-slate-950/60 border border-slate-850 px-1.5 py-0.5 rounded-md text-[10px]" title={speakersList.join(", ")}>
+                                    👤 {sp}
+                                  </span>
+                                ))}
+                                {speakersCount > 2 && (
+                                  <span className="text-sky-400 font-bold text-[9px] bg-sky-500/10 px-1 rounded" title={speakersList.slice(2).join(", ")}>
+                                    +{speakersCount - 2} More
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-slate-600 italic">No speakers identified</div>
+                            )}
 
-                              const chips = [
-                                { show: speakersCount > 0, icon: <span className="text-sky-400">👥</span>, label: "Speakers", value: String(speakersCount) },
-                                { show: (meeting.duration || 0) > 0, icon: <span className="text-emerald-400">⏱</span>, label: "Duration", value: durationStr },
-                                { show: wordsCount > 0, icon: <span className="text-purple-400">📝</span>, label: "Words", value: wordsCount.toLocaleString() },
-                                { show: segmentsCount > 0, icon: <span className="text-indigo-400">📄</span>, label: "Segments", value: String(segmentsCount) },
-                                { show: confidenceVal > 0, icon: <span className="text-amber-400">🎙</span>, label: "Confidence", value: `${confidenceVal}%` }
-                              ].filter(c => c.show);
+                            {/* Topics/Keywords Tags Preview */}
+                            {topicsList.length > 0 ? (
+                              <div className="flex flex-wrap gap-1 mt-0.5">
+                                {topicsList.slice(0, 3).map((topic, tIdx) => (
+                                  <span key={tIdx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 rounded-md text-[9px] font-medium uppercase tracking-wider">
+                                    {topic}
+                                  </span>
+                                ))}
+                                {topicsList.length > 3 && (
+                                  <span className="px-1 bg-slate-900 text-slate-600 rounded text-[9px]">
+                                    +{topicsList.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[9px] text-slate-600 italic">No Topics</span>
+                            )}
 
-                              return (
-                                <>
-                                  {chips.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-1.5 mt-2.5">
-                                      {chips.slice(0, 4).map((chip, idx) => (
-                                        <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.02] border border-white/[0.04] rounded-[12px] backdrop-blur-sm transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:-translate-y-[1px] duration-200">
-                                          <span className="text-[11px] leading-none flex-shrink-0">{chip.icon}</span>
-                                          <div className="flex flex-col min-w-0 leading-none gap-0.5">
-                                            <span className="text-[8px] text-slate-500 font-medium truncate uppercase tracking-wider">{chip.label}</span>
-                                            <span className="text-[10px] text-slate-200 font-semibold truncate">{chip.value}</span>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                            {/* Action Items & Decisions Preview Strip */}
+                            <div className="grid grid-cols-3 gap-1 mt-1 border-t border-slate-800/40 pt-1.5 text-[10px]">
+                              <div className="flex items-center gap-1 text-emerald-400" title={meeting.memo?.action_items?.join("\n") || "No action items"}>
+                                <span>✓</span>
+                                <span className="font-bold">{actionItemsCount} Actions</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-sky-400" title={meeting.memo?.decisions?.join("\n") || "No decisions"}>
+                                <span>⚖</span>
+                                <span className="font-bold">{decisionsCount} Decisions</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-purple-400">
+                                <span>?</span>
+                                <span className="font-bold">{questionsCount} Qs</span>
+                              </div>
+                            </div>
+                            
+                            {/* Metadata details chips */}
+                            <div className="grid grid-cols-3 gap-1 mt-1 text-[9px] text-slate-500 leading-none">
+                              <span>Score: {audioQuality}%</span>
+                              <span className="text-center">Words: {wordsCount.toLocaleString()}</span>
+                              <span className="text-right">{fileSizeStr}</span>
+                            </div>
 
-                                  {/* AI HEALTH & DIAGNOSTICS SECTION */}
-                                  {confidenceVal > 0 && (
-                                    <div className="mt-3 p-2 bg-white/[0.01] border border-white/[0.03] rounded-xl space-y-2">
-                                      {/* AI Health bar */}
-                                      <div className="flex items-center justify-between text-[9px] leading-none">
-                                        <span className="text-slate-500 font-bold uppercase tracking-wider">AI Health</span>
-                                        <span className={`font-semibold ${confidenceVal >= 95 ? "text-emerald-400" : confidenceVal >= 80 ? "text-amber-400" : "text-rose-400"}`}>
-                                          {confidenceVal}% · {confidenceVal >= 95 ? "Excellent" : confidenceVal >= 80 ? "Good" : "Needs Review"}
-                                        </span>
-                                      </div>
-
-                                      <div className="w-full h-1 bg-slate-950 border border-white/[0.02] rounded-full overflow-hidden">
-                                        <div 
-                                          className={`h-full rounded-full transition-all ${confidenceVal >= 95 ? "bg-emerald-500" : confidenceVal >= 80 ? "bg-amber-500" : "bg-rose-500"}`}
-                                          style={{ width: `${confidenceVal}%` }}
-                                        />
-                                      </div>
-
-                                      {/* Pipeline modules diagnostics */}
-                                      <div className="flex flex-wrap gap-1 pt-0.5">
-                                        {/* STT Status badge */}
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-white/[0.04] text-[8px] text-slate-400 rounded-md">
-                                          <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                                          STT
-                                        </span>
-                                        {/* Diarization status */}
-                                        {speakersCount > 0 && (
-                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-white/[0.04] text-[8px] text-slate-400 rounded-md">
-                                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                                            Diarized
-                                          </span>
-                                        )}
-                                        {/* Intel status */}
-                                        {meeting.transcript && meeting.transcript.length > 0 && (
-                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-white/[0.04] text-[8px] text-slate-400 rounded-md">
-                                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                                            Intel Ready
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                </>
-                              );
-                            })()}
+                            {/* AI Health bar */}
+                            {confidenceVal > 0 && (
+                              <div className="w-full h-1 bg-slate-950 border border-white/[0.02] rounded-full overflow-hidden mt-1">
+                                <div 
+                                  className={`h-full rounded-full transition-all ${confidenceVal >= 90 ? "bg-emerald-500" : confidenceVal >= 80 ? "bg-amber-500" : "bg-rose-500"}`}
+                                  style={{ width: `${confidenceVal}%` }}
+                                />
+                              </div>
+                            )}
                           </div>
                         </>
                       );
                     })()}
+                  </div>
 
-                    {/* Reveal actions */}
-                    <div className="flex items-center justify-between border-t border-slate-800/80 pt-2"
-                      onClick={e => e.stopPropagation()}>
-                      <div className="flex items-center gap-1.5">
-                        {editingId !== meeting.meeting_id && (
-                          <button onClick={e => startEdit(meeting, e)}
-                            className="p-1.5 bg-slate-950 border border-slate-850 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg transition-colors" title="Rename">
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        <button onClick={e => handleDelete(meeting.meeting_id, e)}
-                          className="p-1.5 bg-slate-950 border border-slate-850 hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 rounded-lg transition-colors" title="Delete">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                        className="p-1.5 bg-sky-500 hover:bg-sky-400 rounded-lg" title="View Transcript">
-                        <Eye className="w-3.5 h-3.5 text-slate-950" />
-                      </button>
-                    </div>
+                  {/* Hover Floating Actions Menu */}
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-slate-950/90 border border-slate-800 rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 shadow-xl"
+                    onClick={e => e.stopPropagation()}>
+                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
+                      className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white" title="Open">
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
+                    <button onClick={e => startEdit(meeting, e)}
+                      className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white" title="Rename">
+                      <Edit3 className="w-3 h-3" />
+                    </button>
+                    <button onClick={e => toggleBookmark(meeting.meeting_id, e)}
+                      className={`p-1 hover:bg-slate-800 rounded ${isBookmarked ? "text-sky-400" : "text-slate-400"}`} title="Bookmark">
+                      <Bookmark className="w-3 h-3" />
+                    </button>
+                    <button onClick={e => toggleFavorite(meeting.meeting_id, e)}
+                      className={`p-1 hover:bg-slate-800 rounded ${isFavorite ? "text-amber-400" : "text-slate-400"}`} title="Favorite">
+                      <Star className="w-3 h-3" />
+                    </button>
+                    <button onClick={e => handleDuplicate(meeting, e)}
+                      className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white" title="Duplicate">
+                      <Files className="w-3 h-3" />
+                    </button>
+                    <button onClick={e => handleExport(meeting, e)}
+                      className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white" title="Export">
+                      <Download className="w-3 h-3" />
+                    </button>
+                    <button onClick={e => handleDelete(meeting.meeting_id, e)}
+                      className="p-1 hover:bg-rose-500/10 rounded text-slate-400 hover:text-rose-500" title="Delete">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
               );
@@ -1048,6 +1151,105 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Right-click Context Menu Portal */}
+      <AnimatePresence>
+        {contextMenu && (() => {
+          const targetMeeting = meetings.find(m => m.meeting_id === contextMenu.meetingId);
+          if (!targetMeeting) return null;
+          return (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.12 }}
+              style={{ top: contextMenu.y, left: contextMenu.x }}
+              className="fixed z-50 min-w-[180px] bg-slate-950/95 backdrop-blur-md border border-slate-800/80 rounded-xl shadow-2xl p-1 flex flex-col gap-0.5"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={() => {
+                  onSelectMeeting(targetMeeting);
+                  setActivePage("transcript");
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Eye className="w-3.5 h-3.5 text-sky-400" />
+                Open Meeting
+              </button>
+              <button
+                onClick={(e) => {
+                  startEdit(targetMeeting, e);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
+                Rename
+              </button>
+              <button
+                onClick={(e) => {
+                  handleDuplicate(targetMeeting, e);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Files className="w-3.5 h-3.5 text-purple-400" />
+                Duplicate
+              </button>
+              <button
+                onClick={() => {
+                  toggleBookmark(targetMeeting.meeting_id);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Bookmark className="w-3.5 h-3.5 text-sky-400 fill-current" />
+                {bookmarkedIds.has(targetMeeting.meeting_id) ? "Unbookmark" : "Bookmark"}
+              </button>
+              <button
+                onClick={() => {
+                  toggleFavorite(targetMeeting.meeting_id);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-current" />
+                {favoriteIds.has(targetMeeting.meeting_id) ? "Unfavorite" : "Favorite"}
+              </button>
+              <button
+                onClick={(e) => {
+                  handleExport(targetMeeting, e);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                Export Intelligence
+              </button>
+              <button
+                disabled
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-600 rounded-lg flex items-center gap-2 cursor-not-allowed opacity-50"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Move to Folder
+              </button>
+              <div className="h-px bg-slate-900 my-1" />
+              <button
+                onClick={(e) => {
+                  handleDelete(targetMeeting.meeting_id, e);
+                  setContextMenu(null);
+                }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Registry
+              </button>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );
