@@ -1068,7 +1068,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       <div className="w-full relative z-10">
         {loading ? (
           <div className={viewMode === "grid"
-            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"
             : "flex flex-col gap-3"}>
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} index={i} />)}
           </div>
@@ -1106,7 +1106,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </motion.div>
         ) : viewMode === "grid" ? (
           /* GRID VIEW */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
             {collectionFiltered.map((meeting, idx) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
