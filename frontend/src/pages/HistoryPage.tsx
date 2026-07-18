@@ -992,7 +992,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       </button>
                       <button onClick={(e) => {
                         e.stopPropagation();
-                        setContextMenu({ x: e.clientX, y: e.clientY, meetingId: meeting.meeting_id });
+                        setContextMenu(prev => (prev && prev.meetingId === meeting.meeting_id) ? null : { x: e.clientX, y: e.clientY, meetingId: meeting.meeting_id });
                       }} className="p-1 hover:bg-slate-855 rounded-md text-slate-400 hover:text-white transition-colors">
                         <MoreVertical className="w-3.5 h-3.5" />
                       </button>
@@ -1062,7 +1062,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
                         {/* Interactive speed selector dropdown */}
                         <select 
-                          className="bg-slate-900 border border-slate-805 rounded px-1.5 py-0.5 text-[8.5px] text-slate-400 font-semibold cursor-pointer focus:outline-none focus:border-[#8b5cf6]"
+                          className="bg-slate-900 border border-slate-805 rounded px-1 py-0.5 text-[8px] text-slate-400 font-semibold cursor-pointer focus:outline-none focus:border-[#8b5cf6] w-12"
                           value={playbackRate}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value);
@@ -1203,19 +1203,19 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1 group-hover:translate-y-[-2px] transition-transform duration-200" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
                       className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="View Transcript (Ctrl + T)">
-                      <span>📄</span> Transcript
+                      <FileText className="w-3.5 h-3.5 text-indigo-455" /> Transcript
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
                       className="flex-1 py-1.5 bg-slate-900/60 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="Meeting Memo">
-                      <span>📝</span> Memo
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-455" /> Memo
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
                       className="flex-1 py-1.5 bg-slate-900/60 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/20 text-slate-400 hover:text-amber-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="Meeting Stats">
-                      <span>📊</span> Stats
+                      <Award className="w-3.5 h-3.5 text-amber-455" /> Stats
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
                       className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-[#c084fc] rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="AI Assistant">
-                      <span>🧠</span> Assistant
+                      <HelpCircle className="w-3.5 h-3.5 text-purple-455" /> Assistant
                     </button>
                   </div>
                 </div>
