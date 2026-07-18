@@ -1641,28 +1641,33 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
                   </div>
 
-                  {/* BOTTOM ACTION BAR - soft-tinted icons matching sidebar nav */}
-                  <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                    {/* Transcript — FileText */}
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 rounded-lg border transition-all duration-150 active:scale-95 flex items-center justify-center group/btn bg-indigo-950/20 border-indigo-900/30 hover:bg-indigo-500/15 hover:border-indigo-500/30" title="Transcript">
-                      <FileText className="w-3.5 h-3.5 text-indigo-500/70 group-hover/btn:text-indigo-400 group-hover/btn:scale-110 transition-all duration-150" />
-                    </button>
-                    {/* Meeting Memo — Sparkles */}
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("summary"); }}
-                      className="flex-1 py-1.5 rounded-lg border transition-all duration-150 active:scale-95 flex items-center justify-center group/btn bg-violet-950/20 border-violet-900/30 hover:bg-violet-500/15 hover:border-violet-500/30" title="Meeting Memo">
-                      <Sparkles className="w-3.5 h-3.5 text-violet-500/70 group-hover/btn:text-violet-400 group-hover/btn:scale-110 transition-all duration-150" />
-                    </button>
-                    {/* Meeting Stats — Activity */}
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
-                      className="flex-1 py-1.5 rounded-lg border transition-all duration-150 active:scale-95 flex items-center justify-center group/btn bg-emerald-950/20 border-emerald-900/30 hover:bg-emerald-500/15 hover:border-emerald-500/30" title="Meeting Stats">
-                      <Activity className="w-3.5 h-3.5 text-emerald-500/70 group-hover/btn:text-emerald-400 group-hover/btn:scale-110 transition-all duration-150" />
-                    </button>
-                    {/* AI Assistant — BrainCircuit */}
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 rounded-lg border transition-all duration-150 active:scale-95 flex items-center justify-center group/btn bg-purple-950/20 border-purple-900/30 hover:bg-purple-500/15 hover:border-purple-500/30" title="AI Assistant">
-                      <BrainCircuit className="w-3.5 h-3.5 text-purple-500/70 group-hover/btn:text-purple-400 group-hover/btn:scale-110 transition-all duration-150" />
-                    </button>
+                  {/* BOTTOM TOOLBAR — professional compact glass toolbar */}
+                  <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center justify-between gap-1" onClick={e => e.stopPropagation()}>
+                    {[
+                      { icon: <ExternalLink className="w-3.5 h-3.5" />, tooltip: "Open Full", action: () => { onSelectMeeting(meeting); setActivePage("transcript"); trackOpen(meeting); }, disabled: false },
+                      { icon: <FileText className="w-3.5 h-3.5" />, tooltip: "Transcript", action: () => { onSelectMeeting(meeting); setActivePage("transcript"); }, disabled: false },
+                      { icon: <Sparkles className="w-3.5 h-3.5" />, tooltip: "Intelligence", action: () => { onSelectMeeting(meeting); setActivePage("summary"); }, disabled: false },
+                      { icon: <Download className="w-3.5 h-3.5" />, tooltip: "Export", action: (e: any) => handleExport(meeting, e), disabled: false },
+                      { icon: <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-sky-400 text-sky-400" : ""}`} />, tooltip: isBookmarked ? "Saved" : "Save", action: (e: any) => toggleBookmark(meeting.meeting_id, e), disabled: false },
+                      { icon: <Edit3 className="w-3.5 h-3.5" />, tooltip: "Rename", action: (e: any) => startEdit(meeting, e), disabled: false },
+                      { icon: <Copy className="w-3.5 h-3.5" />, tooltip: saving ? "Copying..." : "Duplicate", action: (e: any) => handleDuplicate(meeting, e), disabled: saving },
+                      { icon: <Trash2 className="w-3.5 h-3.5 text-rose-500/80 group-hover/tooltip:text-rose-400" />, tooltip: "Delete", action: (e: any) => handleDelete(meeting.meeting_id, e), disabled: saving },
+                      { icon: <MoreVertical className="w-3.5 h-3.5" />, tooltip: "More Options", action: (e: any) => setContextMenu({ x: e.clientX, y: e.clientY, meetingId: meeting.meeting_id }), disabled: false }
+                    ].map((btn, bIdx) => (
+                      <button
+                        key={bIdx}
+                        onClick={btn.action}
+                        disabled={btn.disabled}
+                        className="relative group/tooltip p-1.5 rounded-lg border border-white/[0.03] bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/[0.08] text-slate-400 hover:text-white transition-all duration-150 active:scale-75 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center flex-1"
+                      >
+                        {btn.icon}
+                        
+                        {/* CSS Tooltip */}
+                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-950/95 text-[9px] text-slate-300 font-bold uppercase tracking-wider rounded border border-white/[0.06] opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity duration-150 whitespace-nowrap shadow-2xl z-50">
+                          {btn.tooltip}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
               );
