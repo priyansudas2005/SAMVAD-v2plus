@@ -1202,31 +1202,21 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   {/* BOTTOM ACTION BAR - Always visible premium layout buttons */}
                   <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1 group-hover:translate-y-[-2px] transition-transform duration-200" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-[#8b5cf6]/10 border border-slate-800 hover:border-[#8b5cf6]/20 text-slate-400 hover:text-purple-300 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1" title="Open Meeting (Ctrl + O)">
-                      <span>▶</span> Open
-                    </button>
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1" title="View Transcript (Ctrl + T)">
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="View Transcript (Ctrl + T)">
                       <span>📄</span> Transcript
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-purple-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1" title="Meeting Intelligence (Ctrl + I)">
-                      <span>🧠</span> Intel
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="Meeting Memo">
+                      <span>📝</span> Memo
                     </button>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => handleExport(meeting)}
-                        className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center justify-center" title="Export (Ctrl + E)">
-                        <Download className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={(e) => startEdit(meeting, e)}
-                        className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center justify-center" title="Rename">
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={(e) => handleDelete(meeting.meeting_id, e)}
-                        className="p-1.5 bg-slate-900/60 hover:bg-rose-500/10 border border-slate-800 text-slate-500 hover:text-rose-500 rounded-lg transition-colors flex items-center justify-center" title="Delete">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/20 text-slate-400 hover:text-amber-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="Meeting Stats">
+                      <span>📊</span> Stats
+                    </button>
+                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-[#c084fc] rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="AI Assistant">
+                      <span>🧠</span> Assistant
+                    </button>
                   </div>
                 </div>
               );
@@ -1411,26 +1401,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               >
                 <Files className="w-3.5 h-3.5 text-purple-400" />
                 Duplicate
-              </button>
-              <button
-                onClick={() => {
-                  toggleBookmark(targetMeeting.meeting_id);
-                  setContextMenu(null);
-                }}
-                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <Bookmark className="w-3.5 h-3.5 text-sky-400 fill-current" />
-                {bookmarkedIds.has(targetMeeting.meeting_id) ? "Unbookmark" : "Bookmark"}
-              </button>
-              <button
-                onClick={() => {
-                  toggleFavorite(targetMeeting.meeting_id);
-                  setContextMenu(null);
-                }}
-                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <Star className="w-3.5 h-3.5 text-amber-400 fill-current" />
-                {favoriteIds.has(targetMeeting.meeting_id) ? "Unfavorite" : "Favorite"}
               </button>
               <button
                 onClick={(e) => {
