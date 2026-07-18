@@ -459,20 +459,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
           {/* Controls button actions */}
           <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
-            {/* Reset Filters Quick Button (visible when filters are active) */}
-            {(filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all" || searchQuery) && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  resetFilters();
-                }}
-                className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all cursor-pointer"
-              >
-                Reset Filters
-              </button>
-            )}
-
             {/* Advanced filter toggle button */}
             <button 
               type="button"
@@ -536,120 +522,104 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </div>
         </div>
 
-        {/* Collapsible advanced filters drawer */}
-        <AnimatePresence>
-          {filterPanelOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3"
-            >
-              {/* Date Range Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Date Range</span>
-                <select 
-                  value={filterDateRange} 
-                  onChange={e => setFilterDateRange(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Dates</option>
-                  <option value="today">Today</option>
-                  <option value="yesterday">Yesterday</option>
-                  <option value="7days">Last 7 Days</option>
-                  <option value="30days">Last 30 Days</option>
-                </select>
-              </div>
+        {/* Collapsible advanced filters drawer - Rendered instantly using conditional checks to remove animation lag */}
+        {filterPanelOpen && (
+          <div className="border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3">
+            {/* Date Range Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Date Range</span>
+              <select 
+                value={filterDateRange} 
+                onChange={e => setFilterDateRange(e.target.value)}
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+              >
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+              </select>
+            </div>
 
-              {/* Duration Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Duration</span>
-                <select 
-                  value={filterDuration} 
-                  onChange={e => setFilterDuration(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Durations</option>
-                  <option value="short">Short (&lt;10m)</option>
-                  <option value="medium">Medium (10–30m)</option>
-                  <option value="long">Long (30–60m)</option>
-                  <option value="vlong">V. Long (1h+)</option>
-                </select>
-              </div>
+            {/* Duration Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Duration</span>
+              <select 
+                value={filterDuration} 
+                onChange={e => setFilterDuration(e.target.value)}
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+              >
+                <option value="all">All Durations</option>
+                <option value="short">Short (&lt;10m)</option>
+                <option value="medium">Medium (10–30m)</option>
+                <option value="long">Long (30–60m)</option>
+                <option value="vlong">V. Long (1h+)</option>
+              </select>
+            </div>
 
-              {/* Confidence Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Confidence</span>
-                <select 
-                  value={filterConfidence} 
-                  onChange={e => setFilterConfidence(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Confidences</option>
-                  <option value="high">High (&ge;90%)</option>
-                  <option value="medium">Medium (80–89%)</option>
-                  <option value="low">Low (&lt;80%)</option>
-                </select>
-              </div>
+            {/* Confidence Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Confidence</span>
+              <select 
+                value={filterConfidence} 
+                onChange={e => setFilterConfidence(e.target.value)}
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+              >
+                <option value="all">All Confidences</option>
+                <option value="high">High (&ge;90%)</option>
+                <option value="medium">Medium (80–89%)</option>
+                <option value="low">Low (&lt;80%)</option>
+              </select>
+            </div>
 
-              {/* Speakers Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Speakers</span>
-                <select 
-                  value={filterSpeakers} 
-                  onChange={e => setFilterSpeakers(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Speakers</option>
-                  <option value="1">1 Speaker</option>
-                  <option value="2">2 Speakers</option>
-                  <option value="3">3 Speakers</option>
-                  <option value="4">4+ Speakers</option>
-                </select>
-              </div>
+            {/* Speakers Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Speakers</span>
+              <select 
+                value={filterSpeakers} 
+                onChange={e => setFilterSpeakers(e.target.value)}
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+              >
+                <option value="all">All Speakers</option>
+                <option value="1">1 Speaker</option>
+                <option value="2">2 Speakers</option>
+                <option value="3">3 Speakers</option>
+                <option value="4">4+ Speakers</option>
+              </select>
+            </div>
 
-              {/* Contains Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Contains</span>
-                <select 
-                  value={filterContains} 
-                  onChange={e => setFilterContains(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Records</option>
-                  <option value="action_items">Action Items</option>
-                  <option value="decisions">Decisions</option>
-                  <option value="transcripts">Transcripts</option>
-                </select>
-              </div>
+            {/* Contains Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Contains</span>
+              <select 
+                value={filterContains} 
+                onChange={e => setFilterContains(e.target.value)}
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+              >
+                <option value="all">All Records</option>
+                <option value="action_items">Action Items</option>
+                <option value="decisions">Decisions</option>
+                <option value="transcripts">Transcripts</option>
+              </select>
+            </div>
 
-              {/* Status Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Status</span>
-                <div className="flex items-center gap-2">
-                  <select 
-                    value={filterStatus} 
-                    onChange={e => setFilterStatus(e.target.value)}
-                    className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400 flex-1"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="completed">Completed</option>
-                    <option value="recording">Recording</option>
-                    <option value="processing">Processing</option>
-                    <option value="failed">Failed</option>
-                  </select>
-                  <button 
-                    onClick={resetFilters}
-                    className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
-                    title="Reset Filters"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Status Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Status</span>
+              <select 
+                value={filterStatus} 
+                onChange={e => setFilterStatus(e.target.value)}
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400 w-full"
+              >
+                <option value="all">All Statuses</option>
+                <option value="completed">Completed</option>
+                <option value="recording">Recording</option>
+                <option value="processing">Processing</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── 4. Meeting Grid/List ─────────────────────────────── */}
