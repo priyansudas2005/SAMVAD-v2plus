@@ -979,11 +979,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
                         {statusLabel}
                       </span>
-                      <span className="text-[9px] text-slate-500 font-bold">{durationStr}</span>
                     </div>
 
                     <div className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
-                      <span className="text-[8.5px] text-slate-500 font-semibold">{formattedDate}</span>
+                      <span className="text-[9px] text-slate-500 font-semibold whitespace-nowrap">{durationStr} · {formattedDate}</span>
                       <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-850 rounded-md transition-all ${isBookmarked ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" : "text-slate-400"}`}>
                         <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-sky-400" : ""}`} />
                       </button>
@@ -1081,11 +1080,11 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       </div>
 
                       {/* Time display: played / remaining */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         {/* Inline volume slider - revealed on audio preview hover */}
-                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-1.5 transition-opacity duration-200">
-                          <button onClick={toggleMute} className="text-slate-505 hover:text-white transition-colors">
-                            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-1 bg-slate-900 px-1 py-0.5 rounded border border-slate-800/40 transition-opacity duration-200">
+                          <button onClick={toggleMute} className="text-slate-500 hover:text-white transition-colors">
+                            {isMuted ? <VolumeX className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
                           </button>
                           <input 
                             type="range"
@@ -1094,12 +1093,12 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                             step="0.1"
                             value={isMuted ? 0 : volume}
                             onChange={handleVolume}
-                            className="w-10 accent-[#8b5cf6] h-1 bg-slate-900 rounded-lg cursor-pointer"
+                            className="w-8 accent-[#8b5cf6] h-0.5 bg-slate-800 rounded-lg cursor-pointer"
                           />
                         </div>
 
-                        <span className="text-[9px] text-slate-400 font-mono tracking-tight bg-slate-900 px-2 py-0.5 rounded border border-slate-800/40">
-                          {isThisPlaying ? fmtTime(currentTime) : "00:00"} <span className="text-slate-600">/</span> {durationStr}
+                        <span className="text-[9px] text-slate-400 font-mono tracking-tight bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800/40 whitespace-nowrap">
+                          {isThisPlaying ? fmtTime(currentTime) : "00:00"}/{durationStr}
                         </span>
                       </div>
                     </div>
@@ -1202,20 +1201,20 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   {/* BOTTOM ACTION BAR - Always visible premium layout buttons */}
                   <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1 group-hover:translate-y-[-2px] transition-transform duration-200" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="View Transcript (Ctrl + T)">
-                      <FileText className="w-3.5 h-3.5 text-indigo-455" /> Transcript
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="View Transcript (Ctrl + T)">
+                      <FileText className="w-3.5 h-3.5 text-indigo-400" />
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="Meeting Memo">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-455" /> Memo
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="Meeting Memo">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-450" />
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/20 text-slate-400 hover:text-amber-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="Meeting Stats">
-                      <Award className="w-3.5 h-3.5 text-amber-455" /> Stats
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/20 text-slate-400 hover:text-amber-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="Meeting Stats">
+                      <Award className="w-3.5 h-3.5 text-amber-450" />
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-[#c084fc] rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1.5" title="AI Assistant">
-                      <HelpCircle className="w-3.5 h-3.5 text-purple-455" /> Assistant
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-[#c084fc] rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="AI Assistant">
+                      <HelpCircle className="w-3.5 h-3.5 text-purple-400" />
                     </button>
                   </div>
                 </div>
