@@ -1195,7 +1195,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       meetingId: meeting.meeting_id
                     });
                   }}
-                  className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-5 transition-all duration-300 relative border shadow-lg ${
+                  className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 transition-all duration-300 relative border shadow-lg ${
                     isCardSelected
                       ? "border-purple-500 bg-slate-900/90 shadow-xl shadow-purple-500/10 ring-2 ring-purple-500/30 -translate-y-1.5"
                       : isSelected 
@@ -1204,7 +1204,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   }`}
                 >
                   {/* ── SECTION 1 — HEADER ── */}
-                  <div className="flex items-center justify-between gap-1.5 pb-3 mb-2.5 border-b border-white/[0.02] min-w-0">
+                  <div className="flex items-center justify-between gap-1.5 pb-2 mb-2 border-b border-white/[0.02] min-w-0">
                     {/* Left: checkbox + status badge */}
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <input 
@@ -1212,9 +1212,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         checked={isCardSelected}
                         onChange={() => {}}
                         onClick={toggleSelect}
-                        className="w-3.5 h-3.5 rounded border-slate-800 text-purple-500 focus:ring-purple-500/30 bg-slate-900 cursor-pointer flex-shrink-0"
+                        className="w-3 h-3 rounded border-slate-800 text-purple-500 focus:ring-purple-500/30 bg-slate-900 cursor-pointer flex-shrink-0"
                       />
-                      <span className={`px-1.5 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 flex-shrink-0 ${statusBg}`}>
+                      <span className={`px-1.5 py-0.5 rounded-full border font-semibold text-[8px] flex items-center gap-1 flex-shrink-0 ${statusBg}`}>
                         <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
                         {statusLabel}
                       </span>
@@ -1222,7 +1222,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
                     {/* Right: duration · date + action icons — all in one tight row */}
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
-                      <span className="text-[8.5px] text-slate-500 font-semibold whitespace-nowrap">{formattedDate}</span>
+                      <span className="text-[8px] text-slate-500 font-semibold whitespace-nowrap">{formattedDate}</span>
                       <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-0.5 rounded transition-all flex-shrink-0 ${isBookmarked ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" : "text-slate-500 hover:text-slate-300"}`}>
                         <Bookmark className={`w-3 h-3 ${isBookmarked ? "fill-sky-400" : ""}`} />
                       </button>
@@ -1239,10 +1239,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* ── SECTION 2 — AUDIO PREVIEW ── */}
-                  <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-900/80 p-3 mb-3.5 group-hover:border-slate-800 transition-all duration-300 shadow-inner group/audio" onClick={e => e.stopPropagation()}>
+                  <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-900/80 p-2.5 mb-2.5 group-hover:border-slate-800 transition-all duration-300 shadow-inner group/audio" onClick={e => e.stopPropagation()}>
                     {/* Waveform bars with visible base color */}
                     <div 
-                      className="h-14 flex items-end justify-center gap-[2.5px] relative cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity pb-1 select-none"
+                      className="h-10 flex items-end justify-center gap-[2px] relative cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity pb-0.5 select-none"
                       onClick={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const clickX = e.clientX - rect.left;
@@ -1253,7 +1253,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       }}
                     >
                       {Array.from({ length: 32 }).map((_, wIdx) => {
-                        const h = 6 + Math.abs(Math.sin(wIdx * 0.43)) * 24 + Math.abs(Math.cos(wIdx * 0.87)) * 16;
+                        const h = 4 + Math.abs(Math.sin(wIdx * 0.43)) * 18 + Math.abs(Math.cos(wIdx * 0.87)) * 12;
                         const progressPercent = duration ? (currentTime / duration) : 0;
                         const isFilled = isThisPlaying && (wIdx / 32) <= progressPercent;
                         const isNearPlayhead = isThisPlaying && Math.abs((wIdx / 32) - progressPercent) < 0.04;
@@ -1261,10 +1261,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         return (
                           <div 
                             key={wIdx} 
-                            style={{ height: `${Math.min(46, Math.max(4, h))}px` }}
-                            className={`w-[3px] rounded-full transition-all duration-150 ${
+                            style={{ height: `${Math.min(34, Math.max(3, h))}px` }}
+                            className={`w-[2.5px] rounded-full transition-all duration-150 ${
                               isNearPlayhead
-                                ? "bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.5)] scale-y-110"
+                                ? "bg-white/80 shadow-[0_0_6px_rgba(255,255,255,0.5)] scale-y-110"
                                 : isFilled 
                                   ? "bg-gradient-to-t from-[#7c3aed] to-[#a78bfa] shadow-[0_0_4px_rgba(139,92,246,0.5)]" 
                                   : "bg-slate-700/50 hover:bg-slate-600/70"
@@ -1288,7 +1288,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
 
                     {/* Thin progress track */}
-                    <div className="h-[2px] bg-slate-800 rounded-full mx-0.5 mb-2">
+                    <div className="h-[2px] bg-slate-900 rounded-full mx-0.5 mb-1.5">
                       <div 
                         className="h-full bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] rounded-full transition-all duration-300"
                         style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : '0%' }}
@@ -1296,12 +1296,12 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
 
                     {/* Controls Row */}
-                    <div className="flex items-center justify-between pt-1.5">
+                    <div className="flex items-center justify-between pt-1">
                       {/* Left: play button + speed cycle pill */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <button 
                           onClick={(e) => handlePlayCard(meeting, e)}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center border text-white transition-all shadow-md active:scale-95 flex-shrink-0 ${
+                          className={`w-6 h-6 rounded-full flex items-center justify-center border text-white transition-all shadow-md active:scale-95 flex-shrink-0 ${
                             isThisPlaying 
                               ? "bg-[#7c3aed]/20 border-[#7c3aed]/50 hover:bg-[#7c3aed]/30" 
                               : "bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] group-hover/audio:border-purple-500/30"
@@ -1309,8 +1309,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           title="Play preview"
                         >
                           {isThisPlaying 
-                            ? <Pause className="w-3 h-3 text-[#a78bfa] fill-[#a78bfa]" /> 
-                            : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
+                            ? <Pause className="w-2.5 h-2.5 text-[#a78bfa] fill-[#a78bfa]" /> 
+                            : <Play className="w-2.5 h-2.5 text-slate-300 fill-slate-300 ml-0.5" />}
                         </button>
 
                         {/* Speed pill — cycles through rates on click */}
@@ -1324,7 +1324,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                               audioRef.current.playbackRate = next;
                             }
                           }}
-                          className="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/50 text-[8px] text-slate-400 font-bold hover:bg-slate-700/80 hover:text-slate-200 transition-all flex-shrink-0 tabular-nums"
+                          className="px-1.5 py-0.5 rounded-md bg-slate-900/80 border border-slate-800/50 text-[8px] text-slate-400 font-bold hover:bg-slate-700/80 hover:text-slate-200 transition-all flex-shrink-0 tabular-nums"
                           title="Click to change speed"
                         >
                           {playbackRate === 1 ? '1×' : `${playbackRate}×`}
@@ -1344,7 +1344,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                             step="0.1"
                             value={isMuted ? 0 : volume}
                             onChange={handleVolume}
-                            className="w-8 accent-[#8b5cf6] h-0.5 bg-slate-800 rounded-lg cursor-pointer"
+                            className="w-7 accent-[#8b5cf6] h-0.5 bg-slate-900 rounded-lg cursor-pointer"
                           />
                         </div>
 
@@ -1356,11 +1356,11 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* ── SECTION 3 — MEETING OVERVIEW ── */}
-                  <div className="mb-4">
+                  <div className="mb-3">
                     {editingId === meeting.meeting_id ? (
                       <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-900 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-purple-400 font-semibold" />
+                           className="w-full bg-slate-950 border border-slate-900 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-purple-400 font-semibold" />
                         <button onClick={e => saveEdit(meeting.meeting_id, e)} disabled={saving}
                           className="p-1 bg-purple-500 text-white rounded">
                           <Check className="w-3.5 h-3.5" />
@@ -1370,12 +1370,12 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-start justify-between gap-1">
+                      <div className="flex items-start justify-between gap-1 mb-1.5">
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-[13.5px] font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-purple-400 transition-colors duration-200" title={meeting.title}>
+                          <h4 className="text-xs font-bold text-white tracking-tight truncate hover:text-purple-400 transition-colors duration-200" title={meeting.title}>
                             {highlightText(meeting.title, debouncedQuery)}
                           </h4>
-                          <p className="text-[9px] text-slate-500 font-medium mt-1 uppercase tracking-wider">{startTimeStr || "12:00 PM"}</p>
+                          <p className="text-[8px] text-slate-500 font-medium mt-0.5 uppercase tracking-wider">{startTimeStr || "12:00 PM"}</p>
                         </div>
                         {/* Auto-classify Category tag */}
                         <span className="flex-shrink-0 px-2 py-0.5 bg-purple-950/40 border border-purple-800/20 text-[#a78bfa] rounded-full text-[8px] font-bold uppercase tracking-wider">
@@ -1385,14 +1385,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     )}
                     
                     {/* Soft glass summary box panel with concise bullet points layout */}
-                    <div className="relative rounded-xl overflow-hidden bg-slate-950/30 border border-white/[0.02] p-3 mt-2.5 group-hover:bg-slate-950/50 transition-colors duration-250">
-                      <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
+                    <div className="relative h-[64px] overflow-hidden rounded-xl bg-slate-950/30 border border-white/[0.02] p-2.5 mt-2 group-hover:bg-slate-950/50 transition-colors duration-250">
+                      <p className="text-[10px] text-slate-400 leading-relaxed">
                         {meeting.memo?.summary ? (
-                          meeting.memo.summary.split(/[.!?]+/).slice(0, 3).map((sentence, sIdx) => {
+                          meeting.memo.summary.split(/[.!?]+/).slice(0, 2).map((sentence, sIdx) => {
                             const trimmed = sentence.trim();
                             if (!trimmed) return null;
                             return (
-                              <span key={sIdx} className="block mb-1 last:mb-0">
+                              <span key={sIdx} className="block mb-0.5 last:mb-0 truncate">
                                 • {trimmed}.
                               </span>
                             );
@@ -1401,80 +1401,60 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           "• No summary available."
                         )}
                       </p>
+                      <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-slate-950/90 to-transparent pointer-events-none" />
                     </div>
 
-                    {/* Most Important Quote Extract */}
-                    {meeting.transcript && meeting.transcript.length > 0 && (
-                      <div className="mt-2.5 px-3 py-2 bg-slate-900/30 border-l-2 border-purple-500/50 rounded-r-xl">
-                        <p className="text-[10px] italic text-slate-400 line-clamp-1">
-                          "{meeting.transcript[0].text || "Let's align on production rollout."}"
-                        </p>
-                        <span className="text-[8px] text-slate-500 font-mono mt-0.5 block">
-                          Speaker {meeting.transcript[0].speaker_label || "A"} · {fmtTime(meeting.transcript[0].start_seconds || 0)}
-                        </span>
+                    {/* AI Meeting Preview - bullet points with a smooth fade */}
+                    <div className="relative h-[40px] overflow-hidden bg-slate-900/20 border border-white/[0.01] p-2 rounded-lg mt-2 mb-1">
+                      <div className="flex flex-col gap-0.5 text-[9px] text-slate-500">
+                        {meeting.memo?.key_points && meeting.memo.key_points.length > 0 ? (
+                          meeting.memo.key_points.slice(0, 2).map((kp, kpIdx) => (
+                            <span key={kpIdx} className="truncate">• {kp}</span>
+                          ))
+                        ) : (
+                          <span className="italic">• Synthesizing key discussion outcomes...</span>
+                        )}
                       </div>
-                    )}
-
-                    {/* Top 3 Topics pills */}
-                    <div className="flex flex-wrap gap-1 mt-2.5">
-                      {topicsList.slice(0, 3).map((topic, tIdx) => (
-                        <span key={tIdx} className="px-2 py-0.5 bg-slate-900 border border-slate-805 text-slate-400 rounded-full text-[8.5px] font-semibold hover:border-purple-500/30 hover:text-white transition-all cursor-pointer" title="Topic tag">
-                          #{topic}
-                        </span>
-                      ))}
+                      <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-slate-950/30 to-transparent pointer-events-none" />
                     </div>
                   </div>
 
-                  {/* ── SECTION 4 — QUICK INSIGHTS ── only show non-zero counts */}
-                  {(actionItemsCount > 0 || decisionsCount > 0 || questionsCount > 0 || topicsList.length > 0) ? (
-                    <div className="flex flex-wrap gap-1.5 mb-4 pt-1">
-                      {actionItemsCount > 0 && (
-                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-emerald-500/8 text-emerald-400 border border-emerald-500/15 flex items-center gap-1" title="Action Items">
-                          <CheckCircle2 className="w-2.5 h-2.5" /> {actionItemsCount} Actions
-                        </span>
-                      )}
-                      {decisionsCount > 0 && (
-                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-purple-500/8 text-purple-400 border border-purple-500/15 flex items-center gap-1" title="Decisions">
-                          <Award className="w-2.5 h-2.5" /> {decisionsCount} Decisions
-                        </span>
-                      )}
-                      {questionsCount > 0 && (
-                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-blue-500/8 text-blue-400 border border-blue-500/15 flex items-center gap-1" title="Questions">
-                          <HelpCircle className="w-2.5 h-2.5" /> {questionsCount} Questions
-                        </span>
-                      )}
-                      {topicsList.length > 0 && (
-                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-amber-500/8 text-amber-400 border border-amber-500/15 flex items-center gap-1" title="Topics">
-                          <Sparkles className="w-2.5 h-2.5" /> {topicsList.length} Topics
-                        </span>
-                      )}
+                  {/* ── SECTION 4 — TELEMETRY QUICK STATISTICS GRID */}
+                  <div className="grid grid-cols-3 gap-1 mb-2.5 pt-2 border-t border-white/[0.02]" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white/[0.01] border border-white/[0.03] rounded-md py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
+                      <span>Actions</span>
+                      <span className="font-extrabold text-emerald-400">{actionItemsCount}</span>
                     </div>
-                  ) : (
-                    <div className="mb-4 pt-1">
-                      <span className="text-[9px] text-slate-700 italic">No intelligence data yet</span>
+                    <div className="bg-white/[0.01] border border-white/[0.03] rounded-md py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
+                      <span>Decisions</span>
+                      <span className="font-extrabold text-purple-400">{decisionsCount}</span>
                     </div>
-                  )}
+                    <div className="bg-white/[0.01] border border-white/[0.03] rounded-md py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
+                      <span>Topics</span>
+                      <span className="font-extrabold text-amber-400">{topicsList.length}</span>
+                    </div>
+                  </div>
 
                   {/* BOTTOM ACTION BAR - soft-tinted icons matching sidebar nav */}
-                  <div className="mt-auto pt-2.5 border-t border-slate-800/50 flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                  <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center gap-1" onClick={e => e.stopPropagation()}>
                     {/* Transcript — FileText */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-indigo-950/20 border-indigo-900/30 hover:bg-indigo-500/15 hover:border-indigo-500/30" title="Transcript">
+                      className="flex-1 py-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-indigo-950/20 border-indigo-900/30 hover:bg-indigo-500/15 hover:border-indigo-500/30" title="Transcript">
                       <FileText className="w-3.5 h-3.5 text-indigo-500/70 group-hover/btn:text-indigo-400 transition-colors" />
                     </button>
                     {/* Meeting Memo — Sparkles */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("summary"); }}
-                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-violet-950/20 border-violet-900/30 hover:bg-violet-500/15 hover:border-violet-500/30" title="Meeting Memo">
+                      className="flex-1 py-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-violet-950/20 border-violet-900/30 hover:bg-violet-500/15 hover:border-violet-500/30" title="Meeting Memo">
                       <Sparkles className="w-3.5 h-3.5 text-violet-500/70 group-hover/btn:text-violet-400 transition-colors" />
                     </button>
                     {/* Meeting Stats — Activity */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
-                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-emerald-950/20 border-emerald-900/30 hover:bg-emerald-500/15 hover:border-emerald-500/30" title="Meeting Stats">
+                      className="flex-1 py-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-emerald-950/20 border-emerald-900/30 hover:bg-emerald-500/15 hover:border-emerald-500/30" title="Meeting Stats">
                       <Activity className="w-3.5 h-3.5 text-emerald-500/70 group-hover/btn:text-emerald-400 transition-colors" />
                     </button>
                     {/* AI Assistant — BrainCircuit */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-purple-950/20 border-purple-900/30 hover:bg-purple-500/15 hover:border-purple-500/30" title="AI Assistant">
+                      className="flex-1 py-1.5 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-purple-950/20 border-purple-900/30 hover:bg-purple-500/15 hover:border-purple-500/30" title="AI Assistant">
                       <BrainCircuit className="w-3.5 h-3.5 text-purple-500/70 group-hover/btn:text-purple-400 transition-colors" />
                     </button>
                   </div>
