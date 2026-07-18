@@ -1002,9 +1002,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
                   {/* ── SECTION 2 — AUDIO PREVIEW ── */}
                   <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-900/80 p-3 mb-3.5 group-hover:border-slate-800 transition-all duration-300 shadow-inner group/audio" onClick={e => e.stopPropagation()}>
-                    {/* Interactive real-speech waveform visualization */}
+                    {/* Waveform bars with visible base color */}
                     <div 
-                      className="h-14 flex items-end justify-center gap-[3px] relative cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity pb-1 select-none"
+                      className="h-14 flex items-end justify-center gap-[2.5px] relative cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity pb-1 select-none"
                       onClick={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const clickX = e.clientX - rect.left;
@@ -1014,71 +1014,83 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         }
                       }}
                     >
-                      {/* CSS-Hardware generated speech-mimicking waveform bars */}
-                      {Array.from({ length: 28 }).map((_, wIdx) => {
-                        const h = 8 + Math.abs(Math.sin(wIdx * 0.45)) * 22 + Math.abs(Math.cos(wIdx * 0.85)) * 14;
+                      {Array.from({ length: 32 }).map((_, wIdx) => {
+                        const h = 6 + Math.abs(Math.sin(wIdx * 0.43)) * 24 + Math.abs(Math.cos(wIdx * 0.87)) * 16;
                         const progressPercent = duration ? (currentTime / duration) : 0;
-                        const isFilled = isThisPlaying && (wIdx / 28) <= progressPercent;
+                        const isFilled = isThisPlaying && (wIdx / 32) <= progressPercent;
+                        const isNearPlayhead = isThisPlaying && Math.abs((wIdx / 32) - progressPercent) < 0.04;
                         
                         return (
                           <div 
                             key={wIdx} 
-                            style={{ height: `${Math.min(48, Math.max(4, h))}px` }}
-                            className={`w-1 rounded-full transition-all duration-200 hover:bg-teal-400 hover:shadow-[0_0_8px_rgba(45,212,191,0.6)] ${
-                              isFilled 
-                                ? "bg-gradient-to-t from-[#8b5cf6] to-[#a78bfa] shadow-[0_0_6px_rgba(139,92,246,0.4)]" 
-                                : "bg-slate-850"
+                            style={{ height: `${Math.min(46, Math.max(4, h))}px` }}
+                            className={`w-[3px] rounded-full transition-all duration-150 ${
+                              isNearPlayhead
+                                ? "bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.5)] scale-y-110"
+                                : isFilled 
+                                  ? "bg-gradient-to-t from-[#7c3aed] to-[#a78bfa] shadow-[0_0_4px_rgba(139,92,246,0.5)]" 
+                                  : "bg-slate-700/50 hover:bg-slate-600/70"
                             }`} 
                           />
                         );
                       })}
 
-                      {/* Timeline Overlay Markers for Speaker changes, action items and decisions */}
+                      {/* Timeline Overlay Markers */}
                       <div className="absolute top-0 inset-x-0 h-1 flex items-center justify-between pointer-events-none px-1">
                         {actionItemsCount > 0 && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" title="Action Item Marker" style={{ marginLeft: "20%" }} />
+                          <div className="w-1 h-1 rounded-full bg-amber-400/80 animate-pulse" title="Action Item Marker" style={{ marginLeft: "20%" }} />
                         )}
                         {decisionsCount > 0 && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" title="Decision Marker" style={{ marginLeft: "50%" }} />
+                          <div className="w-1 h-1 rounded-full bg-indigo-400/80 animate-pulse" title="Decision Marker" style={{ marginLeft: "50%" }} />
                         )}
                         {isBookmarked && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" title="Bookmark Marker" style={{ marginLeft: "80%" }} />
+                          <div className="w-1 h-1 rounded-full bg-sky-400/80 animate-pulse" title="Bookmark Marker" style={{ marginLeft: "80%" }} />
                         )}
                       </div>
                     </div>
 
+                    {/* Thin progress track */}
+                    <div className="h-[2px] bg-slate-800 rounded-full mx-0.5 mb-2">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] rounded-full transition-all duration-300"
+                        style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+                      />
+                    </div>
+
                     {/* Controls Row */}
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.02]">
-                      {/* Left: play button + speed */}
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center justify-between pt-1.5">
+                      {/* Left: play button + speed cycle pill */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <button 
                           onClick={(e) => handlePlayCard(meeting, e)}
-                          className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.09] hover:scale-105 border border-white/[0.08] text-white transition-all shadow-md active:scale-95 group-hover/audio:border-purple-500/30 flex-shrink-0"
+                          className={`w-7 h-7 rounded-full flex items-center justify-center border text-white transition-all shadow-md active:scale-95 flex-shrink-0 ${
+                            isThisPlaying 
+                              ? "bg-[#7c3aed]/20 border-[#7c3aed]/50 hover:bg-[#7c3aed]/30" 
+                              : "bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] group-hover/audio:border-purple-500/30"
+                          }`}
                           title="Play preview"
                         >
                           {isThisPlaying 
                             ? <Pause className="w-3 h-3 text-[#a78bfa] fill-[#a78bfa]" /> 
-                            : <Play className="w-3 h-3 text-slate-200 fill-slate-200 ml-0.5" />}
+                            : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
                         </button>
 
-                        <select 
-                          className="bg-slate-900/80 border border-slate-800 rounded px-1 py-0.5 text-[8px] text-slate-400 font-semibold cursor-pointer focus:outline-none focus:border-[#8b5cf6] flex-shrink-0"
-                          value={playbackRate}
-                          style={{ width: '42px' }}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            setPlaybackRate(val);
+                        {/* Speed pill — cycles through rates on click */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rates = [0.5, 1, 1.25, 1.5, 2];
+                            const next = rates[(rates.indexOf(playbackRate) + 1) % rates.length];
+                            setPlaybackRate(next);
                             if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
-                              audioRef.current.playbackRate = val;
+                              audioRef.current.playbackRate = next;
                             }
                           }}
+                          className="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/50 text-[8px] text-slate-400 font-bold hover:bg-slate-700/80 hover:text-slate-200 transition-all flex-shrink-0 tabular-nums"
+                          title="Click to change speed"
                         >
-                          <option value="0.5">0.5×</option>
-                          <option value="1">1×</option>
-                          <option value="1.25">1.25×</option>
-                          <option value="1.5">1.5×</option>
-                          <option value="2">2×</option>
-                        </select>
+                          {playbackRate === 1 ? '1×' : `${playbackRate}×`}
+                        </button>
                       </div>
 
                       {/* Right: volume (hover) + time display */}
@@ -1175,51 +1187,57 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
                   </div>
 
-                  {/* ── SECTION 4 — QUICK INSIGHTS ── */}
-                  <div className="flex flex-wrap gap-1.5 mb-4 pt-1">
-                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
-                      actionItemsCount > 0 ? "bg-emerald-500/5 text-emerald-400 border-emerald-500/10" : "bg-slate-950/20 text-slate-650 border-transparent"
-                    }`} title="Action Items count">
-                      ✓ {actionItemsCount} Actions
-                    </span>
-                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
-                      decisionsCount > 0 ? "bg-purple-500/5 text-purple-400 border-purple-500/10" : "bg-slate-950/20 text-slate-650 border-transparent"
-                    }`} title="Decisions count">
-                      ⚖ {decisionsCount} Decisions
-                    </span>
-                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
-                      questionsCount > 0 ? "bg-[#3b82f6]/5 text-[#60a5fa] border-[#3b82f6]/10" : "bg-slate-950/20 text-slate-655 border-transparent"
-                    }`} title="Questions count">
-                      ❓ {questionsCount} Questions
-                    </span>
-                    <span className={`px-2 py-1.5 rounded-lg text-[9px] font-bold border transition-all duration-200 hover:scale-102 flex items-center gap-1 ${
-                      topicsList.length > 0 ? "bg-amber-500/5 text-amber-400 border-amber-500/10" : "bg-slate-950/20 text-slate-655 border-transparent"
-                    }`} title="Topics tag count">
-                      💡 {topicsList.length} Topics
-                    </span>
-                  </div>
+                  {/* ── SECTION 4 — QUICK INSIGHTS ── only show non-zero counts */}
+                  {(actionItemsCount > 0 || decisionsCount > 0 || questionsCount > 0 || topicsList.length > 0) ? (
+                    <div className="flex flex-wrap gap-1.5 mb-4 pt-1">
+                      {actionItemsCount > 0 && (
+                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-emerald-500/8 text-emerald-400 border border-emerald-500/15 flex items-center gap-1" title="Action Items">
+                          <CheckCircle2 className="w-2.5 h-2.5" /> {actionItemsCount} Actions
+                        </span>
+                      )}
+                      {decisionsCount > 0 && (
+                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-purple-500/8 text-purple-400 border border-purple-500/15 flex items-center gap-1" title="Decisions">
+                          <Award className="w-2.5 h-2.5" /> {decisionsCount} Decisions
+                        </span>
+                      )}
+                      {questionsCount > 0 && (
+                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-blue-500/8 text-blue-400 border border-blue-500/15 flex items-center gap-1" title="Questions">
+                          <HelpCircle className="w-2.5 h-2.5" /> {questionsCount} Questions
+                        </span>
+                      )}
+                      {topicsList.length > 0 && (
+                        <span className="px-2 py-1 rounded-md text-[9px] font-bold bg-amber-500/8 text-amber-400 border border-amber-500/15 flex items-center gap-1" title="Topics">
+                          <Sparkles className="w-2.5 h-2.5" /> {topicsList.length} Topics
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mb-4 pt-1">
+                      <span className="text-[9px] text-slate-700 italic">No intelligence data yet</span>
+                    </div>
+                  )}
 
-                  {/* BOTTOM ACTION BAR - icon-only, same icons as sidebar nav */}
-                  <div className="mt-auto pt-2.5 border-t border-slate-900/60 flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                    {/* Transcript — FileText (same as sidebar) */}
+                  {/* BOTTOM ACTION BAR - soft-tinted icons matching sidebar nav */}
+                  <div className="mt-auto pt-2.5 border-t border-slate-800/50 flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                    {/* Transcript — FileText */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-2 bg-slate-900/50 hover:bg-indigo-500/10 border border-slate-800/80 hover:border-indigo-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="Transcript">
-                      <FileText className="w-4 h-4 text-slate-500 group-hover/btn:text-indigo-400 transition-colors" />
+                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-indigo-950/20 border-indigo-900/30 hover:bg-indigo-500/15 hover:border-indigo-500/30" title="Transcript">
+                      <FileText className="w-3.5 h-3.5 text-indigo-500/70 group-hover/btn:text-indigo-400 transition-colors" />
                     </button>
-                    {/* Meeting Memo — Sparkles (same as sidebar) */}
+                    {/* Meeting Memo — Sparkles */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("summary"); }}
-                      className="flex-1 py-2 bg-slate-900/50 hover:bg-violet-500/10 border border-slate-800/80 hover:border-violet-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="Meeting Memo">
-                      <Sparkles className="w-4 h-4 text-slate-500 group-hover/btn:text-violet-400 transition-colors" />
+                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-violet-950/20 border-violet-900/30 hover:bg-violet-500/15 hover:border-violet-500/30" title="Meeting Memo">
+                      <Sparkles className="w-3.5 h-3.5 text-violet-500/70 group-hover/btn:text-violet-400 transition-colors" />
                     </button>
-                    {/* Meeting Stats — Activity (same as sidebar) */}
+                    {/* Meeting Stats — Activity */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
-                      className="flex-1 py-2 bg-slate-900/50 hover:bg-emerald-500/10 border border-slate-800/80 hover:border-emerald-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="Meeting Stats">
-                      <Activity className="w-4 h-4 text-slate-500 group-hover/btn:text-emerald-400 transition-colors" />
+                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-emerald-950/20 border-emerald-900/30 hover:bg-emerald-500/15 hover:border-emerald-500/30" title="Meeting Stats">
+                      <Activity className="w-3.5 h-3.5 text-emerald-500/70 group-hover/btn:text-emerald-400 transition-colors" />
                     </button>
-                    {/* AI Assistant — BrainCircuit (same as sidebar) */}
+                    {/* AI Assistant — BrainCircuit */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-2 bg-slate-900/50 hover:bg-purple-500/10 border border-slate-800/80 hover:border-purple-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="AI Assistant">
-                      <BrainCircuit className="w-4 h-4 text-slate-500 group-hover/btn:text-purple-400 transition-colors" />
+                      className="flex-1 py-2 rounded-lg border transition-all duration-200 flex items-center justify-center group/btn bg-purple-950/20 border-purple-900/30 hover:bg-purple-500/15 hover:border-purple-500/30" title="AI Assistant">
+                      <BrainCircuit className="w-3.5 h-3.5 text-purple-500/70 group-hover/btn:text-purple-400 transition-colors" />
                     </button>
                   </div>
                 </div>
