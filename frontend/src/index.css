@@ -2377,3 +2377,21 @@
     drop-shadow(0 -4px 6px #0009);
   animation: none;
 }
+
+/* Premium GPU Waveform animations */
+@keyframes waveform-bounce {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.72);
+  }
+}
+.animate-waveform-bar {
+  animation: waveform-bounce 1.4s ease-in-out infinite;
+  transform-origin: bottom;
+}
+.animate-waveform-bar-reflected {
+  animation: waveform-bounce 1.4s ease-in-out infinite;
+  transform-origin: top;
+}

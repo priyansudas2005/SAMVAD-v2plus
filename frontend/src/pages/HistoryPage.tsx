@@ -115,6 +115,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const audioRef    = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement   | null>(null);
 
+  /* Scrubbing preview and hover tracking */
+  const [scrubMeetingId, setScrubMeetingId] = useState<string | null>(null);
+  const [scrubPercent, setScrubPercent] = useState<number>(0);
+
   /* Edit */
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -1239,8 +1243,20 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* ── SECTION 2 — AUDIO PREVIEW ── */}
-                  <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-900/80 p-2.5 mb-2.5 group-hover:border-slate-800 transition-all duration-300 shadow-inner group/audio" onClick={e => e.stopPropagation()}>
-                    {/* Waveform bars with visible base color */}
+                  <div 
+                    className="relative rounded-xl overflow-hidden bg-slate-950/60 backdrop-blur-sm border border-slate-900/80 p-2.5 mb-2.5 group-hover:border-slate-800 transition-all duration-300 shadow-inner group/audio" 
+                    onClick={e => e.stopPropagation()}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const moveX = e.clientX - rect.left;
+                      setScrubMeetingId(meeting.meeting_id);
+                      setScrubPercent(moveX / rect.width);
+                    }}
+                    onMouseLeave={() => {
+                      setScrubMeetingId(null);
+                    }}
+                  >
+                    {/* Waveform bars with glass background & hover scrubbing line */}
                     <div 
                       className="h-10 flex items-end justify-center gap-[2px] relative cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity pb-0.5 select-none"
                       onClick={(e) => {
@@ -1252,6 +1268,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         }
                       }}
                     >
+                      {/* Hover Scrubbing Line Marker */}
+                      {scrubMeetingId === meeting.meeting_id && (
+                        <div 
+                          className="absolute top-0 bottom-0 w-[1px] bg-sky-400/80 shadow-[0_0_8px_rgba(56,189,248,0.8)] pointer-events-none z-10"
+                          style={{ left: `${scrubPercent * 100}%` }}
+                        />
+                      )}
+
+                      {/* Main Waveform Bars */}
                       {Array.from({ length: 32 }).map((_, wIdx) => {
                         const h = 4 + Math.abs(Math.sin(wIdx * 0.43)) * 18 + Math.abs(Math.cos(wIdx * 0.87)) * 12;
                         const progressPercent = duration ? (currentTime / duration) : 0;
@@ -1261,10 +1286,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         return (
                           <div 
                             key={wIdx} 
-                            style={{ height: `${Math.min(34, Math.max(3, h))}px` }}
+                            style={{ 
+                              height: `${Math.min(34, Math.max(3, h))}px`,
+                              animationDelay: `${wIdx * 35}ms`
+                            }}
                             className={`w-[2.5px] rounded-full transition-all duration-150 ${
+                              isThisPlaying ? "animate-waveform-bar" : ""
+                            } ${
                               isNearPlayhead
-                                ? "bg-white/80 shadow-[0_0_6px_rgba(255,255,255,0.5)] scale-y-110"
+                                ? "bg-white/95 shadow-[0_0_6px_rgba(255,255,255,0.7)] scale-y-110"
                                 : isFilled 
                                   ? "bg-gradient-to-t from-[#7c3aed] to-[#a78bfa] shadow-[0_0_4px_rgba(139,92,246,0.5)]" 
                                   : "bg-slate-700/50 hover:bg-slate-600/70"
@@ -1272,6 +1302,31 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           />
                         );
                       })}
+
+                      {/* Reflected Waveform Bars (Adobe Audition Style) */}
+                      <div className="absolute top-[38px] inset-x-0 h-[10px] flex items-start justify-center gap-[2px] opacity-15 pointer-events-none scale-y-[-0.35] origin-top blur-[0.3px]">
+                        {Array.from({ length: 32 }).map((_, wIdx) => {
+                          const h = 4 + Math.abs(Math.sin(wIdx * 0.43)) * 18 + Math.abs(Math.cos(wIdx * 0.87)) * 12;
+                          const progressPercent = duration ? (currentTime / duration) : 0;
+                          const isFilled = isThisPlaying && (wIdx / 32) <= progressPercent;
+                          return (
+                            <div 
+                              key={wIdx} 
+                              style={{ 
+                                height: `${Math.min(34, Math.max(3, h))}px`,
+                                animationDelay: `${wIdx * 35}ms`
+                              }}
+                              className={`w-[2.5px] rounded-full ${
+                                isThisPlaying ? "animate-waveform-bar-reflected" : ""
+                              } ${
+                                isFilled 
+                                  ? "bg-gradient-to-b from-[#7c3aed] to-[#a78bfa]" 
+                                  : "bg-slate-700/50"
+                              }`} 
+                            />
+                          );
+                        })}
+                      </div>
 
                       {/* Timeline Overlay Markers */}
                       <div className="absolute top-0 inset-x-0 h-1 flex items-center justify-between pointer-events-none px-1">
@@ -1288,7 +1343,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
 
                     {/* Thin progress track */}
-                    <div className="h-[2px] bg-slate-900 rounded-full mx-0.5 mb-1.5">
+                    <div className="h-[2px] bg-slate-900 rounded-full mx-0.5 mb-1.5 overflow-hidden">
                       <div 
                         className="h-full bg-gradient-to-r from-[#7c3aed] to-[#a78bfa] rounded-full transition-all duration-300"
                         style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : '0%' }}
@@ -1301,7 +1356,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         <button 
                           onClick={(e) => handlePlayCard(meeting, e)}
-                          className={`w-6 h-6 rounded-full flex items-center justify-center border text-white transition-all shadow-md active:scale-95 flex-shrink-0 ${
+                          className={`w-6 h-6 rounded-full flex items-center justify-center border text-white transition-all shadow-md active:scale-95 flex-shrink-0 hover:shadow-[0_0_8px_rgba(139,92,246,0.5)] hover:border-purple-400/50 ${
                             isThisPlaying 
                               ? "bg-[#7c3aed]/20 border-[#7c3aed]/50 hover:bg-[#7c3aed]/30" 
                               : "bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] group-hover/audio:border-purple-500/30"
