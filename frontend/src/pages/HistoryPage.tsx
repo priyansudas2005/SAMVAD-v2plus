@@ -470,20 +470,65 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                                 { show: confidenceVal > 0, icon: <span className="text-amber-400">🎙</span>, label: "Confidence", value: `${confidenceVal}%` }
                               ].filter(c => c.show);
 
-                              if (chips.length === 0) return null;
-
                               return (
-                                <div className="grid grid-cols-2 gap-1.5 mt-2.5">
-                                  {chips.slice(0, 4).map((chip, idx) => (
-                                    <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.02] border border-white/[0.04] rounded-[12px] backdrop-blur-sm transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:-translate-y-[1px] duration-200">
-                                      <span className="text-[11px] leading-none flex-shrink-0">{chip.icon}</span>
-                                      <div className="flex flex-col min-w-0 leading-none gap-0.5">
-                                        <span className="text-[8px] text-slate-500 font-medium truncate uppercase tracking-wider">{chip.label}</span>
-                                        <span className="text-[10px] text-slate-200 font-semibold truncate">{chip.value}</span>
+                                <>
+                                  {chips.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-1.5 mt-2.5">
+                                      {chips.slice(0, 4).map((chip, idx) => (
+                                        <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.02] border border-white/[0.04] rounded-[12px] backdrop-blur-sm transition-all hover:border-white/[0.12] hover:bg-white/[0.04] hover:-translate-y-[1px] duration-200">
+                                          <span className="text-[11px] leading-none flex-shrink-0">{chip.icon}</span>
+                                          <div className="flex flex-col min-w-0 leading-none gap-0.5">
+                                            <span className="text-[8px] text-slate-500 font-medium truncate uppercase tracking-wider">{chip.label}</span>
+                                            <span className="text-[10px] text-slate-200 font-semibold truncate">{chip.value}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* AI HEALTH & DIAGNOSTICS SECTION */}
+                                  {confidenceVal > 0 && (
+                                    <div className="mt-3 p-2 bg-white/[0.01] border border-white/[0.03] rounded-xl space-y-2">
+                                      {/* AI Health bar */}
+                                      <div className="flex items-center justify-between text-[9px] leading-none">
+                                        <span className="text-slate-500 font-bold uppercase tracking-wider">AI Health</span>
+                                        <span className={`font-semibold ${confidenceVal >= 95 ? "text-emerald-400" : confidenceVal >= 80 ? "text-amber-400" : "text-rose-400"}`}>
+                                          {confidenceVal}% · {confidenceVal >= 95 ? "Excellent" : confidenceVal >= 80 ? "Good" : "Needs Review"}
+                                        </span>
+                                      </div>
+
+                                      <div className="w-full h-1 bg-slate-950 border border-white/[0.02] rounded-full overflow-hidden">
+                                        <div 
+                                          className={`h-full rounded-full transition-all ${confidenceVal >= 95 ? "bg-emerald-500" : confidenceVal >= 80 ? "bg-amber-500" : "bg-rose-500"}`}
+                                          style={{ width: `${confidenceVal}%` }}
+                                        />
+                                      </div>
+
+                                      {/* Pipeline modules diagnostics */}
+                                      <div className="flex flex-wrap gap-1 pt-0.5">
+                                        {/* STT Status badge */}
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-white/[0.04] text-[8px] text-slate-400 rounded-md">
+                                          <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                                          STT
+                                        </span>
+                                        {/* Diarization status */}
+                                        {speakersCount > 0 && (
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-white/[0.04] text-[8px] text-slate-400 rounded-md">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                                            Diarized
+                                          </span>
+                                        )}
+                                        {/* Intel status */}
+                                        {meeting.transcript && meeting.transcript.length > 0 && (
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-white/[0.04] text-[8px] text-slate-400 rounded-md">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                                            Intel Ready
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
-                                  ))}
-                                </div>
+                                  )}
+                                </>
                               );
                             })()}
                           </div>
