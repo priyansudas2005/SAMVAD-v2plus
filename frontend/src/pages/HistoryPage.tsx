@@ -4,7 +4,8 @@ import {
   Play, Pause, Volume2, VolumeX, XCircle, Database, Activity,
   LayoutGrid, List, ArrowUpDown, ChevronDown, SlidersHorizontal,
   Calendar, Award, User, AlertCircle, HelpCircle, FileText, CheckCircle2,
-  Bookmark, Star, Copy, Share2, Download, Files, MoreVertical, ExternalLink
+  Bookmark, Star, Copy, Share2, Download, Files, MoreVertical, ExternalLink,
+  Sparkles, BrainCircuit
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Meeting } from "../types";
@@ -965,35 +966,36 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   }`}
                 >
                   {/* ── SECTION 1 — HEADER ── */}
-                  <div className="flex items-center justify-between gap-2 pb-3 mb-2.5 border-b border-white/[0.02]">
-                    <div className="flex items-center gap-1.5">
-                      {/* Range multi-select checkbox */}
+                  <div className="flex items-center justify-between gap-1.5 pb-3 mb-2.5 border-b border-white/[0.02] min-w-0">
+                    {/* Left: checkbox + status badge */}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       <input 
                         type="checkbox" 
                         checked={isCardSelected}
                         onChange={() => {}}
                         onClick={toggleSelect}
-                        className="w-3.5 h-3.5 rounded border-slate-800 text-purple-500 focus:ring-purple-500/30 bg-slate-900 cursor-pointer"
+                        className="w-3.5 h-3.5 rounded border-slate-800 text-purple-500 focus:ring-purple-500/30 bg-slate-900 cursor-pointer flex-shrink-0"
                       />
-                      <span className={`px-2 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 ${statusBg}`}>
+                      <span className={`px-1.5 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 flex-shrink-0 ${statusBg}`}>
                         <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
                         {statusLabel}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
-                      <span className="text-[9px] text-slate-500 font-semibold whitespace-nowrap">{durationStr} · {formattedDate}</span>
-                      <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-850 rounded-md transition-all ${isBookmarked ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" : "text-slate-400"}`}>
-                        <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-sky-400" : ""}`} />
+                    {/* Right: duration · date + action icons — all in one tight row */}
+                    <div className="flex items-center gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
+                      <span className="text-[8.5px] text-slate-500 font-semibold whitespace-nowrap">{durationStr}·{formattedDate}</span>
+                      <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-0.5 rounded transition-all flex-shrink-0 ${isBookmarked ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" : "text-slate-500 hover:text-slate-300"}`}>
+                        <Bookmark className={`w-3 h-3 ${isBookmarked ? "fill-sky-400" : ""}`} />
                       </button>
-                      <button onClick={(e) => toggleFavorite(meeting.meeting_id, e)} className={`p-1 hover:bg-slate-850 rounded-md transition-all ${isFavorite ? "text-amber-400" : "text-slate-400"}`}>
-                        <Star className={`w-3.5 h-3.5 ${isFavorite ? "fill-amber-400" : ""}`} />
+                      <button onClick={(e) => toggleFavorite(meeting.meeting_id, e)} className={`p-0.5 rounded transition-all flex-shrink-0 ${isFavorite ? "text-amber-400" : "text-slate-500 hover:text-slate-300"}`}>
+                        <Star className={`w-3 h-3 ${isFavorite ? "fill-amber-400" : ""}`} />
                       </button>
                       <button onClick={(e) => {
                         e.stopPropagation();
                         setContextMenu(prev => (prev && prev.meetingId === meeting.meeting_id) ? null : { x: e.clientX, y: e.clientY, meetingId: meeting.meeting_id });
-                      }} className="p-1 hover:bg-slate-855 rounded-md text-slate-400 hover:text-white transition-colors">
-                        <MoreVertical className="w-3.5 h-3.5" />
+                      }} className="p-0.5 rounded text-slate-500 hover:text-white transition-colors flex-shrink-0">
+                        <MoreVertical className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
@@ -1047,22 +1049,22 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
                     {/* Controls Row */}
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.02]">
-                      <div className="flex items-center gap-2">
-                        {/* Play/Pause Button */}
+                      {/* Left: play button + speed */}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <button 
                           onClick={(e) => handlePlayCard(meeting, e)}
-                          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] hover:scale-105 border border-white/[0.08] text-white transition-all shadow-md active:scale-95 group-hover/audio:border-purple-500/30"
+                          className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.09] hover:scale-105 border border-white/[0.08] text-white transition-all shadow-md active:scale-95 group-hover/audio:border-purple-500/30 flex-shrink-0"
                           title="Play preview"
                         >
                           {isThisPlaying 
-                            ? <Pause className="w-3.5 h-3.5 text-[#a78bfa] fill-[#a78bfa]" /> 
-                            : <Play className="w-3.5 h-3.5 text-slate-200 fill-slate-200 ml-0.5" />}
+                            ? <Pause className="w-3 h-3 text-[#a78bfa] fill-[#a78bfa]" /> 
+                            : <Play className="w-3 h-3 text-slate-200 fill-slate-200 ml-0.5" />}
                         </button>
 
-                        {/* Interactive speed selector dropdown */}
                         <select 
-                          className="bg-slate-900 border border-slate-805 rounded px-1 py-0.5 text-[8px] text-slate-400 font-semibold cursor-pointer focus:outline-none focus:border-[#8b5cf6] w-12"
+                          className="bg-slate-900/80 border border-slate-800 rounded px-1 py-0.5 text-[8px] text-slate-400 font-semibold cursor-pointer focus:outline-none focus:border-[#8b5cf6] flex-shrink-0"
                           value={playbackRate}
+                          style={{ width: '42px' }}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value);
                             setPlaybackRate(val);
@@ -1072,18 +1074,17 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           }}
                         >
                           <option value="0.5">0.5×</option>
-                          <option value="1">1.0×</option>
+                          <option value="1">1×</option>
                           <option value="1.25">1.25×</option>
                           <option value="1.5">1.5×</option>
-                          <option value="2">2.0×</option>
+                          <option value="2">2×</option>
                         </select>
                       </div>
 
-                      {/* Time display: played / remaining */}
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        {/* Inline volume slider - revealed on audio preview hover */}
-                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-1 bg-slate-900 px-1 py-0.5 rounded border border-slate-800/40 transition-opacity duration-200">
-                          <button onClick={toggleMute} className="text-slate-500 hover:text-white transition-colors">
+                      {/* Right: volume (hover) + time display */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-0.5 transition-opacity duration-200">
+                          <button onClick={toggleMute} className="text-slate-500 hover:text-white transition-colors p-0.5">
                             {isMuted ? <VolumeX className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
                           </button>
                           <input 
@@ -1097,7 +1098,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           />
                         </div>
 
-                        <span className="text-[9px] text-slate-400 font-mono tracking-tight bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800/40 whitespace-nowrap">
+                        <span className="text-[8px] text-slate-400 font-mono bg-slate-900/80 px-1.5 py-0.5 rounded border border-slate-800 whitespace-nowrap tabular-nums">
                           {isThisPlaying ? fmtTime(currentTime) : "00:00"}/{durationStr}
                         </span>
                       </div>
@@ -1198,23 +1199,27 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </span>
                   </div>
 
-                  {/* BOTTOM ACTION BAR - Always visible premium layout buttons */}
-                  <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1 group-hover:translate-y-[-2px] transition-transform duration-200" onClick={e => e.stopPropagation()}>
+                  {/* BOTTOM ACTION BAR - icon-only, same icons as sidebar nav */}
+                  <div className="mt-auto pt-2.5 border-t border-slate-900/60 flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                    {/* Transcript — FileText (same as sidebar) */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="View Transcript (Ctrl + T)">
-                      <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                      className="flex-1 py-2 bg-slate-900/50 hover:bg-indigo-500/10 border border-slate-800/80 hover:border-indigo-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="Transcript">
+                      <FileText className="w-4 h-4 text-slate-500 group-hover/btn:text-indigo-400 transition-colors" />
                     </button>
-                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-emerald-500/10 border border-slate-800 hover:border-emerald-500/20 text-slate-400 hover:text-emerald-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="Meeting Memo">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-450" />
+                    {/* Meeting Memo — Sparkles (same as sidebar) */}
+                    <button onClick={() => { onSelectMeeting(meeting); setActivePage("summary"); }}
+                      className="flex-1 py-2 bg-slate-900/50 hover:bg-violet-500/10 border border-slate-800/80 hover:border-violet-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="Meeting Memo">
+                      <Sparkles className="w-4 h-4 text-slate-500 group-hover/btn:text-violet-400 transition-colors" />
                     </button>
+                    {/* Meeting Stats — Activity (same as sidebar) */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("stats"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/20 text-slate-400 hover:text-amber-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="Meeting Stats">
-                      <Award className="w-3.5 h-3.5 text-amber-450" />
+                      className="flex-1 py-2 bg-slate-900/50 hover:bg-emerald-500/10 border border-slate-800/80 hover:border-emerald-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="Meeting Stats">
+                      <Activity className="w-4 h-4 text-slate-500 group-hover/btn:text-emerald-400 transition-colors" />
                     </button>
+                    {/* AI Assistant — BrainCircuit (same as sidebar) */}
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-[#c084fc] rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center" title="AI Assistant">
-                      <HelpCircle className="w-3.5 h-3.5 text-purple-400" />
+                      className="flex-1 py-2 bg-slate-900/50 hover:bg-purple-500/10 border border-slate-800/80 hover:border-purple-500/25 rounded-lg transition-all duration-200 flex items-center justify-center group/btn" title="AI Assistant">
+                      <BrainCircuit className="w-4 h-4 text-slate-500 group-hover/btn:text-purple-400 transition-colors" />
                     </button>
                   </div>
                 </div>
