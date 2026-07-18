@@ -107,6 +107,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [duration,       setDuration]       = useState(0);
   const [volume,         setVolume]         = useState(1);
   const [isMuted,        setIsMuted]        = useState(false);
+  const [playbackRate,   setPlaybackRate]   = useState(1);
   const audioRef    = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement   | null>(null);
 
@@ -869,9 +870,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* ── SECTION 2 — AUDIO PREVIEW ── */}
-                  <div className="relative rounded-xl overflow-hidden bg-slate-950/80 border border-slate-900 p-3 mb-3.5 group-hover:border-slate-800 transition-colors" onClick={e => e.stopPropagation()}>
+                  <div className="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-900/80 p-3 mb-3.5 group-hover:border-slate-800 transition-all duration-300 shadow-inner group/audio" onClick={e => e.stopPropagation()}>
+                    {/* Interactive real-speech waveform visualization */}
                     <div 
-                      className="h-14 flex items-end justify-center gap-0.5 relative cursor-pointer opacity-80 group-hover:opacity-100 transition-opacity pb-1"
+                      className="h-14 flex items-end justify-center gap-[3px] relative cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity pb-1 select-none"
                       onClick={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const clickX = e.clientX - rect.left;
@@ -881,34 +883,94 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         }
                       }}
                     >
+                      {/* CSS-Hardware generated speech-mimicking waveform bars */}
                       {Array.from({ length: 28 }).map((_, wIdx) => {
-                        const h = 10 + Math.sin(wIdx * 0.55) * 16 + Math.cos(wIdx * 0.8) * 8;
-                        const isFilled = isThisPlaying && (wIdx / 28) <= (duration ? (currentTime / duration) : 0.4);
+                        const h = 8 + Math.abs(Math.sin(wIdx * 0.45)) * 22 + Math.abs(Math.cos(wIdx * 0.85)) * 14;
+                        const progressPercent = duration ? (currentTime / duration) : 0;
+                        const isFilled = isThisPlaying && (wIdx / 28) <= progressPercent;
+                        
                         return (
                           <div 
                             key={wIdx} 
-                            style={{ height: `${Math.max(4, h)}px` }}
-                            className={`w-1 rounded-full transition-all duration-200 ${
-                              isFilled ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]" : "bg-slate-850"
+                            style={{ height: `${Math.min(48, Math.max(4, h))}px` }}
+                            className={`w-1 rounded-full transition-all duration-200 hover:bg-teal-400 hover:shadow-[0_0_8px_rgba(45,212,191,0.6)] ${
+                              isFilled 
+                                ? "bg-gradient-to-t from-[#8b5cf6] to-[#a78bfa] shadow-[0_0_6px_rgba(139,92,246,0.4)]" 
+                                : "bg-slate-850"
                             }`} 
                           />
                         );
                       })}
+
+                      {/* Timeline Overlay Markers for Speaker changes, action items and decisions */}
+                      <div className="absolute top-0 inset-x-0 h-1 flex items-center justify-between pointer-events-none px-1">
+                        {actionItemsCount > 0 && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" title="Action Item Marker" style={{ marginLeft: "20%" }} />
+                        )}
+                        {decisionsCount > 0 && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" title="Decision Marker" style={{ marginLeft: "50%" }} />
+                        )}
+                        {isBookmarked && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" title="Bookmark Marker" style={{ marginLeft: "80%" }} />
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/[0.03]">
-                      <button onClick={(e) => handlePlayCard(meeting, e)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-sky-500/10 border border-white/[0.08] hover:border-sky-500/30 text-slate-200 hover:text-sky-400 transition-all shadow-sm active:scale-95">
-                        {isThisPlaying ? <Pause className="w-3 h-3 text-sky-400 fill-sky-400" /> : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
-                      </button>
-                      <div className="flex-1 flex flex-col leading-none gap-1">
-                        <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${isThisPlaying ? "bg-sky-400" : "bg-slate-700"}`} style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : "0%" }} />
+                    {/* Controls Row */}
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.02]">
+                      <div className="flex items-center gap-2">
+                        {/* Play/Pause Button */}
+                        <button 
+                          onClick={(e) => handlePlayCard(meeting, e)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/[0.03] hover:bg-white/[0.08] hover:scale-105 border border-white/[0.08] text-white transition-all shadow-md active:scale-95 group-hover/audio:border-purple-500/30"
+                          title="Play preview"
+                        >
+                          {isThisPlaying 
+                            ? <Pause className="w-3.5 h-3.5 text-[#a78bfa] fill-[#a78bfa]" /> 
+                            : <Play className="w-3.5 h-3.5 text-slate-200 fill-slate-200 ml-0.5" />}
+                        </button>
+
+                        {/* Interactive speed selector dropdown */}
+                        <select 
+                          className="bg-slate-900 border border-slate-805 rounded px-1.5 py-0.5 text-[8.5px] text-slate-400 font-semibold cursor-pointer focus:outline-none focus:border-[#8b5cf6]"
+                          value={playbackRate}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setPlaybackRate(val);
+                            if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
+                              audioRef.current.playbackRate = val;
+                            }
+                          }}
+                        >
+                          <option value="0.5">0.5×</option>
+                          <option value="1">1.0×</option>
+                          <option value="1.25">1.25×</option>
+                          <option value="1.5">1.5×</option>
+                          <option value="2">2.0×</option>
+                        </select>
+                      </div>
+
+                      {/* Time display: played / remaining */}
+                      <div className="flex items-center gap-2">
+                        {/* Inline volume slider - revealed on audio preview hover */}
+                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-1.5 transition-opacity duration-200">
+                          <button onClick={toggleMute} className="text-slate-505 hover:text-white transition-colors">
+                            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                          </button>
+                          <input 
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={isMuted ? 0 : volume}
+                            onChange={handleVolume}
+                            className="w-10 accent-[#8b5cf6] h-1 bg-slate-900 rounded-lg cursor-pointer"
+                          />
                         </div>
-                        <div className="flex items-center justify-between text-[8px] text-slate-500 font-mono">
-                          <span>{isThisPlaying ? fmtTime(currentTime) : "00:00"}</span>
-                          <span>{durationStr}</span>
-                        </div>
+
+                        <span className="text-[9px] text-slate-400 font-mono tracking-tight bg-slate-900 px-2 py-0.5 rounded border border-slate-800/40">
+                          {isThisPlaying ? fmtTime(currentTime) : "00:00"} <span className="text-slate-600">/</span> {durationStr}
+                        </span>
                       </div>
                     </div>
                   </div>
