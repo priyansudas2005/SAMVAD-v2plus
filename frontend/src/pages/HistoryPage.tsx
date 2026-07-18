@@ -563,21 +563,63 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     setShowBookmarkedOnly(false);
     setShowPinnedOnly(false);
   };
+  const nowMs = Date.now();
+  const oneWeekMs = 7 * 24 * 3600 * 1000;
+
+  const applyCollectionFilter = (list: Meeting[]): Meeting[] => {
+    switch (activeCollection) {
+      case 'recent':         return list.filter(m => !archivedIds.has(m.meeting_id) && (nowMs - new Date(m.date).getTime()) < oneWeekMs);
+      case 'favorites':      return list.filter(m => favoriteIds.has(m.meeting_id));
+      case 'bookmarked':     return list.filter(m => bookmarkedIds.has(m.meeting_id));
+      case 'pinned':         return list.filter(m => pinnedIds.has(m.meeting_id));
+      case 'archived':       return list.filter(m => archivedIds.has(m.meeting_id));
+      case 'with_actions':   return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.action_items?.length || 0), 0) || 0) > 0);
+      case 'with_decisions': return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.decisions?.length || 0), 0) || 0) > 0);
+      case 'long':           return list.filter(m => (m.duration || 0) > 3600);
+      case 'this_week':      return list.filter(m => (nowMs - new Date(m.date).getTime()) < oneWeekMs);
+      default:               return list.filter(m => !archivedIds.has(m.meeting_id));
+    }
+  };
+  const collectionFiltered = applyCollectionFilter(filtered);
 
   // Keyboard navigation & accessibility event hook
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (filtered.length === 0) return;
+      // Focus element check to prevent overriding native inputs (e.g. typing in search)
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "SELECT") {
+        if (e.key === "Escape") {
+          (document.activeElement as HTMLElement).blur();
+        }
+        return;
+      }
+
+      if (collectionFiltered.length === 0) return;
       
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : 0));
+        setSelectedIndex(prev => {
+          const nextIdx = prev < collectionFiltered.length - 1 ? prev + 1 : 0;
+          setTimeout(() => {
+            const el = document.getElementById(`meeting-card-${collectionFiltered[nextIdx]?.meeting_id}`);
+            el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            (el as HTMLElement)?.focus();
+          }, 10);
+          return nextIdx;
+        });
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex(prev => (prev > 0 ? prev - 1 : filtered.length - 1));
+        setSelectedIndex(prev => {
+          const nextIdx = prev > 0 ? prev - 1 : collectionFiltered.length - 1;
+          setTimeout(() => {
+            const el = document.getElementById(`meeting-card-${collectionFiltered[nextIdx]?.meeting_id}`);
+            el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            (el as HTMLElement)?.focus();
+          }, 10);
+          return nextIdx;
+        });
       } else if (e.key === "Enter" && selectedIndex >= 0) {
         e.preventDefault();
-        const selected = filtered[selectedIndex];
+        const selected = collectionFiltered[selectedIndex];
         if (selected) {
           onSelectMeeting(selected);
           setActivePage("transcript");
@@ -589,7 +631,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filtered, selectedIndex, onSelectMeeting, setActivePage]);
+  }, [collectionFiltered, selectedIndex, onSelectMeeting, setActivePage]);
 
   /* Stats */
   const totalMin = meetings.reduce((s, m) => s + (m.duration ?? 0) / 60, 0);
@@ -608,9 +650,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     )
   ).filter(Boolean) as string[];
 
-  // ── Smart Collection counts ─────────────────────────────────────────
-  const nowMs = Date.now();
-  const oneWeekMs = 7 * 24 * 3600 * 1000;
   const collectionCounts: Record<string, number> = {
     all:            meetings.filter(m => !archivedIds.has(m.meeting_id)).length,
     recent:         meetings.filter(m => !archivedIds.has(m.meeting_id) && (nowMs - new Date(m.date).getTime()) < oneWeekMs).length,
@@ -623,22 +662,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     long:           meetings.filter(m => (m.duration || 0) > 3600).length,
     this_week:      meetings.filter(m => (nowMs - new Date(m.date).getTime()) < oneWeekMs).length,
   };
-
-  const applyCollectionFilter = (list: Meeting[]): Meeting[] => {
-    switch (activeCollection) {
-      case 'recent':         return list.filter(m => !archivedIds.has(m.meeting_id) && (nowMs - new Date(m.date).getTime()) < oneWeekMs);
-      case 'favorites':      return list.filter(m => favoriteIds.has(m.meeting_id));
-      case 'bookmarked':     return list.filter(m => bookmarkedIds.has(m.meeting_id));
-      case 'pinned':         return list.filter(m => pinnedIds.has(m.meeting_id));
-      case 'archived':       return list.filter(m => archivedIds.has(m.meeting_id));
-      case 'with_actions':   return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.action_items?.length || 0), 0) || 0) > 0);
-      case 'with_decisions': return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.decisions?.length || 0), 0) || 0) > 0);
-      case 'long':           return list.filter(m => (m.duration || 0) > 3600);
-      case 'this_week':      return list.filter(m => (nowMs - new Date(m.date).getTime()) < oneWeekMs);
-      default:               return list.filter(m => !archivedIds.has(m.meeting_id));
-    }
-  };
-  const collectionFiltered = applyCollectionFilter(filtered);
 
   // ── Collections sidebar data ────────────────────────────────────────
   const BUILT_IN_COLLECTIONS = [
@@ -1384,6 +1407,17 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
               return (
                 <div key={meeting.meeting_id}
+                  id={`meeting-card-${meeting.meeting_id}`}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Meeting: ${meeting.title}. Duration: ${durationStr}. Date: ${formattedDate}. Status: ${statusLabel}.`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onSelectMeeting(meeting);
+                      setActivePage("transcript");
+                    }
+                  }}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
                   onContextMenu={(e) => {
                     e.preventDefault();
@@ -1393,7 +1427,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       meetingId: meeting.meeting_id
                     });
                   }}
-                  className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 premium-card-interaction relative border ${
+                  className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 premium-card-interaction relative border outline-none focus-visible:ring-2 focus-visible:ring-purple-500/80 ${
                     isCardSelected
                       ? "is-selected bg-slate-900/90 ring-2 ring-purple-500/30"
                       : isSelected 
