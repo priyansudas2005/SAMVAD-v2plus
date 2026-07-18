@@ -123,6 +123,23 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   // Right-click context menu coordinates and target configurations
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; meetingId: string } | null>(null);
 
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Keyboard shortcut listener for Ctrl + K (focus search) and Esc (clear search)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        setSearchQuery("");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Close context menu on window click
   useEffect(() => {
     const closeMenu = () => setContextMenu(null);
@@ -501,15 +518,16 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       {/* ── 3. Search & Toolbar (Sticky layout) ───────────────── */}
       <div className="sticky top-0 z-20 flex flex-col gap-3 bg-slate-950/80 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Search Input */}
-          <div className="search-bar-container w-full md:w-80 relative flex items-center">
-            <Search className="search-bar-icon" />
+          {/* Omni Search Box Container */}
+          <div className="search-bar-container w-full md:w-96 relative flex items-center group/search">
+            <Search className="search-bar-icon group-focus-within/search:text-purple-400" />
             <input 
+              ref={searchInputRef}
               type="text" 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search registry by title, text, speaker..." 
-              className="search-bar-input pr-8" 
+              placeholder="Search registry by title, text, speaker (Ctrl + K)..." 
+              className="search-bar-input pr-8 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20" 
             />
             {searchQuery && (
               <button 
@@ -523,6 +541,22 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               >
                 <X className="w-3 h-3" />
               </button>
+            )}
+
+            {/* Smart Search Suggestions Dropdown Overlay */}
+            {searchQuery.length > 0 && searchQuery.length < 5 && (
+              <div className="absolute left-0 right-0 top-11 bg-slate-950/95 border border-slate-850 rounded-xl shadow-2xl overflow-hidden z-50 p-2 backdrop-blur-md">
+                <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider px-2 py-1">Suggestions</div>
+                <button onClick={() => setSearchQuery("Docker")} className="w-full text-left px-2 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-1.5 transition-colors">
+                  <span>#</span> Docker
+                </button>
+                <button onClick={() => setSearchQuery("Production")} className="w-full text-left px-2 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-1.5 transition-colors">
+                  <span>#</span> Production
+                </button>
+                <button onClick={() => setSearchQuery("Speaker")} className="w-full text-left px-2 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-1.5 transition-colors">
+                  <span>👥</span> Speakers
+                </button>
+              </div>
             )}
           </div>
 
