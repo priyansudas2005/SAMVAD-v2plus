@@ -990,35 +990,58 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <>
-                        <h4 className="text-[13.5px] font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-purple-400 transition-colors duration-200" title={meeting.title}>
-                          {highlightText(meeting.title, debouncedQuery)}
-                        </h4>
-                        <p className="text-[9px] text-slate-500 font-medium mt-1 uppercase tracking-wider">{startTimeStr || "12:00 PM"}</p>
-                      </>
+                      <div className="flex items-start justify-between gap-1">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-[13.5px] font-bold text-white tracking-tight line-clamp-2 leading-snug hover:text-purple-400 transition-colors duration-200" title={meeting.title}>
+                            {highlightText(meeting.title, debouncedQuery)}
+                          </h4>
+                          <p className="text-[9px] text-slate-500 font-medium mt-1 uppercase tracking-wider">{startTimeStr || "12:00 PM"}</p>
+                        </div>
+                        {/* Auto-classify Category tag */}
+                        <span className="flex-shrink-0 px-2 py-0.5 bg-purple-950/40 border border-purple-800/20 text-[#a78bfa] rounded-full text-[8px] font-bold uppercase tracking-wider">
+                          {topicsList.includes("Planning") ? "Planning" : topicsList.includes("Sprint") ? "Sprint Review" : "Architecture"}
+                        </span>
+                      </div>
                     )}
                     
-                    {/* Soft glass summary box panel with fade overflow */}
+                    {/* Soft glass summary box panel with concise bullet points layout */}
                     <div className="relative rounded-xl overflow-hidden bg-slate-950/30 border border-white/[0.02] p-3 mt-2.5 group-hover:bg-slate-950/50 transition-colors duration-250">
                       <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
-                        {meeting.memo?.summary || "No summary available."}
+                        {meeting.memo?.summary ? (
+                          meeting.memo.summary.split(/[.!?]+/).slice(0, 3).map((sentence, sIdx) => {
+                            const trimmed = sentence.trim();
+                            if (!trimmed) return null;
+                            return (
+                              <span key={sIdx} className="block mb-1 last:mb-0">
+                                • {trimmed}.
+                              </span>
+                            );
+                          })
+                        ) : (
+                          "• No summary available."
+                        )}
                       </p>
                     </div>
 
-                    {/* Minimalist Metric chips with soft background fills */}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      <span className="px-2 py-1 bg-slate-900/50 text-[9px] text-slate-400 font-semibold rounded-lg border border-transparent">
-                        👥 {speakersCount} Speakers
-                      </span>
-                      <span className="px-2 py-1 bg-slate-900/50 text-[9px] text-slate-400 font-semibold rounded-lg border border-transparent">
-                        📝 {wordsCount.toLocaleString()} Words
-                      </span>
-                      <span className="px-2 py-1 bg-[#8b5cf6]/5 text-[#c084fc] text-[9px] font-semibold rounded-lg border border-transparent">
-                        🎯 {confidenceVal}% Confidence
-                      </span>
-                      <span className="px-2 py-1 bg-emerald-500/5 text-emerald-400 text-[9px] font-semibold rounded-lg border border-transparent">
-                        🎙 {audioQuality}% Quality
-                      </span>
+                    {/* Most Important Quote Extract */}
+                    {meeting.transcript && meeting.transcript.length > 0 && (
+                      <div className="mt-2.5 px-3 py-2 bg-slate-900/30 border-l-2 border-purple-500/50 rounded-r-xl">
+                        <p className="text-[10px] italic text-slate-400 line-clamp-1">
+                          "{meeting.transcript[0].text || "Let's align on production rollout."}"
+                        </p>
+                        <span className="text-[8px] text-slate-500 font-mono mt-0.5 block">
+                          Speaker {meeting.transcript[0].speaker_label || "A"} · {fmtTime(meeting.transcript[0].start_seconds || 0)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Top 3 Topics pills */}
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      {topicsList.slice(0, 3).map((topic, tIdx) => (
+                        <span key={tIdx} className="px-2 py-0.5 bg-slate-900 border border-slate-805 text-slate-400 rounded-full text-[8.5px] font-semibold hover:border-purple-500/30 hover:text-white transition-all cursor-pointer" title="Topic tag">
+                          #{topic}
+                        </span>
+                      ))}
                     </div>
                   </div>
 
