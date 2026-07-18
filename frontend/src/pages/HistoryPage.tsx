@@ -1653,14 +1653,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                         key={bIdx}
                         onClick={btn.action}
                         disabled={btn.disabled}
-                        className="relative group/tooltip p-1.5 rounded-lg border border-white/[0.03] bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/[0.08] text-slate-400 hover:text-white transition-all duration-150 active:scale-75 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center flex-1"
+                        title={btn.tooltip}
+                        className="p-1.5 rounded-lg border border-white/[0.03] bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/[0.08] text-slate-400 hover:text-white transition-all duration-150 active:scale-75 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center flex-1"
                       >
                         {btn.icon}
-                        
-                        {/* CSS Tooltip */}
-                        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-950/95 text-[9px] text-slate-300 font-bold uppercase tracking-wider rounded border border-white/[0.06] opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity duration-150 whitespace-nowrap shadow-2xl z-50">
-                          {btn.tooltip}
-                        </span>
                       </button>
                     ))}
                   </div>
