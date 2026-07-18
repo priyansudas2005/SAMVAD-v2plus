@@ -2470,3 +2470,13 @@
 .animate-icon-pop {
   animation: icon-pop-bounce 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Shimmer keyframes for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+  }
+}

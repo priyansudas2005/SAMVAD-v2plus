@@ -45,13 +45,67 @@ const getDurationMeta = (seconds?: number) => {
 
 /* ─── Skeleton card ─────────────────────────────────── */
 const SkeletonCard: React.FC<{ index: number }> = ({ index }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+  <motion.div 
+    initial={{ opacity: 0 }} 
+    animate={{ opacity: 1 }}
     transition={{ delay: index * 0.04 }}
-    className="skeleton-card">
-    <div className="skeleton-img" />
-    <div className="skeleton-line w-3/4 mt-3" />
-    <div className="skeleton-line w-1/2 mt-2" />
-    <div className="skeleton-footer" />
+    className="bg-slate-950/45 border border-slate-900 rounded-2xl p-4 flex flex-col gap-3 relative overflow-hidden"
+  >
+    {/* Shimmer sweep overlay */}
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent -translate-x-full animate-[shimmer_1.8s_infinite] pointer-events-none" />
+
+    {/* Card Header Shimmer */}
+    <div className="flex items-center justify-between pb-2 border-b border-white/[0.02]">
+      <div className="w-16 h-4 bg-slate-900/80 rounded-full" />
+      <div className="w-12 h-3.5 bg-slate-900/80 rounded-md" />
+    </div>
+
+    {/* Waveform Shimmer */}
+    <div className="rounded-xl bg-slate-950/60 border border-slate-900/80 p-2.5 h-16 flex flex-col justify-between">
+      <div className="flex items-end justify-center gap-[2.5px] h-8 opacity-40">
+        {Array.from({ length: 24 }).map((_, i) => (
+          <div key={i} className="w-[3px] bg-slate-800 rounded-full" style={{ height: `${8 + Math.abs(Math.sin(i * 0.5)) * 18}px` }} />
+        ))}
+      </div>
+      <div className="flex items-center justify-between pt-1">
+        <div className="w-5 h-5 rounded-full bg-slate-900/80" />
+        <div className="w-10 h-2 bg-slate-900/80 rounded" />
+      </div>
+    </div>
+
+    {/* Content Overview Shimmer */}
+    <div className="space-y-2">
+      <div className="w-2/3 h-4 bg-slate-900/80 rounded" />
+      <div className="w-1/3 h-2.5 bg-slate-900/80 rounded" />
+      <div className="rounded-xl bg-slate-950/30 border border-white/[0.02] p-2 space-y-1.5 h-11">
+        <div className="w-full h-2 bg-slate-900/80 rounded" />
+        <div className="w-5/6 h-2 bg-slate-900/80 rounded" />
+      </div>
+    </div>
+
+    {/* Speakers & Tech Shimmer */}
+    <div className="space-y-1.5 pt-1">
+      <div className="flex justify-between items-center">
+        <div className="w-20 h-2.5 bg-slate-900/80 rounded" />
+        <div className="w-12 h-3.5 bg-slate-900/80 rounded" />
+      </div>
+      <div className="w-24 h-2.5 bg-slate-900/80 rounded" />
+    </div>
+
+    {/* Telemetry Stats boxes Shimmer */}
+    <div className="grid grid-cols-3 gap-1 pt-2 border-t border-white/[0.02]">
+      <div className="h-6 bg-slate-900/60 rounded-lg border border-slate-900/40" />
+      <div className="h-6 bg-slate-900/60 rounded-lg border border-slate-900/40" />
+      <div className="h-6 bg-slate-900/60 rounded-lg border border-slate-900/40" />
+    </div>
+
+    {/* Bottom Toolbar Shimmer */}
+    <div className="pt-2 border-t border-slate-900/60 flex gap-1.5">
+      <div className="h-7 bg-slate-900/60 rounded-lg flex-1" />
+      <div className="h-7 bg-slate-900/60 rounded-lg flex-1" />
+      <div className="h-7 bg-slate-900/60 rounded-lg flex-1" />
+      <div className="h-7 bg-slate-900/60 rounded-lg flex-1" />
+    </div>
   </motion.div>
 );
 
