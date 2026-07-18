@@ -167,7 +167,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [duration,       setDuration]       = useState(0);
   const [volume,         setVolume]         = useState(1);
   const [isMuted,        setIsMuted]        = useState(false);
-  const [playbackRate,   setPlaybackRate]   = useState(1);
+  const [playbackRates,  setPlaybackRates]  = useState<Record<string, number>>({});
   const audioRef    = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement   | null>(null);
 
@@ -357,6 +357,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
+    const rate = playbackRates[playingMeeting.meeting_id] || 1;
+    audio.playbackRate = rate;
     audio.play().catch(() => setIsPlaying(false));
     return () => {
       audio.removeEventListener("timeupdate", onTime);
@@ -367,6 +369,13 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       audio.pause();
     };
   }, [playingMeeting]);
+
+  useEffect(() => {
+    if (audioRef.current && playingMeeting) {
+      const rate = playbackRates[playingMeeting.meeting_id] || 1;
+      audioRef.current.playbackRate = rate;
+    }
+  }, [playbackRates, playingMeeting]);
 
   const toggleMute = () => { if (audioRef.current) { audioRef.current.muted = !isMuted; setIsMuted(p => !p); } };
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1538,42 +1547,39 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     {/* Controls Row */}
                     <div className="flex items-center justify-between pt-1">
                       {/* Left: play button + speed cycle pill */}
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <button 
                           onClick={(e) => handlePlayCard(meeting, e)}
-                          className={`w-6 h-6 rounded-full flex items-center justify-center border text-white transition-all shadow-md active:scale-95 flex-shrink-0 hover:shadow-[0_0_8px_rgba(139,92,246,0.5)] hover:border-purple-400/50 ${
-                            isThisPlaying 
-                              ? "bg-[#7c3aed]/20 border-[#7c3aed]/50 hover:bg-[#7c3aed]/30" 
-                              : "bg-white/[0.04] hover:bg-white/[0.09] border-white/[0.08] group-hover/audio:border-purple-500/30"
-                          }`}
-                          title="Play preview"
+                          className={isThisPlaying 
+                            ? "w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-tr from-purple-600 to-indigo-500 hover:brightness-110 text-white transition-all shadow-lg active:scale-90 flex-shrink-0 shadow-purple-500/20 ring-1 ring-purple-400/40 hover:scale-105"
+                            : "w-7 h-7 rounded-full flex items-center justify-center bg-[#0d0e12]/60 hover:bg-[#161920]/80 border border-slate-800 text-slate-300 transition-all active:scale-90 flex-shrink-0 hover:scale-105 hover:border-purple-500/40 hover:text-white shadow-inner"
+                          }
+                          title={isThisPlaying ? "Pause preview" : "Play preview"}
                         >
                           {isThisPlaying 
-                            ? <Pause className="w-2.5 h-2.5 text-[#a78bfa] fill-[#a78bfa]" /> 
-                            : <Play className="w-2.5 h-2.5 text-slate-300 fill-slate-300 ml-0.5" />}
+                            ? <Pause className="w-3 h-3 text-white fill-white" /> 
+                            : <Play className="w-3 h-3 text-white fill-white ml-0.5" />}
                         </button>
 
-                        {/* Speed pill — cycles through rates on click */}
+                        {/* Speed pill — cycles through rates on click, isolated to meeting ID */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             const rates = [0.5, 1, 1.25, 1.5, 2];
-                            const next = rates[(rates.indexOf(playbackRate) + 1) % rates.length];
-                            setPlaybackRate(next);
-                            if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
-                              audioRef.current.playbackRate = next;
-                            }
+                            const cardRate = playbackRates[meeting.meeting_id] || 1;
+                            const next = rates[(rates.indexOf(cardRate) + 1) % rates.length];
+                            setPlaybackRates(prev => ({ ...prev, [meeting.meeting_id]: next }));
                           }}
                           className="px-1.5 py-0.5 rounded-md bg-slate-900/80 border border-slate-800/50 text-[8px] text-slate-400 font-bold hover:bg-slate-700/80 hover:text-slate-200 transition-all flex-shrink-0 tabular-nums"
                           title="Click to change speed"
                         >
-                          {playbackRate === 1 ? '1×' : `${playbackRate}×`}
+                          {(playbackRates[meeting.meeting_id] || 1) === 1 ? '1×' : `${playbackRates[meeting.meeting_id] || 1}×`}
                         </button>
                       </div>
 
                       {/* Right: volume (hover) + time display */}
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-0.5 transition-opacity duration-200">
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="opacity-0 group-hover/audio:opacity-100 flex items-center gap-1 transition-opacity duration-200">
                           <button onClick={toggleMute} className="text-slate-500 hover:text-white transition-colors p-0.5">
                             {isMuted ? <VolumeX className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
                           </button>
@@ -1584,7 +1590,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                             step="0.1"
                             value={isMuted ? 0 : volume}
                             onChange={handleVolume}
-                            className="w-7 accent-[#8b5cf6] h-0.5 bg-slate-900 rounded-lg cursor-pointer"
+                            className="w-14 accent-[#8b5cf6] h-0.5 bg-slate-900 rounded-lg cursor-pointer transition-all hover:h-1"
                           />
                         </div>
 
