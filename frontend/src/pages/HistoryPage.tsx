@@ -1418,6 +1418,13 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                       setActivePage("transcript");
                     }
                   }}
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+                    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+                  }}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
                   onContextMenu={(e) => {
                     e.preventDefault();
