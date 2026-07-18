@@ -528,7 +528,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
             <motion.div 
               initial={{ opacity: 0, scale: 0.96, y: -8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: -8 }}
+              exit={{ opacity: 0, scale: 0.96, y: -8, transition: { duration: 0.1, ease: "easeIn" } }}
               transition={{ type: "spring", damping: 25, stiffness: 260 }}
               className="border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3 origin-top"
             >
