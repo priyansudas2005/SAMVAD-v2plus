@@ -984,7 +984,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
                     {/* Right: duration · date + action icons — all in one tight row */}
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity duration-200" onClick={e => e.stopPropagation()}>
-                      <span className="text-[8.5px] text-slate-500 font-semibold whitespace-nowrap">{durationStr}·{formattedDate}</span>
+                      <span className="text-[8.5px] text-slate-500 font-semibold whitespace-nowrap">{formattedDate}</span>
                       <button onClick={(e) => toggleBookmark(meeting.meeting_id, e)} className={`p-0.5 rounded transition-all flex-shrink-0 ${isBookmarked ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" : "text-slate-500 hover:text-slate-300"}`}>
                         <Bookmark className={`w-3 h-3 ${isBookmarked ? "fill-sky-400" : ""}`} />
                       </button>
