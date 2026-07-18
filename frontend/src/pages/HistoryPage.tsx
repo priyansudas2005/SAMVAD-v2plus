@@ -121,6 +121,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   // Bookmark and Favorite toggle state collections
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => new Set());
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 
   // Right-click context menu coordinates and target configurations
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; meetingId: string } | null>(null);
@@ -476,6 +477,52 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto bg-transparent p-8 space-y-8 h-screen pb-32 relative">
+      {/* Floating Selection Toolbar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900/90 border border-purple-500/40 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-4 backdrop-blur-md"
+          >
+            <span className="text-xs font-bold text-white uppercase tracking-wider">
+              ✓ {selectedIds.size} Selected
+            </span>
+            <div className="h-4 w-px bg-slate-800" />
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  alert(`Bulk exporting ${selectedIds.size} meetings...`);
+                  setSelectedIds(new Set());
+                }}
+                className="px-3 py-1 bg-purple-500 hover:bg-purple-400 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+              >
+                <span>⬇</span> Export
+              </button>
+              <button 
+                onClick={() => {
+                  if (window.confirm(`Delete ${selectedIds.size} selected meetings?`)) {
+                    alert("Bulk delete simulated successfully.");
+                    setSelectedIds(new Set());
+                  }
+                }}
+                className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold rounded-lg border border-rose-500/20 transition-colors flex items-center gap-1"
+              >
+                <span>🗑</span> Delete
+              </button>
+              <button 
+                onClick={() => {
+                  setSelectedIds(new Set());
+                }}
+                className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── 1. Page Header ───────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 relative z-10 border-b border-white/[0.03]">
@@ -849,6 +896,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
               const isBookmarked = bookmarkedIds.has(meeting.meeting_id);
               const isFavorite = favoriteIds.has(meeting.meeting_id);
+              const isCardSelected = selectedIds.has(meeting.meeting_id);
 
               let statusLabel = "Completed";
               let statusBg = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
@@ -887,6 +935,16 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                 console.error(e);
               }
 
+              const toggleSelect = (e: React.MouseEvent) => {
+                e.stopPropagation();
+                setSelectedIds(prev => {
+                  const next = new Set(prev);
+                  if (next.has(meeting.meeting_id)) next.delete(meeting.meeting_id);
+                  else next.add(meeting.meeting_id);
+                  return next;
+                });
+              };
+
               return (
                 <div key={meeting.meeting_id}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
@@ -899,14 +957,24 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     });
                   }}
                   className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-5 transition-all duration-300 relative border shadow-lg ${
-                    isSelected 
-                      ? "border-sky-500 bg-slate-900/90 shadow-xl shadow-sky-500/10 ring-2 ring-sky-500/30 -translate-y-1.5" 
-                      : "bg-slate-950/40 border-slate-900 hover:bg-slate-900/60 hover:border-slate-800 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/70"
+                    isCardSelected
+                      ? "border-purple-500 bg-slate-900/90 shadow-xl shadow-purple-500/10 ring-2 ring-purple-500/30 -translate-y-1.5"
+                      : isSelected 
+                        ? "border-sky-500 bg-slate-900/90 shadow-xl shadow-sky-500/10 ring-2 ring-sky-500/30 -translate-y-1.5" 
+                        : "bg-slate-950/40 border-slate-900 hover:bg-slate-900/60 hover:border-slate-800 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/70"
                   }`}
                 >
                   {/* ── SECTION 1 — HEADER ── */}
                   <div className="flex items-center justify-between gap-2 pb-3 mb-2.5 border-b border-white/[0.02]">
                     <div className="flex items-center gap-1.5">
+                      {/* Range multi-select checkbox */}
+                      <input 
+                        type="checkbox" 
+                        checked={isCardSelected}
+                        onChange={() => {}}
+                        onClick={toggleSelect}
+                        className="w-3.5 h-3.5 rounded border-slate-800 text-purple-500 focus:ring-purple-500/30 bg-slate-900 cursor-pointer"
+                      />
                       <span className={`px-2 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 ${statusBg}`}>
                         <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
                         {statusLabel}
