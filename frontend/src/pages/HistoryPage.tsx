@@ -1070,30 +1070,30 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* BOTTOM ACTION BAR - Always visible premium layout buttons */}
-                  <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1" onClick={e => e.stopPropagation()}>
+                  <div className="mt-auto pt-3 border-t border-slate-900/60 flex items-center justify-between gap-1 group-hover:translate-y-[-2px] transition-transform duration-200" onClick={e => e.stopPropagation()}>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-[#8b5cf6]/10 border border-slate-800 hover:border-[#8b5cf6]/20 text-slate-400 hover:text-purple-300 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Open Meeting">
-                      ▶ Open
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-[#8b5cf6]/10 border border-slate-800 hover:border-[#8b5cf6]/20 text-slate-400 hover:text-purple-300 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1" title="Open Meeting (Ctrl + O)">
+                      <span>▶</span> Open
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="View Transcript">
-                      📄 Transcript
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-indigo-500/10 border border-slate-800 hover:border-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1" title="View Transcript (Ctrl + T)">
+                      <span>📄</span> Transcript
                     </button>
                     <button onClick={() => { onSelectMeeting(meeting); setActivePage("qa"); }}
-                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-purple-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200" title="Meeting Intelligence">
-                      🧠 Intel
+                      className="flex-1 py-1.5 bg-slate-900/60 hover:bg-purple-500/10 border border-slate-800 hover:border-purple-500/20 text-slate-400 hover:text-purple-400 rounded-lg text-[9px] font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-1" title="Meeting Intelligence (Ctrl + I)">
+                      <span>🧠</span> Intel
                     </button>
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleExport(meeting)}
-                        className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors" title="Export">
+                        className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center justify-center" title="Export (Ctrl + E)">
                         <Download className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={(e) => startEdit(meeting, e)}
-                        className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors" title="Rename">
+                        className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-colors flex items-center justify-center" title="Rename">
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={(e) => handleDelete(meeting.meeting_id, e)}
-                        className="p-1.5 bg-slate-900/60 hover:bg-rose-500/10 border border-slate-800 text-slate-500 hover:text-rose-500 rounded-lg transition-colors" title="Delete">
+                        className="p-1.5 bg-slate-900/60 hover:bg-rose-500/10 border border-slate-800 text-slate-500 hover:text-rose-500 rounded-lg transition-colors flex items-center justify-center" title="Delete">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
