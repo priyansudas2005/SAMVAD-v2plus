@@ -433,31 +433,54 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       <div className="sticky top-0 z-20 flex flex-col gap-3 bg-slate-950/80 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Search Input */}
-          <div className="search-bar-container w-full md:w-80">
+          <div className="search-bar-container w-full md:w-80 relative flex items-center">
             <Search className="search-bar-icon" />
             <input 
               type="text" 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search registry by title, text, speaker..." 
-              className="search-bar-input" 
+              className="search-bar-input pr-8" 
             />
             {searchQuery && (
               <button 
-                onClick={() => setSearchQuery("")} 
-                className="absolute right-3 text-slate-500 hover:text-slate-300"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSearchQuery("");
+                }} 
+                className="absolute right-3 p-1 hover:bg-slate-800 rounded-full text-slate-400 hover:text-slate-200 transition-colors z-30 cursor-pointer"
+                style={{ pointerEvents: "auto" }}
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </button>
             )}
           </div>
 
           {/* Controls button actions */}
           <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+            {/* Reset Filters Quick Button (visible when filters are active) */}
+            {(filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all" || searchQuery) && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  resetFilters();
+                }}
+                className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-lg text-xs font-bold text-rose-400 transition-all cursor-pointer"
+              >
+                Reset Filters
+              </button>
+            )}
+
             {/* Advanced filter toggle button */}
             <button 
-              onClick={() => setFilterPanelOpen(p => !p)}
-              className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all ${
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setFilterPanelOpen(p => !p);
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 filterPanelOpen || filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all"
                   ? "bg-sky-500/10 text-sky-400 border-sky-500/30"
                   : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white"
