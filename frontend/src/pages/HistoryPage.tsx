@@ -345,57 +345,124 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   className="card flex flex-col cursor-pointer group bg-slate-900/40 border border-slate-800/60 rounded-2xl overflow-hidden p-4">
                   <div className="card__content flex flex-col h-full justify-between gap-3">
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: `${meta.color}20`, color: meta.color, border: `1px solid ${meta.color}30` }}>
-                        {meta.label}
-                      </span>
-                      <p className="text-[9.5px] text-slate-500">
-                        {new Date(meeting.date).toLocaleDateString()}
-                      </p>
-                    </div>
+                    {/* Card Header Top Strip */}
+                    {(() => {
+                      let statusLabel = "Completed";
+                      let statusBg = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                      if (meeting.metadata?.status) {
+                        const rawStatus = String(meeting.metadata.status).toLowerCase();
+                        if (rawStatus.includes("recording")) {
+                          statusLabel = "Recording";
+                          statusBg = "bg-red-500/10 text-red-400 border-red-500/20";
+                        } else if (rawStatus.includes("process")) {
+                          statusLabel = "Processing";
+                          statusBg = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+                        } else if (rawStatus.includes("review")) {
+                          statusLabel = "Needs Review";
+                          statusBg = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                        } else if (rawStatus.includes("fail")) {
+                          statusLabel = "Failed";
+                          statusBg = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                        }
+                      }
 
-                    {/* Waveform thumbnail */}
-                    <div onClick={e => handlePlayCard(meeting, e)}
-                      className="card__image h-20 flex items-center justify-center cursor-pointer overflow-hidden relative rounded-xl"
-                      style={{ background: `linear-gradient(135deg, ${meta.color}18, ${meta.color}06)`, border: `1px solid ${meta.color}22` }}>
-                      <WaveformBars playing={isThisPlaying} color={meta.wave} />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/45 transition-all rounded-xl">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                          style={{ background: meta.color }}>
-                          {isThisPlaying ? (
-                            <Pause className="w-4 h-4 fill-slate-950 text-slate-950" />
-                          ) : (
-                            <Play className="w-4 h-4 fill-slate-950 text-slate-950 ml-0.5" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      const durationMin = Math.floor((meeting.duration || 0) / 60);
+                      const durationSec = Math.floor((meeting.duration || 0) % 60);
+                      const durationStr = durationMin > 0 ? `${durationMin}m ${durationSec}s` : `${durationSec}s`;
 
-                    {/* Title + date */}
-                    <div className="card__text flex-1">
-                      {editingId === meeting.meeting_id ? (
-                        <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
-                          <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-sky-400 font-semibold" />
-                          <button onClick={e => saveEdit(meeting.meeting_id, e)} disabled={saving}
-                            className="p-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded">
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={cancelEdit} className="p-1 bg-slate-800 text-slate-400 rounded">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <h4 className="card__title truncate text-sm text-white font-semibold" title={meeting.title}>{meeting.title}</h4>
-                      )}
-                      
-                      {meeting.transcript && meeting.transcript.length > 0 && (
-                        <span className="inline-flex items-center mt-1.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-500 border border-slate-700/50">
-                          {meeting.transcript.reduce((s, seg) => s + seg.text.split(" ").length, 0).toLocaleString()} words
-                        </span>
-                      )}
-                    </div>
+                      let formattedDate = "Unknown Date";
+                      let startTimeStr = "";
+                      let endTimeStr = "";
+                      try {
+                        if (meeting.date) {
+                          const dateObj = new Date(meeting.date);
+                          if (!isNaN(dateObj.getTime())) {
+                            formattedDate = dateObj.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+                            startTimeStr = dateObj.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+                            const endObj = new Date(dateObj.getTime() + (meeting.duration || 0) * 1000);
+                            endTimeStr = endObj.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+                          }
+                        }
+                      } catch (e) {
+                        console.error(e);
+                      }
+
+                      return (
+                        <>
+                          <div className="flex items-center justify-between gap-2 w-full text-[10px] pb-1">
+                            {/* LEFT: Status Badge */}
+                            <span className={`px-2 py-0.5 rounded-full border font-medium text-[9px] flex items-center gap-1 ${statusBg}`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                              {statusLabel}
+                            </span>
+
+                            {/* CENTER: CSS Waveform placeholder */}
+                            <div className="flex-1 max-w-[60px] h-3 flex items-center justify-center gap-0.5 opacity-40 px-1">
+                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-1" />
+                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-2 [animation-delay:0.1s]" />
+                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-3 [animation-delay:0.2s]" />
+                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-2 [animation-delay:0.3s]" />
+                              <span className="w-[2px] bg-slate-400 rounded-full animate-pulse h-1 [animation-delay:0.4s]" />
+                            </div>
+
+                            {/* RIGHT: Duration and date info */}
+                            <div className="text-right flex flex-col items-end leading-none gap-0.5">
+                              <span className="text-white font-semibold text-[9.5px]">{durationStr}</span>
+                              <span className="text-slate-500 text-[8.5px]">{formattedDate}</span>
+                            </div>
+                          </div>
+
+                          {/* Waveform thumbnail */}
+                          <div onClick={e => handlePlayCard(meeting, e)}
+                            className="card__image h-16 flex items-center justify-center cursor-pointer overflow-hidden relative rounded-xl"
+                            style={{ background: `linear-gradient(135deg, ${meta.color}18, ${meta.color}06)`, border: `1px solid ${meta.color}22` }}>
+                            <WaveformBars playing={isThisPlaying} color={meta.wave} />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/45 transition-all rounded-xl">
+                              <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                                style={{ background: meta.color }}>
+                                {isThisPlaying ? (
+                                  <Pause className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                                ) : (
+                                  <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950 ml-0.5" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Title & subtitle info */}
+                          <div className="card__text flex-1">
+                            {editingId === meeting.meeting_id ? (
+                              <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
+                                <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)}
+                                  className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-sky-400 font-semibold" />
+                                <button onClick={e => saveEdit(meeting.meeting_id, e)} disabled={saving}
+                                  className="p-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded">
+                                  <Check className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={cancelEdit} className="p-1 bg-slate-800 text-slate-400 rounded">
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <h4 className="card__title text-sm text-white font-bold tracking-tight line-clamp-2 leading-snug" title={meeting.title}>{meeting.title}</h4>
+                                {startTimeStr && endTimeStr && (
+                                  <p className="text-[10px] text-slate-500 font-medium mt-1 leading-none">
+                                    {startTimeStr} — {endTimeStr}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                            
+                            {meeting.transcript && meeting.transcript.length > 0 && (
+                              <span className="inline-flex items-center mt-2 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-500 border border-slate-700/50">
+                                {meeting.transcript.reduce((s, seg) => s + seg.text.split(" ").length, 0).toLocaleString()} words
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
 
                     {/* Reveal actions */}
                     <div className="flex items-center justify-between border-t border-slate-800/80 pt-2"
