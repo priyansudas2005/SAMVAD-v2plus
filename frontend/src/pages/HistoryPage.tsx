@@ -1243,6 +1243,11 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     ? meeting.metadata.speakers 
                     : String(meeting.metadata.speakers).split(",").map(s => s.trim()))
                 : [];
+              const technologiesList: string[] = meeting.metadata?.topics_entities?.technologies 
+                ? (Array.isArray(meeting.metadata.topics_entities.technologies) 
+                    ? meeting.metadata.topics_entities.technologies.map((t: any) => typeof t === "string" ? t : String(t?.name || ""))
+                    : String(meeting.metadata.topics_entities.technologies).split(",").map(s => s.trim()))
+                : [];
               const speakersCount = speakersList.length;
               const wordsCount = meeting.transcript ? meeting.transcript.reduce((acc, seg) => acc + (seg.text ? seg.text.split(/\s+/).length : 0), 0) : 0;
               const confidenceVal = meeting.metadata?.confidence ? Math.round(Number(meeting.metadata.confidence) * 100) : 0;
@@ -1558,61 +1563,81 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                           </h4>
                           <p className="text-[8px] text-slate-500 font-medium mt-0.5 uppercase tracking-wider">{startTimeStr || "12:00 PM"}</p>
                         </div>
-                        {/* Auto-classify Category tag */}
+                        {/* Category tag */}
                         <span className="flex-shrink-0 px-2 py-0.5 bg-purple-950/40 border border-purple-800/20 text-[#a78bfa] rounded-full text-[8px] font-bold uppercase tracking-wider">
-                          {topicsList.includes("Planning") ? "Planning" : topicsList.includes("Sprint") ? "Sprint Review" : "Architecture"}
+                          {topicsList.includes("Planning") ? "Planning" : topicsList.includes("Sprint") ? "Sprint" : "Architecture"}
                         </span>
                       </div>
                     )}
                     
-                    {/* Soft glass summary box panel with concise bullet points layout */}
-                    <div className="relative h-[64px] overflow-hidden rounded-xl bg-slate-950/30 border border-white/[0.02] p-2.5 mt-2 group-hover:bg-slate-950/50 transition-colors duration-250">
-                      <p className="text-[10px] text-slate-400 leading-relaxed">
-                        {meeting.memo?.summary ? (
-                          meeting.memo.summary.split(/[.!?]+/).slice(0, 2).map((sentence, sIdx) => {
-                            const trimmed = sentence.trim();
-                            if (!trimmed) return null;
-                            return (
-                              <span key={sIdx} className="block mb-0.5 last:mb-0 truncate">
-                                • {trimmed}.
-                              </span>
-                            );
-                          })
-                        ) : (
-                          "• No summary available."
-                        )}
+                    {/* Meeting Summary Box Panel */}
+                    <div className="relative h-[42px] overflow-hidden rounded-xl bg-slate-950/30 border border-white/[0.02] p-2 mt-1.5 group-hover:bg-slate-950/50 transition-colors duration-250">
+                      <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-2">
+                        {meeting.memo?.summary || "No summary available for this intelligence record."}
                       </p>
-                      <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-slate-950/90 to-transparent pointer-events-none" />
+                      <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-t from-slate-950/90 to-transparent pointer-events-none" />
                     </div>
 
-                    {/* AI Meeting Preview - bullet points with a smooth fade */}
-                    <div className="relative h-[40px] overflow-hidden bg-slate-900/20 border border-white/[0.01] p-2 rounded-lg mt-2 mb-1">
-                      <div className="flex flex-col gap-0.5 text-[9px] text-slate-500">
-                        {meeting.memo?.key_points && meeting.memo.key_points.length > 0 ? (
-                          meeting.memo.key_points.slice(0, 2).map((kp, kpIdx) => (
-                            <span key={kpIdx} className="truncate">• {kp}</span>
+                    {/* Participants & Confidence Score */}
+                    <div className="flex items-center justify-between gap-2 mt-2 text-[9px]">
+                      <div className="flex items-center gap-1 min-w-0 flex-1">
+                        <span className="text-slate-500 font-bold flex-shrink-0">Speakers:</span>
+                        <span className="text-slate-300 truncate" title={speakersList.join(", ")}>
+                          {speakersList.length > 0 ? speakersList.join(", ") : "A & B"}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0 px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-sky-400 font-mono text-[8px] font-bold">
+                        {confidenceVal || 92}% Transcribed
+                      </div>
+                    </div>
+
+                    {/* Technologies Mentioned */}
+                    <div className="flex items-center gap-1 mt-1.5 text-[9px] min-w-0">
+                      <span className="text-slate-500 font-bold flex-shrink-0">Tech:</span>
+                      <div className="flex gap-1 min-w-0 overflow-hidden">
+                        {technologiesList.length > 0 ? (
+                          technologiesList.slice(0, 3).map((tech, tIdx) => (
+                            <span key={tIdx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 rounded text-[8px] font-medium truncate">
+                              {tech}
+                            </span>
                           ))
                         ) : (
-                          <span className="italic">• Synthesizing key discussion outcomes...</span>
+                          <span className="text-slate-600 italic">None detected</span>
                         )}
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-slate-950/30 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Smart Topics/Tags (Max 3 Badges) */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {topicsList.slice(0, 3).map((topic, tIdx) => {
+                        const tagColors = [
+                          "bg-indigo-950/30 border-indigo-500/25 text-indigo-300",
+                          "bg-purple-950/30 border-purple-500/25 text-purple-300",
+                          "bg-sky-950/30 border-sky-500/25 text-sky-300"
+                        ];
+                        const colorClass = tagColors[tIdx % tagColors.length];
+                        return (
+                          <span key={tIdx} className={`px-2 py-0.5 border rounded-full text-[8px] font-bold tracking-tight hover:brightness-110 transition-all cursor-pointer ${colorClass}`}>
+                            #{topic}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* ── SECTION 4 — TELEMETRY QUICK STATISTICS GRID */}
                   <div className="grid grid-cols-3 gap-1 mb-2.5 pt-2 border-t border-white/[0.02]" onClick={e => e.stopPropagation()}>
-                    <div className="bg-white/[0.01] border border-white/[0.03] rounded-md py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
-                      <span>Actions</span>
+                    <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-lg py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
+                      <span className="font-semibold">Action Items</span>
                       <span className="font-extrabold text-emerald-400">{actionItemsCount}</span>
                     </div>
-                    <div className="bg-white/[0.01] border border-white/[0.03] rounded-md py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
-                      <span>Decisions</span>
+                    <div className="bg-purple-500/5 border border-purple-500/15 rounded-lg py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
+                      <span className="font-semibold">Decisions</span>
                       <span className="font-extrabold text-purple-400">{decisionsCount}</span>
                     </div>
-                    <div className="bg-white/[0.01] border border-white/[0.03] rounded-md py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
-                      <span>Topics</span>
-                      <span className="font-extrabold text-amber-400">{topicsList.length}</span>
+                    <div className="bg-blue-500/5 border border-blue-500/15 rounded-lg py-1 px-1.5 flex items-center justify-between text-[8px] text-slate-500">
+                      <span className="font-semibold">Questions</span>
+                      <span className="font-extrabold text-blue-400">{questionsCount}</span>
                     </div>
                   </div>
 
