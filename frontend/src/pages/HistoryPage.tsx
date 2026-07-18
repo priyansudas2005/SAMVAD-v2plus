@@ -91,6 +91,8 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [filterContains, setFilterContains] = useState<string>("all"); // all, action_items, decisions, transcripts
   const [showStarredOnly, setShowStarredOnly] = useState<boolean>(false);
   const [showBookmarkedOnly, setShowBookmarkedOnly] = useState<boolean>(false);
+  const [showPinnedOnly, setShowPinnedOnly] = useState<boolean>(false);
+  const [filterTag, setFilterTag] = useState<string>("all");
 
   // Keyboard navigation & Result index matching pointer
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -432,9 +434,18 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         if (filterStatus === "failed" && !rawStatus.includes("fail")) return false;
       }
 
-      // Starred and Bookmarked toggles
+      // 8. Tag/Topic Filter
+      if (filterTag !== "all") {
+        const topicsList: string[] = m.metadata?.topics_entities?.topics 
+          ? m.metadata.topics_entities.topics.map((t: any) => typeof t === "string" ? t : String(t?.name || ""))
+          : [];
+        if (!topicsList.includes(filterTag)) return false;
+      }
+
+      // Starred, Bookmarked, and Pinned toggles
       if (showStarredOnly && !favoriteIds.has(m.meeting_id)) return false;
       if (showBookmarkedOnly && !bookmarkedIds.has(m.meeting_id)) return false;
+      if (showPinnedOnly && !pinnedIds.has(m.meeting_id)) return false;
 
       return true;
     })
@@ -483,9 +494,11 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     setFilterStatus("all");
     setFilterSpeakers("all");
     setFilterContains("all");
+    setFilterTag("all");
     setSearchQuery("");
     setShowStarredOnly(false);
     setShowBookmarkedOnly(false);
+    setShowPinnedOnly(false);
   };
 
   // Keyboard navigation & accessibility event hook
@@ -520,6 +533,17 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const avgMin   = meetings.length ? totalMin / meetings.length : 0;
   const currentSort = SORT_OPTIONS.find(o => o.value === sortKey) || SORT_OPTIONS[0];
   const calculatedDbSize = (24.2 + (meetings.length * 0.8)).toFixed(1);
+
+  // Dynamically extract all unique topics/tags from the meeting list
+  const uniqueTagsList = Array.from(
+    new Set(
+      meetings.flatMap(m => {
+        const list = m.metadata?.topics_entities?.topics;
+        if (!list) return [];
+        return list.map((t: any) => typeof t === "string" ? t : String(t?.name || ""));
+      })
+    )
+  ).filter(Boolean) as string[];
 
   // ── Smart Collection counts ─────────────────────────────────────────
   const nowMs = Date.now();
@@ -805,7 +829,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       </div>
 
       {/* ── 3. Search & Toolbar (Sticky layout) ───────────────── */}
-      <div className="sticky top-0 z-20 flex flex-col gap-3 bg-slate-950/80 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
+      <div className="sticky top-0 z-20 flex flex-col gap-3 bg-slate-950/85 backdrop-blur-md border border-white/[0.04] p-4 rounded-2xl shadow-2xl relative">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Omni Search Box Container */}
           <div className="search-bar-container w-full md:w-96 relative flex items-center group/search">
@@ -815,9 +839,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               type="text" 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search registry by title, text, speaker (Ctrl + K)..." 
-              className="search-bar-input pr-8 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20" 
+              placeholder="Search registry by title, text, speaker..." 
+              className="search-bar-input pr-16 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20" 
             />
+            {!searchQuery && (
+              <kbd className="absolute right-3 px-1.5 py-0.5 rounded bg-white/[0.02] border border-white/[0.05] text-[9px] text-slate-600 font-mono select-none pointer-events-none group-focus-within/search:opacity-0 transition-opacity">
+                Ctrl + K
+              </kbd>
+            )}
             {searchQuery && (
               <button 
                 type="button"
@@ -860,15 +889,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                 setFilterPanelOpen(p => !p);
               }}
               className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                filterPanelOpen || filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all"
-                  ? "bg-sky-500/10 text-sky-400 border-sky-500/30"
+                filterPanelOpen || filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all" || filterTag !== "all" || showStarredOnly || showBookmarkedOnly || showPinnedOnly
+                  ? "bg-sky-500/10 text-sky-400 border-sky-500/30 shadow-[0_0_10px_rgba(56,189,248,0.1)]"
                   : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white"
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               Filters
-              {(filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all") && (
-                <span className="w-2 h-2 rounded-full bg-sky-400" />
+              {(filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all" || filterTag !== "all" || showStarredOnly || showBookmarkedOnly || showPinnedOnly) && (
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
               )}
             </button>
 
@@ -923,15 +952,31 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -8, transition: { duration: 0.1, ease: "easeIn" } }}
               transition={{ type: "spring", damping: 25, stiffness: 260 }}
-              className="border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3 origin-top"
+              className="border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 origin-top"
             >
+              {/* Status Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Status</span>
+                <select 
+                  value={filterStatus} 
+                  onChange={e => setFilterStatus(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="completed">Completed</option>
+                  <option value="recording">Recording</option>
+                  <option value="processing">Processing</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+
               {/* Date Range Filter */}
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Date Range</span>
                 <select 
                   value={filterDateRange} 
                   onChange={e => setFilterDateRange(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
                 >
                   <option value="all">All Dates</option>
                   <option value="today">Today</option>
@@ -941,44 +986,13 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                 </select>
               </div>
 
-              {/* Duration Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Duration</span>
-                <select 
-                  value={filterDuration} 
-                  onChange={e => setFilterDuration(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Durations</option>
-                  <option value="short">Short (&lt;10m)</option>
-                  <option value="medium">Medium (10–30m)</option>
-                  <option value="long">Long (30–60m)</option>
-                  <option value="vlong">V. Long (1h+)</option>
-                </select>
-              </div>
-
-              {/* Confidence Filter */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Confidence</span>
-                <select 
-                  value={filterConfidence} 
-                  onChange={e => setFilterConfidence(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
-                >
-                  <option value="all">All Confidences</option>
-                  <option value="high">High (&ge;90%)</option>
-                  <option value="medium">Medium (80–89%)</option>
-                  <option value="low">Low (&lt;80%)</option>
-                </select>
-              </div>
-
               {/* Speakers Filter */}
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Speakers</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Speaker</span>
                 <select 
                   value={filterSpeakers} 
                   onChange={e => setFilterSpeakers(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
                 >
                   <option value="all">All Speakers</option>
                   <option value="1">1 Speaker</option>
@@ -988,13 +1002,59 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                 </select>
               </div>
 
+              {/* Duration Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Duration</span>
+                <select 
+                  value={filterDuration} 
+                  onChange={e => setFilterDuration(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Durations</option>
+                  <option value="short">Short (&lt;10m)</option>
+                  <option value="medium">Medium (10–30m)</option>
+                  <option value="long">Long (30–60m)</option>
+                  <option value="vlong">V. Long (1h+)</option>
+                </select>
+              </div>
+
+              {/* Tags Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tags</span>
+                <select 
+                  value={filterTag} 
+                  onChange={e => setFilterTag(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Tags</option>
+                  {uniqueTagsList.map(tag => (
+                    <option key={tag} value={tag}>#{tag}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Confidence Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Confidence</span>
+                <select 
+                  value={filterConfidence} 
+                  onChange={e => setFilterConfidence(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Confidences</option>
+                  <option value="high">High (&ge;90%)</option>
+                  <option value="medium">Medium (80–89%)</option>
+                  <option value="low">Low (&lt;80%)</option>
+                </select>
+              </div>
+
               {/* Contains Filter */}
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Contains</span>
                 <select 
                   value={filterContains} 
                   onChange={e => setFilterContains(e.target.value)}
-                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-sky-400"
                 >
                   <option value="all">All Records</option>
                   <option value="action_items">Action Items</option>
@@ -1003,37 +1063,103 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                 </select>
               </div>
 
-              {/* Status Filter + Drawer Reset/Clear Button */}
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Status</span>
-                <div className="flex items-center gap-2">
-                  <select 
-                    value={filterStatus} 
-                    onChange={e => setFilterStatus(e.target.value)}
-                    className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400 flex-1"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="completed">Completed</option>
-                    <option value="recording">Recording</option>
-                    <option value="processing">Processing</option>
-                    <option value="failed">Failed</option>
-                  </select>
-                  <button 
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      resetFilters();
-                    }}
-                    className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
-                    title="Reset All Filters"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+              {/* Quick toggles row inside the drawer */}
+              <div className="col-span-full border-t border-white/[0.02] pt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowStarredOnly(p => !p)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    showStarredOnly ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Star className={`w-3.5 h-3.5 ${showStarredOnly ? "fill-amber-400" : ""}`} />
+                  Favorites
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBookmarkedOnly(p => !p)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    showBookmarkedOnly ? "bg-sky-500/15 text-sky-400 border border-sky-500/30" : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Bookmark className={`w-3.5 h-3.5 ${showBookmarkedOnly ? "fill-sky-400" : ""}`} />
+                  Bookmarked
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPinnedOnly(p => !p)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    showPinnedOnly ? "bg-purple-500/15 text-purple-400 border border-purple-500/30" : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Pin className={`w-3.5 h-3.5 ${showPinnedOnly ? "fill-purple-400" : ""}`} />
+                  Pinned Only
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="ml-auto px-4 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-lg text-xs font-bold transition-all"
+                >
+                  Reset Filters
+                </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Active Filter Chips */}
+        {(() => {
+          const chips = [];
+          if (searchQuery) chips.push({ id: 'query', label: `Search: "${searchQuery}"`, onRemove: () => setSearchQuery("") });
+          if (filterDateRange !== "all") chips.push({ id: 'date', label: `Date: ${filterDateRange}`, onRemove: () => setFilterDateRange("all") });
+          if (filterDuration !== "all") chips.push({ id: 'duration', label: `Duration: ${filterDuration}`, onRemove: () => setFilterDuration("all") });
+          if (filterConfidence !== "all") chips.push({ id: 'confidence', label: `Confidence: ${filterConfidence}`, onRemove: () => setFilterConfidence("all") });
+          if (filterSpeakers !== "all") chips.push({ id: 'speakers', label: `Speakers: ${filterSpeakers}`, onRemove: () => setFilterSpeakers("all") });
+          if (filterContains !== "all") chips.push({ id: 'contains', label: `Contains: ${filterContains.replace('_', ' ')}`, onRemove: () => setFilterContains("all") });
+          if (filterStatus !== "all") chips.push({ id: 'status', label: `Status: ${filterStatus}`, onRemove: () => setFilterStatus("all") });
+          if (filterTag !== "all") chips.push({ id: 'tag', label: `Tag: #${filterTag}`, onRemove: () => setFilterTag("all") });
+          if (showStarredOnly) chips.push({ id: 'starred', label: 'Favorites', onRemove: () => setShowStarredOnly(false) });
+          if (showBookmarkedOnly) chips.push({ id: 'bookmarked', label: 'Bookmarked', onRemove: () => setShowBookmarkedOnly(false) });
+          if (showPinnedOnly) chips.push({ id: 'pinned', label: 'Pinned Only', onRemove: () => setShowPinnedOnly(false) });
+
+          if (chips.length === 0) return null;
+
+          return (
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.02]">
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Active Filters:</span>
+              <AnimatePresence>
+                {chips.map(chip => (
+                  <motion.div
+                    key={chip.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.85, x: -10 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, x: 10 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 font-medium"
+                  >
+                    <span>{chip.label}</span>
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.stopPropagation(); chip.onRemove(); }}
+                      className="p-0.5 hover:bg-slate-800 rounded-full text-slate-500 hover:text-slate-200 transition-colors"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              <button 
+                type="button"
+                onClick={resetFilters}
+                className="text-[9px] text-slate-500 hover:text-rose-400 font-bold ml-2 transition-colors cursor-pointer"
+              >
+                Clear all
+              </button>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ── Collection header bar ─────────────────────────────── */}
