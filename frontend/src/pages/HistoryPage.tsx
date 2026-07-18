@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   History, Search, Trash2, Eye, Clock, Edit3, Check, X,
   Play, Pause, Volume2, VolumeX, XCircle, Database, Activity,
-  LayoutGrid, List, ArrowUpDown, ChevronDown,
+  LayoutGrid, List, ArrowUpDown, ChevronDown, SlidersHorizontal,
+  Calendar, Award, User, AlertCircle, HelpCircle, FileText, CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Meeting } from "../types";
@@ -52,12 +53,14 @@ const SkeletonCard: React.FC<{ index: number }> = ({ index }) => (
 );
 
 /* ─── Sort options ───────────────────────────────────── */
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "date_desc",     label: "Newest first"   },
   { value: "date_asc",      label: "Oldest first"   },
+  { value: "name_asc",      label: "Name A → Z"     },
+  { value: "name_desc",     label: "Name Z → A"     },
   { value: "duration_desc", label: "Longest first"  },
   { value: "duration_asc",  label: "Shortest first" },
-  { value: "name_asc",      label: "Name A → Z"     },
+  { value: "confidence_desc", label: "Highest Confidence" },
 ];
 
 /* ═══════════════════════════════════════════════════════
@@ -67,11 +70,34 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   meetings, onSelectMeeting, setActivePage, refreshMeetings,
 }) => {
   const [searchQuery,   setSearchQuery]   = useState("");
-  const [activeFilter,  setActiveFilter]  = useState<FilterTag>("all");
-  const [sortKey,       setSortKey]       = useState<SortKey>("date_desc");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [sortKey,       setSortKey]       = useState<string>("date_desc");
   const [viewMode,      setViewMode]      = useState<ViewMode>("grid");
   const [sortOpen,      setSortOpen]      = useState(false);
   const [loading]                         = useState(false);
+
+  // Advanced Filters Collapsible panel state
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  
+  // Advanced Filter values states
+  const [filterDateRange, setFilterDateRange] = useState<string>("all"); // all, today, yesterday, 7days, 30days
+  const [filterDuration, setFilterDuration] = useState<string>("all"); // all, short (<10m), medium (10-30m), long (30-60m), vlong (1h+)
+  const [filterConfidence, setFilterConfidence] = useState<string>("all"); // all, high (>=90%), medium (80-89%), low (<80%)
+  const [filterStatus, setFilterStatus] = useState<string>("all"); // all, completed, recording, processing, failed
+  const [filterSpeakers, setFilterSpeakers] = useState<string>("all"); // all, 1, 2, 3, 4+
+  const [filterContains, setFilterContains] = useState<string>("all"); // all, action_items, decisions, transcripts
+
+  // Keyboard navigation & Result index matching pointer
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+
+  // Debounce search input to avoid re-rendering layout on every keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setSelectedIndex(-1); // Reset selected list item index on new search queries
+    }, 150);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   /* Audio player */
   const [playingMeeting, setPlayingMeeting] = useState<Meeting | null>(null);
@@ -164,31 +190,194 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   };
   const fmtTime = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 
-  /* Filtering + Sorting */
+  /* Advanced Filtering + Sorting */
   const filtered = meetings
     .filter(m => {
-      const q = m.title.toLowerCase().includes(searchQuery.toLowerCase());
-      if (!q) return false;
-      if (activeFilter === "all") return true;
-      const mins = (m.duration ?? 0) / 60;
-      if (activeFilter === "short") return mins < 5;
-      if (activeFilter === "long")  return mins > 15;
-      if (activeFilter === "today") return new Date(m.date).toDateString() === new Date().toDateString();
+      // 1. Debounced Search Match (Multi-field query search matching)
+      if (debouncedQuery.trim()) {
+        const query = debouncedQuery.toLowerCase();
+        
+        // Match meeting title
+        const matchTitle = (m.title || "").toLowerCase().includes(query);
+        
+        // Match summary preview
+        const matchSummary = m.memo?.summary ? m.memo.summary.toLowerCase().includes(query) : false;
+        
+        // Match transcript segments
+        const matchTranscript = m.transcript ? m.transcript.some(seg => 
+          (seg.text || "").toLowerCase().includes(query) || 
+          (seg.speaker_label || "").toLowerCase().includes(query)
+        ) : false;
+
+        // Match decisions and action items
+        const matchDecisions = m.memo?.decisions ? m.memo.decisions.some(d => d.toLowerCase().includes(query)) : false;
+        const matchActionItems = m.memo?.action_items ? m.memo.action_items.some(ai => ai.toLowerCase().includes(query)) : false;
+
+        // Match tags / keywords / topics / technologies from topics_entities
+        const hasTopicsMatches = m.metadata?.topics_entities ? [
+          ...(m.metadata.topics_entities.topics || []),
+          ...(m.metadata.topics_entities.technologies || []),
+          ...(m.metadata.topics_entities.people || []),
+          ...(m.metadata.topics_entities.organizations || []),
+          ...(m.metadata.topics_entities.dates || []),
+          ...(m.metadata.topics_entities.deadlines || []),
+          ...(m.metadata.topics_entities.projects || []),
+          ...(m.metadata.topics_entities.products || []),
+          ...(m.metadata.topics_entities.keywords || [])
+        ].some(item => {
+          const val = typeof item === "string" ? item : (item?.name || "");
+          return val.toLowerCase().includes(query);
+        }) : false;
+
+        if (!matchTitle && !matchSummary && !matchTranscript && !matchDecisions && !matchActionItems && !hasTopicsMatches) {
+          return false;
+        }
+      }
+
+      // 2. Date Range Filter
+      if (filterDateRange !== "all" && m.date) {
+        try {
+          const mDate = new Date(m.date);
+          const today = new Date();
+          const diffTime = Math.abs(today.getTime() - mDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (filterDateRange === "today" && mDate.toDateString() !== today.toDateString()) return false;
+          if (filterDateRange === "yesterday") {
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            if (mDate.toDateString() !== yesterday.toDateString()) return false;
+          }
+          if (filterDateRange === "7days" && diffDays > 7) return false;
+          if (filterDateRange === "30days" && diffDays > 30) return false;
+        } catch {
+          // ignore parsing error
+        }
+      }
+
+      // 3. Duration Filter
+      if (filterDuration !== "all") {
+        const mins = (m.duration || 0) / 60;
+        if (filterDuration === "short" && mins >= 10) return false;
+        if (filterDuration === "medium" && (mins < 10 || mins >= 30)) return false;
+        if (filterDuration === "long" && (mins < 30 || mins >= 60)) return false;
+        if (filterDuration === "vlong" && mins < 60) return false;
+      }
+
+      // 4. Transcript Confidence Filter
+      if (filterConfidence !== "all") {
+        const conf = m.metadata?.confidence ? Number(m.metadata.confidence) * 100 : 0;
+        if (filterConfidence === "high" && conf < 90) return false;
+        if (filterConfidence === "medium" && (conf < 80 || conf >= 90)) return false;
+        if (filterConfidence === "low" && conf >= 80) return false;
+      }
+
+      // 5. Speakers Count Filter
+      if (filterSpeakers !== "all") {
+        const count = m.metadata?.speakers ? (Array.isArray(m.metadata.speakers) ? m.metadata.speakers.length : Number(m.metadata.speakers)) : 0;
+        if (filterSpeakers === "1" && count !== 1) return false;
+        if (filterSpeakers === "2" && count !== 2) return false;
+        if (filterSpeakers === "3" && count !== 3) return false;
+        if (filterSpeakers === "4" && count < 4) return false;
+      }
+
+      // 6. Contains Content Filter
+      if (filterContains !== "all") {
+        if (filterContains === "action_items" && (!m.memo?.action_items || m.memo.action_items.length === 0)) return false;
+        if (filterContains === "decisions" && (!m.memo?.decisions || m.memo.decisions.length === 0)) return false;
+        if (filterContains === "transcripts" && (!m.transcript || m.transcript.length === 0)) return false;
+      }
+
+      // 7. Status Filter
+      if (filterStatus !== "all" && m.metadata?.status) {
+        const rawStatus = String(m.metadata.status).toLowerCase();
+        if (filterStatus === "completed" && !rawStatus.includes("complete")) return false;
+        if (filterStatus === "recording" && !rawStatus.includes("record")) return false;
+        if (filterStatus === "processing" && !rawStatus.includes("process")) return false;
+        if (filterStatus === "failed" && !rawStatus.includes("fail")) return false;
+      }
+
       return true;
     })
     .sort((a, b) => {
-      if (sortKey === "date_desc")     return new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (sortKey === "date_asc")      return new Date(a.date).getTime() - new Date(b.date).getTime();
-      if (sortKey === "duration_desc") return (b.duration ?? 0) - (a.duration ?? 0);
-      if (sortKey === "duration_asc")  return (a.duration ?? 0) - (b.duration ?? 0);
-      if (sortKey === "name_asc")      return a.title.localeCompare(b.title);
+      try {
+        if (sortKey === "date_desc")     return new Date(b.date).getTime() - new Date(a.date).getTime();
+        if (sortKey === "date_asc")      return new Date(a.date).getTime() - new Date(b.date).getTime();
+        if (sortKey === "name_asc")      return (a.title || "").localeCompare(b.title || "");
+        if (sortKey === "name_desc")     return (b.title || "").localeCompare(a.title || "");
+        if (sortKey === "duration_desc") return (b.duration ?? 0) - (a.duration ?? 0);
+        if (sortKey === "duration_asc")  return (a.duration ?? 0) - (b.duration ?? 0);
+        if (sortKey === "confidence_desc") {
+          const confA = a.metadata?.confidence ? Number(a.metadata.confidence) : 0;
+          const confB = b.metadata?.confidence ? Number(b.metadata.confidence) : 0;
+          return confB - confA;
+        }
+      } catch {
+        return 0;
+      }
       return 0;
     });
+
+  // Highlight matches helper function
+  const highlightText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return <span>{text}</span>;
+    const regex = new RegExp(`(${highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")})`, "gi");
+    const parts = text.split(regex);
+    return (
+      <span>
+        {parts.map((part, i) => 
+          regex.test(part) ? (
+            <mark key={i} className="bg-sky-500/30 text-sky-300 font-semibold px-0.5 rounded">{part}</mark>
+          ) : (
+            part
+          )
+        )}
+      </span>
+    );
+  };
+
+  // Reset all advanced filter values back to initial 'all' states
+  const resetFilters = () => {
+    setFilterDateRange("all");
+    setFilterDuration("all");
+    setFilterConfidence("all");
+    setFilterStatus("all");
+    setFilterSpeakers("all");
+    setFilterContains("all");
+    setSearchQuery("");
+  };
+
+  // Keyboard navigation & accessibility event hook
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (filtered.length === 0) return;
+      
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : 0));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : filtered.length - 1));
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        const selected = filtered[selectedIndex];
+        if (selected) {
+          onSelectMeeting(selected);
+          setActivePage("transcript");
+        }
+      } else if (e.key === "Escape") {
+        setSearchQuery("");
+        setSelectedIndex(-1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [filtered, selectedIndex, onSelectMeeting, setActivePage]);
 
   /* Stats */
   const totalMin = meetings.reduce((s, m) => s + (m.duration ?? 0) / 60, 0);
   const avgMin   = meetings.length ? totalMin / meetings.length : 0;
-  const currentSort = SORT_OPTIONS.find(o => o.value === sortKey)!;
+  const currentSort = SORT_OPTIONS.find(o => o.value === sortKey) || SORT_OPTIONS[0];
   const calculatedDbSize = (24.2 + (meetings.length * 0.8)).toFixed(1);
 
   return (
@@ -241,71 +430,203 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       </div>
 
       {/* ── 3. Search & Toolbar (Sticky layout) ───────────────── */}
-      <div className="sticky top-0 z-20 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-950/70 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
-        {/* Search */}
-        <div className="search-bar-container w-full md:w-80">
-          <Search className="search-bar-icon" />
-          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search registry by title..." className="search-bar-input" />
-        </div>
-
-        {/* Filter pills, sort dropdown, and grid selectors */}
-        <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
-          {/* Filter pills */}
-          <div className="flex flex-wrap gap-2">
-            {(["all", "short", "long", "today"] as FilterTag[]).map(tag => (
-              <button key={tag} onClick={() => setActiveFilter(tag)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                  activeFilter === tag
-                    ? "bg-sky-500 text-slate-950 border-sky-400"
-                    : "bg-slate-900/60 text-slate-400 border-slate-800/80 hover:text-white"
-                }`}>
-                {tag === "all" ? "All" : tag === "short" ? "Short (<5m)" : tag === "long" ? "Long (>15m)" : "Today"}
+      <div className="sticky top-0 z-20 flex flex-col gap-3 bg-slate-950/80 backdrop-blur-md border border-slate-900 p-4 rounded-2xl shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Search Input */}
+          <div className="search-bar-container w-full md:w-80">
+            <Search className="search-bar-icon" />
+            <input 
+              type="text" 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search registry by title, text, speaker..." 
+              className="search-bar-input" 
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery("")} 
+                className="absolute right-3 text-slate-500 hover:text-slate-300"
+              >
+                <X className="w-3.5 h-3.5" />
               </button>
-            ))}
+            )}
           </div>
 
-          <div className="h-4 w-px bg-slate-900 hidden md:block" />
-
-          {/* Sort dropdown */}
-          <div className="relative">
-            <button onClick={() => setSortOpen(p => !p)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
-              <ArrowUpDown className="w-3 h-3" />
-              {currentSort.label}
-              <ChevronDown className={`w-3 h-3 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
-            </button>
-            <AnimatePresence>
-              {sortOpen && (
-                <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                  className="absolute right-0 top-9 z-50 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden min-w-[160px]">
-                  {SORT_OPTIONS.map(o => (
-                    <button key={o.value} onClick={() => { setSortKey(o.value); setSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors hover:bg-slate-800 ${
-                        sortKey === o.value ? "text-sky-400" : "text-slate-400"
-                      }`}>
-                      {o.label}
-                    </button>
-                  ))}
-                </motion.div>
+          {/* Controls button actions */}
+          <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+            {/* Advanced filter toggle button */}
+            <button 
+              onClick={() => setFilterPanelOpen(p => !p)}
+              className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all ${
+                filterPanelOpen || filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all"
+                  ? "bg-sky-500/10 text-sky-400 border-sky-500/30"
+                  : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white"
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              Filters
+              {(filterDateRange !== "all" || filterDuration !== "all" || filterConfidence !== "all" || filterStatus !== "all" || filterSpeakers !== "all" || filterContains !== "all") && (
+                <span className="w-2 h-2 rounded-full bg-sky-400" />
               )}
-            </AnimatePresence>
-          </div>
-
-          <div className="h-4 w-px bg-slate-900 hidden md:block" />
-
-          {/* Grid / List toggle */}
-          <div className="flex bg-slate-900/60 border border-slate-800 rounded-xl p-1 gap-1">
-            <button onClick={() => setViewMode("grid")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-sky-500 text-slate-950" : "text-slate-500 hover:text-white"}`}>
-              <LayoutGrid className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? "bg-sky-500 text-slate-950" : "text-slate-500 hover:text-white"}`}>
-              <List className="w-3.5 h-3.5" />
-            </button>
+
+            <div className="h-4 w-px bg-slate-900 hidden md:block" />
+
+            {/* Sort dropdown */}
+            <div className="relative">
+              <button onClick={() => setSortOpen(p => !p)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
+                <ArrowUpDown className="w-3 h-3" />
+                {currentSort.label}
+                <ChevronDown className={`w-3 h-3 transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {sortOpen && (
+                  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                    className="absolute right-0 top-9 z-50 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden min-w-[170px]">
+                    {SORT_OPTIONS.map(o => (
+                      <button key={o.value} onClick={() => { setSortKey(o.value); setSortOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold transition-colors hover:bg-slate-800 ${
+                          sortKey === o.value ? "text-sky-400" : "text-slate-400"
+                        }`}>
+                        {o.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="h-4 w-px bg-slate-900 hidden md:block" />
+
+            {/* Grid / List toggle */}
+            <div className="flex bg-slate-900/60 border border-slate-800 rounded-xl p-1 gap-1">
+              <button onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-sky-500 text-slate-950" : "text-slate-500 hover:text-white"}`}>
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-lg transition-all ${viewMode === "list" ? "bg-sky-500 text-slate-950" : "text-slate-500 hover:text-white"}`}>
+                <List className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Collapsible advanced filters drawer */}
+        <AnimatePresence>
+          {filterPanelOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3"
+            >
+              {/* Date Range Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Date Range</span>
+                <select 
+                  value={filterDateRange} 
+                  onChange={e => setFilterDateRange(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Dates</option>
+                  <option value="today">Today</option>
+                  <option value="yesterday">Yesterday</option>
+                  <option value="7days">Last 7 Days</option>
+                  <option value="30days">Last 30 Days</option>
+                </select>
+              </div>
+
+              {/* Duration Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Duration</span>
+                <select 
+                  value={filterDuration} 
+                  onChange={e => setFilterDuration(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Durations</option>
+                  <option value="short">Short (&lt;10m)</option>
+                  <option value="medium">Medium (10–30m)</option>
+                  <option value="long">Long (30–60m)</option>
+                  <option value="vlong">V. Long (1h+)</option>
+                </select>
+              </div>
+
+              {/* Confidence Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Confidence</span>
+                <select 
+                  value={filterConfidence} 
+                  onChange={e => setFilterConfidence(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Confidences</option>
+                  <option value="high">High (&ge;90%)</option>
+                  <option value="medium">Medium (80–89%)</option>
+                  <option value="low">Low (&lt;80%)</option>
+                </select>
+              </div>
+
+              {/* Speakers Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Speakers</span>
+                <select 
+                  value={filterSpeakers} 
+                  onChange={e => setFilterSpeakers(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Speakers</option>
+                  <option value="1">1 Speaker</option>
+                  <option value="2">2 Speakers</option>
+                  <option value="3">3 Speakers</option>
+                  <option value="4">4+ Speakers</option>
+                </select>
+              </div>
+
+              {/* Contains Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Contains</span>
+                <select 
+                  value={filterContains} 
+                  onChange={e => setFilterContains(e.target.value)}
+                  className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400"
+                >
+                  <option value="all">All Records</option>
+                  <option value="action_items">Action Items</option>
+                  <option value="decisions">Decisions</option>
+                  <option value="transcripts">Transcripts</option>
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Status</span>
+                <div className="flex items-center gap-2">
+                  <select 
+                    value={filterStatus} 
+                    onChange={e => setFilterStatus(e.target.value)}
+                    className="bg-slate-900/80 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-400 flex-1"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="completed">Completed</option>
+                    <option value="recording">Recording</option>
+                    <option value="processing">Processing</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <button 
+                    onClick={resetFilters}
+                    className="p-1.5 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                    title="Reset Filters"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── 4. Meeting Grid/List ─────────────────────────────── */}
@@ -318,31 +639,49 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </div>
         ) : filtered.length === 0 ? (
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-            className="py-24 flex flex-col items-center gap-4 text-center bg-slate-900/30 border border-slate-800/50 rounded-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center">
-              <Database className="w-8 h-8 text-slate-700" />
+            className="py-24 flex flex-col items-center gap-4 text-center bg-slate-900/20 border border-slate-800/40 rounded-2xl relative z-10 backdrop-blur-sm">
+            <div className="w-16 h-16 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-center">
+              <Database className="w-8 h-8 text-slate-500" />
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg">No records found</h3>
-              <p className="text-slate-500 text-sm mt-1 max-w-xs">
-                {searchQuery ? `No meetings match "${searchQuery}"` : "Upload or record your first audio to get started."}
-              </p>
+              {meetings.length === 0 ? (
+                <>
+                  <h3 className="text-white font-bold text-lg">No meetings yet</h3>
+                  <p className="text-slate-500 text-sm mt-1 max-w-xs">
+                    Upload or record your first audio to generate intelligence records.
+                  </p>
+                  <button onClick={() => setActivePage("dashboard")}
+                    className="mt-4 px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-sky-500/10">
+                    Start Recording
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-white font-bold text-lg">No meetings match your filters</h3>
+                  <p className="text-slate-500 text-sm mt-1 max-w-xs">
+                    Try adjusting your dates, speakers criteria, or clear the search query.
+                  </p>
+                  <button onClick={resetFilters}
+                    className="mt-4 px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all border border-slate-700">
+                    Reset Filters
+                  </button>
+                </>
+              )}
             </div>
-            <button onClick={() => setActivePage("dashboard")}
-              className="mt-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-sm transition-all">
-              Go to Dashboard
-            </button>
           </motion.div>
         ) : viewMode === "grid" ? (
           /* GRID VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map((meeting) => {
+            {filtered.map((meeting, idx) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
+              const isSelected = idx === selectedIndex;
               return (
                 <div key={meeting.meeting_id}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                  className="card flex flex-col cursor-pointer group bg-slate-900/40 border border-slate-800/60 rounded-2xl overflow-hidden p-4">
+                  className={`card flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 transition-all ${
+                    isSelected ? "border-sky-500 bg-slate-900/70 shadow-lg shadow-sky-500/5 ring-1 ring-sky-500/20" : "bg-slate-900/40 border-slate-800/60"
+                  }`}>
                   <div className="card__content flex flex-col h-full justify-between gap-3">
 
                     {/* Card Header Top Strip */}
@@ -445,7 +784,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                               </div>
                             ) : (
                               <>
-                                <h4 className="card__title text-sm text-white font-bold tracking-tight line-clamp-2 leading-snug" title={meeting.title}>{meeting.title}</h4>
+                                <h4 className="card__title text-sm text-white font-bold tracking-tight line-clamp-2 leading-snug" title={meeting.title}>
+                                  {highlightText(meeting.title, debouncedQuery)}
+                                </h4>
                                 {startTimeStr && endTimeStr && (
                                   <p className="text-[10px] text-slate-500 font-medium mt-1 leading-none">
                                     {startTimeStr} — {endTimeStr}
@@ -564,13 +905,16 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         ) : (
           /* LIST VIEW */
           <div className="flex flex-col gap-2">
-            {filtered.map((meeting) => {
+            {filtered.map((meeting, idx) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
+              const isSelected = idx === selectedIndex;
               return (
                 <motion.div key={meeting.meeting_id}
                   onClick={() => { onSelectMeeting(meeting); setActivePage("transcript"); }}
-                  className="group flex items-center gap-4 px-5 py-3 bg-slate-900/40 hover:bg-slate-900/60 border border-slate-800/60 hover:border-slate-700 rounded-xl cursor-pointer transition-all">
+                  className={`group flex items-center gap-4 px-5 py-3 bg-slate-900/40 hover:bg-slate-900/60 border hover:border-slate-700 rounded-xl cursor-pointer transition-all ${
+                    isSelected ? "border-sky-500 shadow-lg shadow-sky-500/5 ring-1 ring-sky-500/20" : "border-slate-800/60"
+                  }`}>
 
                   <button onClick={e => handlePlayCard(meeting, e)}
                     className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all"
@@ -585,7 +929,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-bold text-white truncate">{meeting.title}</h4>
+                    <h4 className="text-sm font-bold text-white truncate">
+                      {highlightText(meeting.title, debouncedQuery)}
+                    </h4>
                     <p className="text-[11px] text-slate-500 mt-0.5">
                       {new Date(meeting.date).toLocaleDateString()} · {new Date(meeting.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
