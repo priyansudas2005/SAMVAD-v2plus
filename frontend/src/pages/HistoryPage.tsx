@@ -768,6 +768,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
               const wordsCount = meeting.transcript ? meeting.transcript.reduce((acc, seg) => acc + (seg.text ? seg.text.split(/\s+/).length : 0), 0) : 0;
               const confidenceVal = meeting.metadata?.confidence ? Math.round(Number(meeting.metadata.confidence) * 100) : 0;
               const audioQuality = meeting.metadata?.audio_quality ? Math.round(Number(meeting.metadata.audio_quality) * 100) : 88;
+              const fileSizeStr = meeting.metadata?.file_size ? String(meeting.metadata.file_size) : "12.4 MB";
               
               const actionItemsCount = meeting.memo?.action_items?.length 
                 || meeting.transcript?.reduce((acc, s) => acc + (s.metadata?.action_items?.length || 0), 0) 
@@ -864,22 +865,134 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   </div>
 
                   {/* SECTION 2: AUDIO WAVEFORM & PREVIEW BAR */}
-                  <div className="relative rounded-xl overflow-hidden bg-slate-950/80 border border-slate-900 p-2.5 mb-4 group-hover:border-slate-800 transition-colors">
-                    <div className="h-12 flex items-center justify-center overflow-hidden opacity-60 group-hover:opacity-90 transition-opacity">
-                      <WaveformBars playing={isThisPlaying} color={meta.wave} />
+                  <div className="relative rounded-xl overflow-hidden bg-slate-950/80 border border-slate-900 p-3 mb-4 group-hover:border-slate-800 transition-colors" onClick={e => e.stopPropagation()}>
+                    {/* Visual waveform identity featuring responsive seeker overlay */}
+                    <div 
+                      className="h-14 flex items-end justify-center gap-0.5 relative cursor-pointer opacity-80 group-hover:opacity-100 transition-opacity pb-1"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const clickPercent = clickX / rect.width;
+                        if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
+                          audioRef.current.currentTime = clickPercent * audioRef.current.duration;
+                        }
+                      }}
+                    >
+                      {/* CSS-Hardware generated realistic audio waveforms */}
+                      {Array.from({ length: 30 }).map((_, wIdx) => {
+                        const h = 15 + Math.sin(wIdx * 0.4) * 18 + Math.cos(wIdx * 0.7) * 10;
+                        const isFilled = isThisPlaying && (wIdx / 30) <= (duration ? (currentTime / duration) : 0.4);
+                        return (
+                          <div 
+                            key={wIdx} 
+                            style={{ height: `${Math.max(6, h)}px` }}
+                            className={`w-1 rounded-full transition-all duration-200 ${
+                              isFilled ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]" : "bg-slate-800"
+                            }`} 
+                          />
+                        );
+                      })}
+
+                      {/* AI Timeline markers overlay */}
+                      <div className="absolute top-0 inset-x-0 h-1 flex items-center justify-between pointer-events-none opacity-60">
+                        {actionItemsCount > 0 && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Action Items Marker" style={{ marginLeft: "25%" }} />
+                        )}
+                        {decisionsCount > 0 && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" title="Decisions Marker" style={{ marginLeft: "55%" }} />
+                        )}
+                        {isBookmarked && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-400" title="Bookmark Marker" style={{ marginLeft: "75%" }} />
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 mt-2 pt-2 border-t border-white/[0.03]" onClick={e => e.stopPropagation()}>
-                      <button onClick={(e) => handlePlayCard(meeting, e)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 hover:text-white transition-all shadow-sm">
-                        {isThisPlaying ? <Pause className="w-3 h-3 text-sky-400 fill-sky-400" /> : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
-                      </button>
-                      <div className="flex-1 flex flex-col leading-none gap-1">
-                        <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${isThisPlaying ? "bg-sky-400" : "bg-slate-700"}`} style={{ width: isThisPlaying ? "45%" : "0%" }} />
+                    {/* Integrated audio play control row */}
+                    <div className="flex flex-col gap-2.5 mt-2.5 pt-2.5 border-t border-white/[0.03]">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          {/* Play/Pause Button */}
+                          <button 
+                            type="button"
+                            onClick={(e) => handlePlayCard(meeting, e)}
+                            className="w-7 h-7 rounded-full flex items-center justify-center bg-white/[0.04] hover:bg-sky-500/10 border border-white/[0.08] hover:border-sky-500/30 text-slate-200 hover:text-sky-400 transition-all shadow-sm active:scale-95"
+                          >
+                            {isThisPlaying ? <Pause className="w-3 h-3 text-sky-400 fill-sky-400" /> : <Play className="w-3 h-3 text-slate-300 fill-slate-300 ml-0.5" />}
+                          </button>
+
+                          {/* Skip 5s Backwards */}
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
+                                audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 5);
+                              }
+                            }}
+                            className="p-1 hover:bg-slate-900 border border-transparent hover:border-slate-800 rounded text-slate-500 hover:text-slate-300 transition-all"
+                            title="Skip Back 5s"
+                          >
+                            <span className="text-[9px] font-bold">⏪ 5s</span>
+                          </button>
+
+                          {/* Skip 5s Forwards */}
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
+                                audioRef.current.currentTime = Math.min(audioRef.current.duration || 999, audioRef.current.currentTime + 5);
+                              }
+                            }}
+                            className="p-1 hover:bg-slate-900 border border-transparent hover:border-slate-800 rounded text-slate-500 hover:text-slate-300 transition-all"
+                            title="Skip Forward 5s"
+                          >
+                            <span className="text-[9px] font-bold">5s ⏩</span>
+                          </button>
+                        </div>
+
+                        {/* Volume controls */}
+                        <div className="flex items-center gap-1.5">
+                          <button 
+                            type="button"
+                            onClick={toggleMute}
+                            className="text-slate-500 hover:text-white transition-colors"
+                          >
+                            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                          </button>
+                          <input 
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={isMuted ? 0 : volume}
+                            onChange={handleVolume}
+                            className="w-12 accent-sky-500 h-1 bg-slate-900 rounded-lg cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Mini progress bar & timestamps */}
+                      <div className="flex flex-col gap-1.5">
+                        <div 
+                          className="w-full h-1 bg-slate-900 rounded-full overflow-hidden relative cursor-pointer"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const clickX = e.clientX - rect.left;
+                            const clickPercent = clickX / rect.width;
+                            if (audioRef.current && playingMeeting?.meeting_id === meeting.meeting_id) {
+                              audioRef.current.currentTime = clickPercent * audioRef.current.duration;
+                            }
+                          }}
+                        >
+                          <div 
+                            className={`h-full rounded-full transition-all ${isThisPlaying ? "bg-sky-400" : "bg-slate-700"}`} 
+                            style={{ width: isThisPlaying && duration ? `${(currentTime / duration) * 100}%` : "0%" }} 
+                          />
                         </div>
                         <div className="flex items-center justify-between text-[8px] text-slate-500 font-mono">
-                          <span>{isThisPlaying ? "0:12" : "0:00"}</span>
+                          <span>{isThisPlaying ? fmtTime(currentTime) : "00:00"}</span>
+                          <span className="text-[7.5px] uppercase tracking-wider text-slate-600 font-sans">
+                            {meeting.metadata?.recording_format || "wav"} · {meeting.metadata?.sample_rate || "48kHz"} · {fileSizeStr}
+                          </span>
                           <span>{durationStr}</span>
                         </div>
                       </div>
