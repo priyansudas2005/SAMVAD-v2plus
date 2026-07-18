@@ -1625,15 +1625,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     )}
                     
                     {/* Meeting Summary Box Panel */}
-                    <div className="relative h-[42px] overflow-hidden rounded-xl bg-slate-950/30 border border-white/[0.02] p-2 mt-1.5 group-hover:bg-slate-950/50 transition-colors duration-250">
+                    <div className="relative h-[42px] overflow-hidden rounded-xl bg-slate-950/30 border border-white/[0.02] p-2 mt-2.5 group-hover:bg-slate-950/50 transition-colors duration-250">
                       <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-2">
                         {meeting.memo?.summary || "No summary available for this intelligence record."}
                       </p>
-                      <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-t from-slate-950/90 to-transparent pointer-events-none" />
                     </div>
 
                     {/* Participants & Confidence Score */}
-                    <div className="flex items-center justify-between gap-2 mt-2 text-[9px]">
+                    <div className="flex items-center justify-between gap-2 mt-2.5 text-[9px]">
                       <div className="flex items-center gap-1 min-w-0 flex-1">
                         <span className="text-slate-500 font-bold flex-shrink-0">Speakers:</span>
                         <span className="text-slate-300 truncate" title={speakersList.join(", ")}>
@@ -1646,7 +1645,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
 
                     {/* Technologies Mentioned */}
-                    <div className="flex items-center gap-1 mt-1.5 text-[9px] min-w-0">
+                    <div className="flex items-center gap-1 mt-2.5 text-[9px] min-w-0">
                       <span className="text-slate-500 font-bold flex-shrink-0">Tech:</span>
                       <div className="flex gap-1 min-w-0 overflow-hidden">
                         {technologiesList.length > 0 ? (
@@ -1662,7 +1661,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                     </div>
 
                     {/* Smart Topics/Tags (Max 3 Badges) */}
-                    <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="flex flex-wrap gap-1 mt-2.5">
                       {topicsList.slice(0, 3).map((topic, tIdx) => {
                         const tagColors = [
                           "bg-indigo-950/30 border-indigo-500/25 text-indigo-300",
