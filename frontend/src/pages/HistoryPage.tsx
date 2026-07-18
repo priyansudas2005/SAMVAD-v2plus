@@ -5,7 +5,8 @@ import {
   LayoutGrid, List, ArrowUpDown, ChevronDown, SlidersHorizontal,
   Calendar, Award, User, AlertCircle, HelpCircle, FileText, CheckCircle2,
   Bookmark, Star, Copy, Share2, Download, Files, MoreVertical, ExternalLink,
-  Sparkles, BrainCircuit
+  Sparkles, BrainCircuit, Pin, ChevronLeft, ChevronRight,
+  Archive, Layers, Clock3, TrendingUp
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Meeting } from "../types";
@@ -124,6 +125,24 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 
+  // ── Workspace Organization State ──────────────────────────────────────
+  const [activeCollection, setActiveCollection] = useState<string>(() =>
+    localStorage.getItem('samvad-collection') || 'all'
+  );
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(() =>
+    new Set(JSON.parse(localStorage.getItem('samvad-pinned') || '[]'))
+  );
+  const [archivedIds, setArchivedIds] = useState<Set<string>>(() =>
+    new Set(JSON.parse(localStorage.getItem('samvad-archived') || '[]'))
+  );
+  const [recentlyOpened, setRecentlyOpened] = useState<{id: string; ts: number}[]>(() =>
+    JSON.parse(localStorage.getItem('samvad-recent-opened') || '[]')
+  );
+  const [previewMeeting, setPreviewMeeting] = useState<Meeting | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() =>
+    localStorage.getItem('samvad-sidebar-collapsed') === 'true'
+  );
+
   // Right-click context menu coordinates and target configurations
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; meetingId: string } | null>(null);
 
@@ -168,6 +187,28 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
+    });
+  };
+
+  // ── Workspace persistence effects ────────────────────────────────────
+  useEffect(() => { localStorage.setItem('samvad-collection', activeCollection); }, [activeCollection]);
+  useEffect(() => { localStorage.setItem('samvad-pinned', JSON.stringify([...pinnedIds])); }, [pinnedIds]);
+  useEffect(() => { localStorage.setItem('samvad-archived', JSON.stringify([...archivedIds])); }, [archivedIds]);
+  useEffect(() => { localStorage.setItem('samvad-recent-opened', JSON.stringify(recentlyOpened)); }, [recentlyOpened]);
+  useEffect(() => { localStorage.setItem('samvad-sidebar-collapsed', String(sidebarCollapsed)); }, [sidebarCollapsed]);
+
+  const togglePin = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setPinnedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  };
+  const toggleArchive = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setArchivedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  };
+  const trackOpen = (meeting: Meeting) => {
+    setRecentlyOpened(prev => {
+      const f = prev.filter(r => r.id !== meeting.meeting_id);
+      return [{ id: meeting.meeting_id, ts: Date.now() }, ...f].slice(0, 20);
     });
   };
 
@@ -476,8 +517,195 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   const currentSort = SORT_OPTIONS.find(o => o.value === sortKey) || SORT_OPTIONS[0];
   const calculatedDbSize = (24.2 + (meetings.length * 0.8)).toFixed(1);
 
+  // ── Smart Collection counts ─────────────────────────────────────────
+  const nowMs = Date.now();
+  const oneWeekMs = 7 * 24 * 3600 * 1000;
+  const collectionCounts: Record<string, number> = {
+    all:            meetings.filter(m => !archivedIds.has(m.meeting_id)).length,
+    recent:         meetings.filter(m => !archivedIds.has(m.meeting_id) && (nowMs - new Date(m.date).getTime()) < oneWeekMs).length,
+    favorites:      meetings.filter(m => favoriteIds.has(m.meeting_id)).length,
+    bookmarked:     meetings.filter(m => bookmarkedIds.has(m.meeting_id)).length,
+    pinned:         pinnedIds.size,
+    archived:       archivedIds.size,
+    with_actions:   meetings.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.action_items?.length || 0), 0) || 0) > 0).length,
+    with_decisions: meetings.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.decisions?.length || 0), 0) || 0) > 0).length,
+    long:           meetings.filter(m => (m.duration || 0) > 3600).length,
+    this_week:      meetings.filter(m => (nowMs - new Date(m.date).getTime()) < oneWeekMs).length,
+  };
+
+  const applyCollectionFilter = (list: Meeting[]): Meeting[] => {
+    switch (activeCollection) {
+      case 'recent':         return list.filter(m => !archivedIds.has(m.meeting_id) && (nowMs - new Date(m.date).getTime()) < oneWeekMs);
+      case 'favorites':      return list.filter(m => favoriteIds.has(m.meeting_id));
+      case 'bookmarked':     return list.filter(m => bookmarkedIds.has(m.meeting_id));
+      case 'pinned':         return list.filter(m => pinnedIds.has(m.meeting_id));
+      case 'archived':       return list.filter(m => archivedIds.has(m.meeting_id));
+      case 'with_actions':   return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.action_items?.length || 0), 0) || 0) > 0);
+      case 'with_decisions': return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.decisions?.length || 0), 0) || 0) > 0);
+      case 'long':           return list.filter(m => (m.duration || 0) > 3600);
+      case 'this_week':      return list.filter(m => (nowMs - new Date(m.date).getTime()) < oneWeekMs);
+      default:               return list.filter(m => !archivedIds.has(m.meeting_id));
+    }
+  };
+  const collectionFiltered = applyCollectionFilter(filtered);
+
+  // ── Collections sidebar data ────────────────────────────────────────
+  const BUILT_IN_COLLECTIONS = [
+    { id: 'all',       label: 'All Meetings', icon: <Layers className="w-3.5 h-3.5" />,      color: 'text-slate-300' },
+    { id: 'recent',    label: 'Recent',       icon: <Clock3 className="w-3.5 h-3.5" />,      color: 'text-sky-400' },
+    { id: 'favorites', label: 'Favorites',    icon: <Star className="w-3.5 h-3.5" />,        color: 'text-amber-400' },
+    { id: 'bookmarked',label: 'Bookmarked',   icon: <Bookmark className="w-3.5 h-3.5" />,    color: 'text-sky-400' },
+    { id: 'pinned',    label: 'Pinned',       icon: <Pin className="w-3.5 h-3.5" />,         color: 'text-purple-400' },
+    { id: 'archived',  label: 'Archived',     icon: <Archive className="w-3.5 h-3.5" />,     color: 'text-slate-500' },
+  ];
+  const SMART_COLLECTIONS = [
+    { id: 'with_actions',   label: 'Has Action Items', icon: <CheckCircle2 className="w-3.5 h-3.5" />, color: 'text-emerald-400' },
+    { id: 'with_decisions', label: 'Has Decisions',    icon: <Award className="w-3.5 h-3.5" />,        color: 'text-purple-400' },
+    { id: 'this_week',      label: 'This Week',        icon: <Calendar className="w-3.5 h-3.5" />,     color: 'text-blue-400' },
+    { id: 'long',           label: 'Long Meetings',    icon: <TrendingUp className="w-3.5 h-3.5" />,   color: 'text-rose-400' },
+  ];
+  const activeColLabel = [...BUILT_IN_COLLECTIONS, ...SMART_COLLECTIONS].find(c => c.id === activeCollection)?.label || 'All Meetings';
+
+  // ── Preview Drawer Helper Variables ──────────────────────────────────
+  const pm = previewMeeting;
+  const pmMeta = pm ? getDurationMeta(pm.duration) : { label: '', color: '', glow: '', wave: '' };
+  const pmActions = pm?.transcript?.reduce((a, s) => a + (s.metadata?.action_items?.length || 0), 0) || 0;
+  const pmDecisions = pm?.transcript?.reduce((a, s) => a + (s.metadata?.decisions?.length || 0), 0) || 0;
+  const pmTopicsRaw: string[] = [];
+  pm?.transcript?.forEach(s => { if (s.metadata?.keywords) pmTopicsRaw.push(...(s.metadata.keywords as string[])); });
+  const pmTopics = [...new Set(pmTopicsRaw)];
+  const pmIsPinned = pm ? pinnedIds.has(pm.meeting_id) : false;
+  const pmIsBookmarked = pm ? bookmarkedIds.has(pm.meeting_id) : false;
+  const pmIsFavorite = pm ? favoriteIds.has(pm.meeting_id) : false;
+  let pmDate = '';
+  if (pm) {
+    try { pmDate = new Date(pm.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); } catch {}
+  }
+
   return (
-    <div className="flex-1 overflow-y-auto bg-transparent p-8 space-y-8 h-screen pb-32 relative">
+    <div className="flex-1 flex flex-row h-screen overflow-hidden bg-transparent relative">
+
+      {/* ══ COLLECTIONS SIDEBAR ═══════════════════════════════════════════ */}
+      <div className={`flex-shrink-0 flex flex-col border-r border-white/[0.03] bg-[#0a0a0f]/70 backdrop-blur-md transition-all duration-300 overflow-hidden ${sidebarCollapsed ? 'w-11' : 'w-52'}`}>
+        {/* Sidebar header */}
+        <div className="flex items-center justify-between px-2.5 py-3 border-b border-white/[0.03] flex-shrink-0 min-h-[44px]">
+          {!sidebarCollapsed && (
+            <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest pl-1">Workspace</span>
+          )}
+          <button
+            onClick={() => setSidebarCollapsed(p => !p)}
+            className="p-1.5 rounded-lg text-slate-700 hover:text-slate-400 hover:bg-white/[0.04] transition-all ml-auto"
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
+        {/* Sidebar scroll body */}
+        <div className="flex-1 overflow-y-auto py-2 space-y-0.5 px-1.5 scrollbar-thin">
+          {/* Built-in collections */}
+          {!sidebarCollapsed && (
+            <div className="text-[8px] font-bold text-slate-700 uppercase tracking-widest px-2 pt-1 pb-1.5">Collections</div>
+          )}
+          {BUILT_IN_COLLECTIONS.map(col => (
+            <button
+              key={col.id}
+              onClick={() => setActiveCollection(col.id)}
+              title={sidebarCollapsed ? col.label : undefined}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all duration-150 group relative ${
+                activeCollection === col.id
+                  ? 'bg-white/[0.06] shadow-sm'
+                  : 'hover:bg-white/[0.03]'
+              }`}
+            >
+              {activeCollection === col.id && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-purple-400/70 rounded-full" />
+              )}
+              <span className={`flex-shrink-0 transition-colors ${
+                activeCollection === col.id ? col.color : 'text-slate-700 group-hover:text-slate-500'
+              }`}>{col.icon}</span>
+              {!sidebarCollapsed && (
+                <>
+                  <span className={`text-[11px] font-semibold flex-1 truncate transition-colors ${
+                    activeCollection === col.id ? 'text-slate-200' : 'text-slate-500 group-hover:text-slate-400'
+                  }`}>{col.label}</span>
+                  {(collectionCounts[col.id] ?? 0) > 0 && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full tabular-nums flex-shrink-0 ${
+                      activeCollection === col.id ? 'bg-white/10 text-slate-400' : 'bg-slate-900 text-slate-700'
+                    }`}>{collectionCounts[col.id]}</span>
+                  )}
+                </>
+              )}
+            </button>
+          ))}
+
+          {/* Smart auto-collections */}
+          <div className={`${sidebarCollapsed ? 'h-px bg-white/[0.04] mx-1 my-2' : ''}`} />
+          {!sidebarCollapsed && (
+            <div className="text-[8px] font-bold text-slate-700 uppercase tracking-widest px-2 pt-3 pb-1.5">Smart</div>
+          )}
+          {SMART_COLLECTIONS.map(col => (
+            <button
+              key={col.id}
+              onClick={() => setActiveCollection(col.id)}
+              title={sidebarCollapsed ? col.label : undefined}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all duration-150 group relative ${
+                activeCollection === col.id ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]'
+              }`}
+            >
+              {activeCollection === col.id && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-purple-400/70 rounded-full" />
+              )}
+              <span className={`flex-shrink-0 transition-colors ${
+                activeCollection === col.id ? col.color : 'text-slate-700 group-hover:text-slate-500'
+              }`}>{col.icon}</span>
+              {!sidebarCollapsed && (
+                <>
+                  <span className={`text-[11px] font-semibold flex-1 truncate transition-colors ${
+                    activeCollection === col.id ? 'text-slate-200' : 'text-slate-500 group-hover:text-slate-400'
+                  }`}>{col.label}</span>
+                  {(collectionCounts[col.id] ?? 0) > 0 && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full tabular-nums flex-shrink-0 ${
+                      activeCollection === col.id ? 'bg-white/10 text-slate-400' : 'bg-slate-900 text-slate-700'
+                    }`}>{collectionCounts[col.id]}</span>
+                  )}
+                </>
+              )}
+            </button>
+          ))}
+
+          {/* Recently opened */}
+          {!sidebarCollapsed && recentlyOpened.length > 0 && (
+            <>
+              <div className="text-[8px] font-bold text-slate-700 uppercase tracking-widest px-2 pt-4 pb-1.5">Recently Opened</div>
+              {recentlyOpened.slice(0, 5).map(r => {
+                const m = meetings.find(x => x.meeting_id === r.id);
+                if (!m) return null;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setPreviewMeeting(pm => pm?.meeting_id === m.meeting_id ? null : m)}
+                    className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left text-slate-600 hover:text-slate-400 hover:bg-white/[0.03] transition-all group"
+                  >
+                    <Clock className="w-3 h-3 flex-shrink-0 text-slate-800 group-hover:text-slate-600" />
+                    <span className="text-[10px] truncate">{m.title}</span>
+                  </button>
+                );
+              })}
+            </>
+          )}
+        </div>
+
+        {/* Sidebar footer */}
+        {!sidebarCollapsed && (
+          <div className="flex-shrink-0 px-3 py-2.5 border-t border-white/[0.03]">
+            <div className="text-[9px] text-slate-700 font-semibold">{meetings.length} total recordings</div>
+          </div>
+        )}
+      </div>
+
+      {/* ══ MAIN SCROLL AREA ═════════════════════════════════════════════ */}
+      <div className="flex-1 overflow-y-auto bg-transparent p-6 space-y-6 pb-32 relative min-w-0">
       {/* Floating Selection Toolbar */}
       <AnimatePresence>
         {selectedIds.size > 0 && (
@@ -822,6 +1050,20 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         </AnimatePresence>
       </div>
 
+      {/* ── Collection header bar ─────────────────────────────── */}
+      {activeCollection !== 'all' && (
+        <div className="flex items-center gap-2 px-1 relative z-10 -mt-2">
+          <span className="text-xs font-bold text-slate-400">{activeColLabel}</span>
+          <span className="text-[10px] text-slate-700 font-semibold">· {collectionCounts[activeCollection] ?? 0} meetings</span>
+          <button
+            onClick={() => setActiveCollection('all')}
+            className="ml-auto flex items-center gap-1 text-[10px] text-slate-600 hover:text-slate-400 transition-colors"
+          >
+            <X className="w-3 h-3" /> Clear
+          </button>
+        </div>
+      )}
+
       {/* ── 4. Meeting Grid/List ─────────────────────────────── */}
       <div className="w-full relative z-10">
         {loading ? (
@@ -830,7 +1072,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
             : "flex flex-col gap-3"}>
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} index={i} />)}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : collectionFiltered.length === 0 ? (
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
             className="py-24 flex flex-col items-center gap-4 text-center bg-slate-900/20 border border-slate-800/40 rounded-2xl relative z-10 backdrop-blur-sm">
             <div className="w-16 h-16 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-center">
@@ -865,7 +1107,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         ) : viewMode === "grid" ? (
           /* GRID VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map((meeting, idx) => {
+            {collectionFiltered.map((meeting, idx) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
               const isSelected = idx === selectedIndex;
@@ -1247,7 +1489,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         ) : (
           /* LIST VIEW */
           <div className="flex flex-col gap-2">
-            {filtered.map((meeting, idx) => {
+            {collectionFiltered.map((meeting, idx) => {
               const meta = getDurationMeta(meeting.duration);
               const isThisPlaying = playingMeeting?.meeting_id === meeting.meeting_id && isPlaying;
               const isSelected = idx === selectedIndex;
@@ -1435,11 +1677,18 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                 Export Intelligence
               </button>
               <button
-                disabled
-                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-600 rounded-lg flex items-center gap-2 cursor-not-allowed opacity-50"
+                onClick={(e) => { togglePin(targetMeeting.meeting_id, e); setContextMenu(null); }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
               >
-                <FileText className="w-3.5 h-3.5" />
-                Move to Folder
+                <Pin className="w-3.5 h-3.5 text-purple-400" />
+                {pinnedIds.has(targetMeeting.meeting_id) ? 'Unpin' : 'Pin to Top'}
+              </button>
+              <button
+                onClick={(e) => { toggleArchive(targetMeeting.meeting_id, e); setContextMenu(null); }}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 rounded-lg flex items-center gap-2 transition-colors"
+              >
+                <Archive className="w-3.5 h-3.5 text-slate-400" />
+                {archivedIds.has(targetMeeting.meeting_id) ? 'Unarchive' : 'Archive'}
               </button>
               <div className="h-px bg-slate-900 my-1" />
               <button
@@ -1456,6 +1705,140 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           );
         })()}
       </AnimatePresence>
+
+      </div>{/* end main scroll */}
+
+      {/* ══ PREVIEW DRAWER ═════════════════════════════════════ */}
+      <AnimatePresence>
+        {previewMeeting && pm && (
+          <motion.div
+            key="preview-drawer"
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 300, opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            className="flex-shrink-0 w-72 flex flex-col border-l border-white/[0.04] bg-[#0a0a0f]/80 backdrop-blur-md overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.03] flex-shrink-0">
+              <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Preview</span>
+              <button onClick={() => setPreviewMeeting(null)} className="p-1 rounded-md text-slate-700 hover:text-slate-400 hover:bg-white/[0.04] transition-all">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+              {/* Title */}
+              <div>
+                <h3 className="text-sm font-bold text-white leading-tight line-clamp-2 mb-1">{pm.title}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-500">{pmDate}</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-800" />
+                  <span className="text-[10px] font-bold" style={{ color: pmMeta.color }}>{pmMeta.label}</span>
+                </div>
+              </div>
+
+              {/* Quick actions */}
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  { label: pmIsPinned ? 'Pinned' : 'Pin', icon: <Pin className="w-3 h-3" />, active: pmIsPinned, activeClass: 'bg-purple-950/40 border-purple-700/40 text-purple-400', action: (e: any) => togglePin(pm.meeting_id, e) },
+                  { label: 'Save', icon: <Bookmark className="w-3 h-3" />, active: pmIsBookmarked, activeClass: 'bg-sky-950/40 border-sky-700/40 text-sky-400', action: (e: any) => toggleBookmark(pm.meeting_id, e) },
+                  { label: pmIsFavorite ? 'Liked' : 'Like', icon: <Star className="w-3 h-3" />, active: pmIsFavorite, activeClass: 'bg-amber-950/40 border-amber-700/40 text-amber-400', action: (e: any) => toggleFavorite(pm.meeting_id, e) },
+                  { label: 'Archive', icon: <Archive className="w-3 h-3" />, active: archivedIds.has(pm.meeting_id), activeClass: 'bg-slate-800 border-slate-700 text-slate-300', action: (e: any) => { toggleArchive(pm.meeting_id, e); setPreviewMeeting(null); } },
+                ].map(btn => (
+                  <button key={btn.label} onClick={btn.action}
+                    className={`flex flex-col items-center gap-1 py-2 rounded-lg border text-[8px] font-bold transition-all ${
+                      btn.active ? btn.activeClass : 'bg-slate-900/60 border-slate-800/60 text-slate-600 hover:text-slate-400 hover:border-slate-700'
+                    }`}>
+                    {btn.icon}{btn.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Mini waveform */}
+              <div className="bg-slate-900/50 rounded-xl p-3 border border-slate-800/50">
+                <div className="flex items-end gap-[2px] h-8 justify-center">
+                  {Array.from({ length: 28 }).map((_, i) => {
+                    const h = 3 + Math.abs(Math.sin(i * 0.5)) * 22 + Math.abs(Math.cos(i * 0.9)) * 10;
+                    return <div key={i} style={{ height: `${Math.min(28, Math.max(3, h))}px` }} className="w-[3px] rounded-full bg-slate-700/60" />;
+                  })}
+                </div>
+                <div className="text-center mt-1.5">
+                  <span className="text-[8px] text-slate-700 font-mono">{pmMeta.label} · {pm.title.slice(0, 20)}</span>
+                </div>
+              </div>
+
+              {/* Summary */}
+              {pm.memo?.summary && (
+                <div>
+                  <div className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mb-1.5">Summary</div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-4">{pm.memo.summary}</p>
+                </div>
+              )}
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { label: 'Actions', value: pmActions, color: 'text-emerald-400', bg: 'bg-emerald-950/20 border-emerald-900/30' },
+                  { label: 'Decisions', value: pmDecisions, color: 'text-purple-400', bg: 'bg-purple-950/20 border-purple-900/30' },
+                  { label: 'Topics', value: pmTopics.length, color: 'text-amber-400', bg: 'bg-amber-950/20 border-amber-900/30' },
+                ].map(s => (
+                  <div key={s.label} className={`rounded-lg border p-2 text-center ${s.bg}`}>
+                    <div className={`text-lg font-extrabold tabular-nums leading-none ${s.color}`}>{s.value}</div>
+                    <div className="text-[8px] text-slate-700 font-semibold mt-1">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Topics */}
+              {pmTopics.length > 0 && (
+                <div>
+                  <div className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mb-1.5">Topics</div>
+                  <div className="flex flex-wrap gap-1">
+                    {pmTopics.slice(0, 8).map(t => (
+                      <span key={t} className="px-1.5 py-0.5 bg-amber-950/20 border border-amber-900/25 text-amber-500/80 text-[8px] font-bold rounded-md">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Transcript snippet */}
+              {pm.transcript && pm.transcript.length > 0 && (
+                <div>
+                  <div className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mb-1.5">Latest Segment</div>
+                  <div className="bg-slate-900/40 rounded-lg p-2.5 border border-slate-800/50 border-l-2 border-l-purple-600/30">
+                    <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-3 italic">“{pm.transcript[0].text}”</p>
+                    <div className="text-[8px] font-bold text-slate-700 mt-1.5">Speaker {pm.transcript[0].speaker_label || 'A'}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex-shrink-0 px-4 py-3 border-t border-white/[0.03] space-y-2">
+              <button
+                onClick={() => { onSelectMeeting(pm); setActivePage('transcript'); trackOpen(pm); setPreviewMeeting(null); }}
+                className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-900/20"
+              >
+                <ExternalLink className="w-3.5 h-3.5" /> Open Full Meeting
+              </button>
+              <div className="flex gap-1.5">
+                <button onClick={() => handleExport(pm)}
+                  className="flex-1 py-1.5 bg-slate-900/50 hover:bg-slate-800/60 border border-slate-800/50 text-slate-500 hover:text-white text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all">
+                  <Download className="w-3 h-3" /> Export
+                </button>
+                <button onClick={(e) => { handleDelete(pm.meeting_id, e); setPreviewMeeting(null); }}
+                  className="flex-1 py-1.5 bg-slate-900/50 hover:bg-rose-950/30 border border-slate-800/50 hover:border-rose-800/30 text-slate-500 hover:text-rose-400 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all">
+                  <Trash2 className="w-3 h-3" /> Delete
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };
+
