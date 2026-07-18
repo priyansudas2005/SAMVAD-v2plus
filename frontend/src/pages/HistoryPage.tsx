@@ -522,15 +522,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </div>
         </div>
 
-        {/* Collapsible advanced filters drawer with smooth pop-down animation */}
+        {/* Collapsible advanced filters drawer with smooth fade pop-down animation */}
         <AnimatePresence>
           {filterPanelOpen && (
             <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: "easeInOut" }}
-              className="overflow-hidden border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="border-t border-slate-900 pt-3 mt-1 grid grid-cols-2 md:grid-cols-6 gap-3"
             >
               {/* Date Range Filter */}
               <div className="flex flex-col gap-1">
