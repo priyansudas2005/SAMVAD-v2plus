@@ -1054,32 +1054,46 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} index={i} />)}
           </div>
         ) : collectionFiltered.length === 0 ? (
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-            className="py-24 flex flex-col items-center gap-4 text-center bg-slate-900/20 border border-slate-800/40 rounded-2xl relative z-10 backdrop-blur-sm">
-            <div className="w-16 h-16 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-center">
-              <Database className="w-8 h-8 text-slate-500" />
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="py-16 flex flex-col items-center justify-center gap-5 text-center bg-slate-950/20 border border-white/[0.03] rounded-3xl relative z-10 backdrop-blur-md shadow-2xl p-8 max-w-sm mx-auto mt-12">
+            <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center text-slate-400 shadow-inner">
+              {activeCollection === 'favorites' ? <Star className="w-6 h-6 text-amber-400" /> :
+               activeCollection === 'bookmarked' ? <Bookmark className="w-6 h-6 text-sky-400" /> :
+               activeCollection === 'pinned' ? <Pin className="w-6 h-6 text-purple-400" /> :
+               activeCollection === 'archived' ? <Archive className="w-6 h-6 text-slate-500" /> :
+               <Database className="w-6 h-6 text-sky-400" />}
             </div>
             <div>
               {meetings.length === 0 ? (
                 <>
-                  <h3 className="text-white font-bold text-lg">No meetings yet</h3>
-                  <p className="text-slate-500 text-sm mt-1 max-w-xs">
-                    Upload or record your first audio to generate intelligence records.
+                  <h3 className="text-white font-bold text-sm tracking-tight">Begin Your Meeting Space</h3>
+                  <p className="text-slate-500 text-[11px] mt-2 max-w-xs leading-relaxed">
+                    Upload voice recordings or start local transcribing to construct your offline intelligence workspace.
                   </p>
                   <button onClick={() => setActivePage("dashboard")}
-                    className="mt-4 px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg shadow-sky-500/10">
-                    Start Recording
+                    className="mt-5 px-5 py-2 bg-gradient-to-r from-sky-500 to-indigo-500 hover:brightness-110 text-white font-bold rounded-xl text-[10px] transition-all shadow-lg shadow-sky-500/10">
+                    Create record
                   </button>
                 </>
               ) : (
                 <>
-                  <h3 className="text-white font-bold text-lg">No meetings match your filters</h3>
-                  <p className="text-slate-500 text-sm mt-1 max-w-xs">
-                    Try adjusting your dates, speakers criteria, or clear the search query.
+                  <h3 className="text-white font-bold text-sm tracking-tight">
+                    {activeCollection === 'favorites' ? 'No Favorites Saved' :
+                     activeCollection === 'bookmarked' ? 'No Bookmarks Found' :
+                     activeCollection === 'pinned' ? 'No Pinned Meetings' :
+                     activeCollection === 'archived' ? 'No Archived Records' :
+                     'No matches in registry'}
+                  </h3>
+                  <p className="text-slate-500 text-[11px] mt-2 max-w-xs leading-relaxed">
+                    {activeCollection === 'favorites' ? 'Mark recordings with a star to pin them to your favorites library.' :
+                     activeCollection === 'bookmarked' ? 'Save important transcript lines or memo insights to access them rapidly.' :
+                     activeCollection === 'pinned' ? 'Keep top-priority items at the top of your list for quick access.' :
+                     activeCollection === 'archived' ? 'Archived meetings are stored safely here out of your workspace.' :
+                     'Try broadening your date filter, removing speakers criteria, or clearing the search query.'}
                   </p>
-                  <button onClick={resetFilters}
-                    className="mt-4 px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all border border-slate-700">
-                    Reset Filters
+                  <button onClick={() => { resetFilters(); setActiveCollection('all'); }}
+                    className="mt-5 px-5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-bold rounded-xl text-[10px] transition-all border border-slate-800 hover:border-slate-700">
+                    Clear filters & view all
                   </button>
                 </>
               )}
