@@ -1332,9 +1332,9 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   }}
                   className={`flex flex-col cursor-pointer group rounded-2xl overflow-hidden p-4 premium-card-interaction relative border ${
                     isCardSelected
-                      ? "border-purple-500 bg-slate-900/90 shadow-xl shadow-purple-500/10 ring-2 ring-purple-500/30 -translate-y-1"
+                      ? "is-selected bg-slate-900/90 ring-2 ring-purple-500/30"
                       : isSelected 
-                        ? "border-sky-500 bg-slate-900/90 shadow-xl shadow-sky-500/10 ring-2 ring-sky-500/30 -translate-y-1" 
+                        ? "is-selected-active bg-slate-900/90 ring-2 ring-sky-500/30" 
                         : "bg-slate-950/45 border-slate-900 hover:bg-slate-900/60"
                   }`}
                 >
