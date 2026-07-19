@@ -783,7 +783,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
       </header>
 
       {/* ── MAIN WORKSPACE ── */}
-      <div className="flex-1 grid grid-cols-12 gap-7 min-h-0 overflow-hidden pb-2 px-1">
+      <div className="flex-1 grid grid-cols-12 gap-7 min-h-0 overflow-hidden pb-2 px-1 mb-24">
 
         {/* ── LEFT CONTROL PANEL ── */}
         <aside
