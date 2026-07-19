@@ -722,7 +722,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
-    <div className={`flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative p-5 transition-all duration-500 ${uploading ? 'blur-[3px] pointer-events-none' : ''}`}>
+    <div className={`flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative pt-5 px-5 pb-32 transition-all duration-500 ${uploading ? 'blur-[3px] pointer-events-none' : ''}`}>
 
       {/* ── 1. HEADER ── */}
       <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-slate-950/45 border border-white/[0.03] rounded-2xl shadow-xl backdrop-blur-md mb-6">
@@ -788,7 +788,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── LEFT CONTROL PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/80 border border-white/[0.06] premium-card-interaction rounded-2xl p-5 flex flex-col gap-3.5 overflow-y-auto h-[calc(100vh-270px)] backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] scrollbar-none select-none pb-8"
+          className="col-span-12 lg:col-span-3 bg-slate-950/80 border border-white/[0.06] premium-card-interaction rounded-2xl p-5 flex flex-col gap-3.5 overflow-y-auto h-full backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] scrollbar-none select-none pb-8"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Capture Options</h3>
@@ -904,7 +904,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── CENTER STUDIO ── */}
         <main
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-6 flex flex-col h-[calc(100vh-270px)] bg-slate-950/50 border border-white/[0.04] premium-card-interaction rounded-2xl p-6 relative overflow-y-auto backdrop-blur-xl shadow-[0_30px_70px_rgba(0,0,0,0.85)] gap-5 pb-8"
+          className="col-span-12 lg:col-span-6 flex flex-col h-full bg-slate-950/50 border border-white/[0.04] premium-card-interaction rounded-2xl p-6 relative overflow-y-auto backdrop-blur-xl shadow-[0_30px_70px_rgba(0,0,0,0.85)] gap-5 pb-8"
         >
           {/* Subtle mesh grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.002)_1px,transparent_1px)] bg-[size:100%_12px] pointer-events-none z-10" />
@@ -1240,7 +1240,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── RIGHT LIVE STATUS PANEL (AI Engine & System Diagnostics) ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/75 border border-white/[0.05] premium-card-interaction rounded-2xl p-4 flex flex-col gap-3 overflow-y-auto h-[calc(100vh-270px)] backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] select-none pb-12 scrollbar-none"
+          className="col-span-12 lg:col-span-3 bg-slate-950/75 border border-white/[0.05] premium-card-interaction rounded-2xl p-4 flex flex-col gap-3 overflow-y-auto h-full backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] select-none pb-12 scrollbar-none"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-0.5">AI Operations Console</h3>
