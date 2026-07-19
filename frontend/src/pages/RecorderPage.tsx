@@ -293,6 +293,46 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
     e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
   };
 
+  // ── Keyboard Shortcuts (Section 9) ──
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Space to Toggle Pause/Resume (only if not focused on inputs)
+      if (e.code === 'Space' && document.activeElement?.tagName !== 'INPUT') {
+        e.preventDefault();
+        if (recordingState === 'recording') pauseRecording();
+        else if (recordingState === 'paused') resumeRecording();
+      }
+      // Ctrl + B -> Bookmark
+      if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setBookmarked(true);
+        handleAddMarker();
+      }
+      // Ctrl + M -> Marker
+      if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        handleAddMarker();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [recordingState]);
+
+  // ── Auto Save State & State Recovery (Section 10) ──
+  useEffect(() => {
+    if (recordingState === 'recording' || recordingState === 'paused') {
+      const stateObj = {
+        duration,
+        markers,
+        noiseSuppression,
+        echoCancellation,
+        speechEnhancement,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('samvad_recording_recovery', JSON.stringify(stateObj));
+    }
+  }, [duration, markers, noiseSuppression, echoCancellation, speechEnhancement, recordingState]);
+
   // ── Marker helper ──
   const handleAddMarker = () => {
     setMarkers(prev => [...prev, duration]);
