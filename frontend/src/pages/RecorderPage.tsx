@@ -126,11 +126,11 @@ const VUMeter: React.FC<VUMeterProps> = ({ level, peak, label, side, recordingSt
   }, [level, peak, recordingState, side]);
 
   return (
-    <div className="flex flex-col items-center gap-2" style={{ width: '18px' }}>
+    <div className="flex flex-col items-center gap-1.5" style={{ width: '18px' }}>
       <canvas
         ref={canvasRef}
         width={18}
-        height={200}
+        height={140}
         style={{ borderRadius: '3px', display: 'block' }}
       />
       <div style={{ height: '22px' }} />
@@ -657,7 +657,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative p-6 pb-24">
+    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative p-5 pb-24">
 
       {/* ── 1. HEADER ── */}
       <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-slate-950/45 border border-white/[0.03] rounded-2xl shadow-xl backdrop-blur-md mb-6">
@@ -883,7 +883,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             {/* Main Waveform Canvas */}
             <div
               className="flex-1 bg-[#050508]/95 rounded-2xl border border-white/[0.04] shadow-[inset_0_2px_16px_rgba(0,0,0,0.95)] overflow-hidden relative"
-              style={{ height: '220px' }}
+              style={{ height: '160px' }}
             >
               {/* Corner dB scale labels */}
               <div className="absolute top-2 left-3 text-[7px] text-slate-700 font-mono pointer-events-none">0 dB</div>
@@ -895,7 +895,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
               <canvas
                 ref={mainCanvasRef}
                 width={800}
-                height={220}
+                height={160}
                 className="w-full h-full block"
                 style={{
                   opacity: recordingState === 'paused' ? 0.4 : 1,
@@ -930,103 +930,89 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
           </div>
 
           {/* ═══════════════════════════════════════════════════════════ */}
-          {/* AUDIO LEVEL PANEL                                          */}
+          {/* COMPACT RECORDING METADATA / STATUS CHIPS                  */}
           {/* ═══════════════════════════════════════════════════════════ */}
-          <div className="flex-shrink-0 z-20 bg-slate-900/25 border border-white/[0.025] rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
+          <div className="flex-shrink-0 z-20 grid grid-cols-4 gap-3 bg-slate-900/15 border border-white/[0.02] p-2.5 rounded-2xl">
+            <div className="flex items-center gap-2 px-1">
+              <Clock className="w-3.5 h-3.5 text-purple-400" />
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Duration</span>
+                <span className="text-xs font-extrabold text-white font-mono leading-none">
+                  {recordingState === 'idle' ? '00:00' : formatTime(duration)}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-1">
+              <HardDrive className="w-3.5 h-3.5 text-sky-400" />
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">File Size</span>
+                <span className="text-xs font-extrabold text-slate-300 font-mono leading-none">
+                  {recordingState === 'idle' ? '0.00 MB' : `${calculatedSize} MB`}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-1">
+              <Activity className="w-3.5 h-3.5 text-emerald-400" />
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Sample Rate</span>
+                <span className="text-xs font-extrabold text-slate-300 font-mono leading-none">
+                  {sampleRateSelect.replace(' Hz', '')}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-1">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Format</span>
+                <span className="text-xs font-extrabold text-slate-300 font-mono leading-none">
+                  {formatSelect} · {bitDepthSelect.split(' ')[0]}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* COMPRESSED SINGLE-ROW AUDIO LEVEL MONITOR                  */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          <div className="flex-shrink-0 z-20 bg-slate-900/25 border border-white/[0.025] rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <BarChart3 className="w-3 h-3 text-purple-400" />
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Audio Level Monitor</span>
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Level Monitor</span>
               </div>
               <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold uppercase font-mono ${
                 isSpeech && recordingState === 'recording'
                   ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
                   : 'bg-slate-800/60 text-slate-600 border border-slate-800'
               }`}>
-                {isSpeech && recordingState === 'recording' ? '🎙 Speech Detected' : 'Silence'}
+                {isSpeech && recordingState === 'recording' ? '🎙 Speech' : 'Silence'}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-              <LevelBar
-                label="Input Gain"
-                value={`${inputGain}%`}
-                pct={inputGain}
-                color="#8b5cf6"
-              />
-              <LevelBar
-                label="Mic Sensitivity"
-                value={`${Math.round(inputGain * 0.95)}%`}
-                pct={inputGain * 0.95}
-                color="#6366f1"
-              />
-              <LevelBar
-                label="Current Loudness"
-                value={recordingState === 'recording' ? `${currentLoudness}%` : '—'}
-                pct={recordingState === 'recording' ? currentLoudness : 0}
-                color="#38bdf8"
-              />
-              <LevelBar
-                label="Peak Level"
-                value={recordingState === 'recording' ? `${peakLevel}%` : '—'}
-                pct={recordingState === 'recording' ? peakLevel : 0}
-                color="#f59e0b"
-              />
-              <LevelBar
-                label="Noise Floor"
-                value={`${noiseFloor} dB`}
-                pct={Math.round(((noiseFloor + 90) / 90) * 100)}
-                color="#10b981"
-              />
-              <LevelBar
-                label="Dynamic Range"
-                value={recordingState === 'recording' ? `${dynamicRange} dB` : '—'}
-                pct={recordingState === 'recording' ? dynamicRange : 0}
-                color="#a78bfa"
-              />
-              <LevelBar
-                label="Avg Level"
-                value={recordingState === 'recording' ? `${avgLevel}%` : '—'}
-                pct={recordingState === 'recording' ? avgLevel : 0}
-                color="#818cf8"
-              />
-              <LevelBar
-                label="Audio Quality"
-                value={`${audioQuality}%`}
-                pct={audioQuality}
-                color="#34d399"
-              />
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase">Gain / Sens</span>
+                <span className="text-xs font-bold text-white font-mono">{inputGain}% / {Math.round(inputGain * 0.95)}%</span>
+              </div>
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase">Loudness / Peak</span>
+                <span className="text-xs font-bold text-slate-300 font-mono">
+                  {recordingState === 'recording' ? `${currentLoudness}%` : '—'} / {recordingState === 'recording' ? `${peakLevel}%` : '—'}
+                </span>
+              </div>
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase">Noise / Dynamic</span>
+                <span className="text-xs font-bold text-slate-300 font-mono">
+                  {noiseFloor}dB / {recordingState === 'recording' ? `${dynamicRange}dB` : '—'}
+                </span>
+              </div>
+              <div>
+                <span className="block text-[8px] text-slate-500 font-bold uppercase">Avg / Quality</span>
+                <span className="text-xs font-bold text-emerald-400 font-mono">
+                  {recordingState === 'recording' ? `${avgLevel}%` : '—'} / {audioQuality}%
+                </span>
+              </div>
             </div>
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════ */}
-          {/* RECORDING STATUS CHIPS                                     */}
-          {/* ═══════════════════════════════════════════════════════════ */}
-          <div className="flex-shrink-0 z-20 grid grid-cols-4 gap-2">
-            <StatusChip
-              icon={<Clock className="w-3 h-3" />}
-              label="Duration"
-              value={recordingState === 'idle' ? '00:00' : formatTime(duration)}
-              accent="#8b5cf6"
-            />
-            <StatusChip
-              icon={<HardDrive className="w-3 h-3" />}
-              label="File Size"
-              value={recordingState === 'idle' ? '0.00 MB' : `${calculatedSize} MB`}
-              accent="#38bdf8"
-            />
-            <StatusChip
-              icon={<Activity className="w-3 h-3" />}
-              label="Sample Rate"
-              value={sampleRateSelect.replace(' Hz', '')}
-              accent="#10b981"
-            />
-            <StatusChip
-              icon={<Zap className="w-3 h-3" />}
-              label="Format"
-              value={`${formatSelect} · ${bitDepthSelect.split(' ')[0]}`}
-              accent="#f59e0b"
-            />
           </div>
 
           {/* Save form when stopped */}
