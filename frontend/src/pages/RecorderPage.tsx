@@ -723,7 +723,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── LEFT CONTROL PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4.5 flex flex-col gap-3.5 overflow-y-auto h-[calc(100vh-140px)] backdrop-blur-md shadow-xl scrollbar-none select-none pb-12"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4.5 flex flex-col gap-3.5 overflow-y-auto h-[calc(100vh-180px)] backdrop-blur-md shadow-xl select-none pb-12"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Capture Options</h3>
@@ -839,7 +839,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── CENTER STUDIO ── */}
         <main
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-6 flex flex-col h-[calc(100vh-140px)] bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-6 relative overflow-y-auto backdrop-blur-md shadow-xl gap-5 scrollbar-none pb-12"
+          className="col-span-12 lg:col-span-6 flex flex-col h-[calc(100vh-180px)] bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-6 relative overflow-y-auto backdrop-blur-md shadow-xl gap-5 pb-12"
         >
           {/* Subtle mesh grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.003)_1px,transparent_1px)] bg-[size:100%_12px] pointer-events-none z-10" />
@@ -1050,7 +1050,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── RIGHT LIVE STATUS PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-2.5 overflow-y-auto h-[calc(100vh-140px)] backdrop-blur-md shadow-xl scrollbar-none select-none pb-16"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-2.5 overflow-y-auto h-[calc(100vh-180px)] backdrop-blur-md shadow-xl select-none pb-16"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Signal Health</h3>
