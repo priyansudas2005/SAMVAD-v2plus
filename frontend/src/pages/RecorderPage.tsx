@@ -1059,7 +1059,9 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
           <div className="flex flex-col gap-2.5">
             {/* Audio Quality */}
-            <div className="relative bg-[#0d0e12]/60 border border-emerald-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(16,185,129,0.03)]">
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
+              {/* Top glow accent */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <AudioLines className="w-3.5 h-3.5 text-emerald-400" />
@@ -1076,7 +1078,8 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* Noise Floor */}
-            <div className="relative bg-[#0d0e12]/60 border border-indigo-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(99,102,241,0.03)]">
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <Activity className="w-3.5 h-3.5 text-indigo-400" />
@@ -1093,7 +1096,8 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* VAD State */}
-            <div className="relative bg-[#0d0e12]/60 border border-purple-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(168,85,247,0.03)]">
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <Sparkles className="w-3.5 h-3.5 text-purple-400" />
@@ -1114,7 +1118,8 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* Clipping */}
-            <div className="relative bg-[#0d0e12]/60 border border-rose-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(244,63,94,0.03)]">
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-rose-500/35 to-transparent" />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <Gauge className="w-3.5 h-3.5 text-rose-400" />
@@ -1131,7 +1136,8 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* System Resources */}
-            <div className="relative bg-[#0d0e12]/60 border border-sky-500/25 p-3 rounded-2xl flex flex-col gap-2 overflow-hidden shadow-[0_0_12px_rgba(56,189,248,0.03)]">
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-2 overflow-hidden shadow-md">
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-500/35 to-transparent" />
               <div className="flex items-center gap-1.5 text-slate-400 border-b border-white/[0.02] pb-1.5">
                 <Cpu className="w-3.5 h-3.5 text-sky-400" />
                 <span className="text-[9px] font-bold uppercase tracking-wider">Resource Allocation</span>
