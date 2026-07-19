@@ -723,7 +723,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── LEFT CONTROL PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4.5 flex flex-col gap-3.5 overflow-y-auto max-h-[82vh] backdrop-blur-md shadow-xl scrollbar-none select-none"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4.5 flex flex-col gap-3.5 overflow-y-auto h-[calc(100vh-140px)] backdrop-blur-md shadow-xl scrollbar-none select-none pb-12"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Capture Options</h3>
@@ -839,7 +839,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── CENTER STUDIO ── */}
         <main
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-6 flex flex-col h-full bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-6 relative overflow-y-auto backdrop-blur-md shadow-xl gap-5 scrollbar-none"
+          className="col-span-12 lg:col-span-6 flex flex-col h-[calc(100vh-140px)] bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-6 relative overflow-y-auto backdrop-blur-md shadow-xl gap-5 scrollbar-none pb-12"
         >
           {/* Subtle mesh grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.003)_1px,transparent_1px)] bg-[size:100%_12px] pointer-events-none z-10" />
@@ -1050,7 +1050,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── RIGHT LIVE STATUS PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-2.5 overflow-y-auto max-h-[82vh] backdrop-blur-md shadow-xl scrollbar-none select-none pb-6"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-2.5 overflow-y-auto h-[calc(100vh-140px)] backdrop-blur-md shadow-xl scrollbar-none select-none pb-16"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Signal Health</h3>
@@ -1059,9 +1059,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
           <div className="flex flex-col gap-2.5">
             {/* Audio Quality */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden">
-              {/* Top glow accent */}
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+            <div className="relative bg-[#0d0e12]/60 border border-emerald-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(16,185,129,0.03)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <AudioLines className="w-3.5 h-3.5 text-emerald-400" />
@@ -1078,8 +1076,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* Noise Floor */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+            <div className="relative bg-[#0d0e12]/60 border border-indigo-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(99,102,241,0.03)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <Activity className="w-3.5 h-3.5 text-indigo-400" />
@@ -1096,8 +1093,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* VAD State */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
+            <div className="relative bg-[#0d0e12]/60 border border-purple-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(168,85,247,0.03)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <Sparkles className="w-3.5 h-3.5 text-purple-400" />
@@ -1118,8 +1114,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* Clipping */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-rose-500/35 to-transparent" />
+            <div className="relative bg-[#0d0e12]/60 border border-rose-500/20 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-[0_0_12px_rgba(244,63,94,0.03)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-slate-400">
                   <Gauge className="w-3.5 h-3.5 text-rose-400" />
@@ -1136,8 +1131,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
             </div>
 
             {/* System Resources */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-2 overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-500/35 to-transparent" />
+            <div className="relative bg-[#0d0e12]/60 border border-sky-500/25 p-3 rounded-2xl flex flex-col gap-2 overflow-hidden shadow-[0_0_12px_rgba(56,189,248,0.03)]">
               <div className="flex items-center gap-1.5 text-slate-400 border-b border-white/[0.02] pb-1.5">
                 <Cpu className="w-3.5 h-3.5 text-sky-400" />
                 <span className="text-[9px] font-bold uppercase tracking-wider">Resource Allocation</span>
