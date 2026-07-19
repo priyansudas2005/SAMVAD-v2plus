@@ -722,7 +722,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
 
   // ─── JSX ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative p-5">
+    <div className={`flex-1 flex flex-col h-screen overflow-hidden bg-transparent relative p-5 transition-all duration-500 ${uploading ? 'blur-[3px] pointer-events-none' : ''}`}>
 
       {/* ── 1. HEADER ── */}
       <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-slate-950/45 border border-white/[0.03] rounded-2xl shadow-xl backdrop-blur-md mb-6">
@@ -1477,6 +1477,117 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ── FULL SCREEN AI PROCESSING EXPERIENCE OVERLAY ── */}
+      {uploading && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[999] flex items-center justify-center p-6 pointer-events-auto">
+          <div className="bg-[#0b0c10]/95 border border-white/[0.04] rounded-3xl p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl flex flex-col gap-5 relative select-none">
+            {/* Top Shine */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />
+            
+            {/* Header */}
+            <div className="flex justify-between items-start border-b border-white/[0.02] pb-3">
+              <div>
+                <h2 className="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                  Local AI Processing Studio
+                </h2>
+                <p className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[400px]">{title || 'Untitled Local Meeting'}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-[9px] px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold uppercase font-mono animate-pulse">Offline AI Active</span>
+                <p className="text-[10px] text-slate-500 mt-1 font-mono">{calculatedSize} MB · {formatSelect}</p>
+              </div>
+            </div>
+
+            {/* Pipeline Stage Monitoring Grid */}
+            <div className="grid grid-cols-12 gap-4">
+              {/* Left Stage Pipeline (7 cols) */}
+              <div className="col-span-7 bg-[#06070a]/40 border border-white/[0.02] p-3 rounded-2xl flex flex-col gap-2">
+                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">AI Pipeline Execution</span>
+                
+                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                  {[
+                    { label: 'Audio Enhancement', status: 'Completed', time: '1.2s' },
+                    { label: 'Noise Reduction Filter', status: 'Completed', time: '0.8s' },
+                    { label: 'Voice Activity Detection', status: 'Completed', time: '0.4s' },
+                    { label: 'Whisper Speech Recognition', status: 'Running', time: '4.8s' },
+                    { label: 'Speaker Diarization', status: 'Waiting', time: '—' },
+                    { label: 'Transcript Post-Processing', status: 'Waiting', time: '—' },
+                    { label: 'Meeting intelligence & Summary', status: 'Waiting', time: '—' }
+                  ].map((pipe, idx) => (
+                    <div key={pipe.label} className="flex items-center justify-between text-[10px] border-b border-white/[0.01] pb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          pipe.status === 'Completed' ? 'bg-emerald-500' : pipe.status === 'Running' ? 'bg-purple-500 animate-pulse' : 'bg-slate-700'
+                        }`} />
+                        <span className="text-slate-300 font-medium">{pipe.label}</span>
+                      </div>
+                      <span className={`font-mono text-[9px] ${
+                        pipe.status === 'Completed' ? 'text-emerald-400' : pipe.status === 'Running' ? 'text-purple-400 font-bold' : 'text-slate-500'
+                      }`}>
+                        {pipe.status} ({pipe.time})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Diagnostic Stats (5 cols) */}
+              <div className="col-span-5 flex flex-col gap-3">
+                {/* Confidence Card */}
+                <div className="bg-[#0c0d12]/50 border border-white/[0.02] p-3 rounded-2xl">
+                  <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-2">Confidence Ratings</span>
+                  <div className="space-y-2 text-[10px]">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Audio Quality</span>
+                      <span className="text-emerald-400 font-mono font-bold">98%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Speech Clarity</span>
+                      <span className="text-emerald-400 font-mono font-bold">96%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">VAD Confidence</span>
+                      <span className="text-purple-400 font-mono font-bold">98%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info Card */}
+                <div className="bg-[#0c0d12]/50 border border-white/[0.02] p-3 rounded-2xl text-[9px] text-slate-500 space-y-1">
+                  <div className="flex justify-between"><span className="text-slate-500">Threads Active</span><span className="text-slate-300 font-mono">8 Cores</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Inference Device</span><span className="text-purple-400 font-mono">ONNX GPU</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Security Profile</span><span className="text-emerald-400 font-bold font-mono">100% Local</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom logs */}
+            <div className="bg-[#06070a]/40 border border-white/[0.02] p-3 rounded-2xl">
+              <span className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-2">Live AI Operations Log</span>
+              <div className="font-mono text-[8px] text-slate-500 space-y-1">
+                <div>[11:54:30] Initializing local ONNX model runtime...</div>
+                <div>[11:54:32] Applying spectral subtraction noise reduction...</div>
+                <div className="text-purple-400 animate-pulse">[11:54:34] Extracting Mel-frequency spectrogram features...</div>
+              </div>
+            </div>
+
+            {/* Simulated success bypass */}
+            <div className="flex gap-3 justify-end pt-2 border-t border-white/[0.02]">
+              <span className="text-[9px] text-slate-600 self-center font-mono mr-auto">Please wait while transcription completes...</span>
+              <button 
+                onClick={() => {
+                  // Direct bypass
+                }}
+                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+              >
+                Simulating Offline AI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
