@@ -130,7 +130,7 @@ const VUMeter: React.FC<VUMeterProps> = ({ level, peak, label, side, recordingSt
       <canvas
         ref={canvasRef}
         width={18}
-        height={140}
+        height={220}
         style={{ borderRadius: '3px', display: 'block' }}
       />
       <div style={{ height: '22px' }} />
@@ -409,24 +409,31 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         ctx.fillRect(0, 0, W, H);
 
         // Center axis hairline
-        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.015)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, H / 2);
         ctx.lineTo(W, H / 2);
         ctx.stroke();
 
-        // Subtle horizontal grid
-        [0.25, 0.75].forEach(frac => {
-          ctx.strokeStyle = 'rgba(255,255,255,0.015)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([4, 8]);
+        // Audio Grid Reference lines (horizontal dB marks)
+        const dbFracs = [0.25, 0.375, 0.625, 0.75];
+        dbFracs.forEach(frac => {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.005)';
           ctx.beginPath();
           ctx.moveTo(0, H * frac);
           ctx.lineTo(W, H * frac);
           ctx.stroke();
-          ctx.setLineDash([]);
         });
+
+        // Vertical time grid ticks
+        for (let x = 50; x < W; x += 100) {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.004)';
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, H);
+          ctx.stroke();
+        }
 
         // Volume-reactive radial aura
         if (clampedRms > 0.04) {
@@ -608,10 +615,28 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
       const breathe = 1 + Math.sin(Date.now() / 2200) * 0.35;
 
       // Center axis
-      ctx.strokeStyle = 'rgba(255,255,255,0.025)';
-      ctx.lineWidth = 1; ctx.setLineDash([4, 8]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.015)';
+      ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
-      ctx.setLineDash([]);
+
+      // Audio Grid Reference lines
+      const dbFracs = [0.25, 0.375, 0.625, 0.75];
+      dbFracs.forEach(frac => {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.005)';
+        ctx.beginPath();
+        ctx.moveTo(0, H * frac);
+        ctx.lineTo(W, H * frac);
+        ctx.stroke();
+      });
+
+      // Vertical time grid ticks
+      for (let x = 50; x < W; x += 100) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.004)';
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
 
       // Ghost wave
       ctx.strokeStyle = 'rgba(99,102,241,0.06)';
@@ -880,22 +905,47 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
               <VUMeter level={vuLeft} peak={vuLeftPeak} label="L" side="L" recordingState={recordingState} />
             </div>
 
-            {/* Main Waveform Canvas */}
+            {/* Main Waveform Canvas Container */}
             <div
               className="flex-1 bg-[#050508]/95 rounded-2xl border border-white/[0.04] shadow-[inset_0_2px_16px_rgba(0,0,0,0.95)] overflow-hidden relative"
-              style={{ height: '160px' }}
+              style={{ height: '240px' }}
             >
-              {/* Corner dB scale labels */}
-              <div className="absolute top-2 left-3 text-[7px] text-slate-700 font-mono pointer-events-none">0 dB</div>
-              <div className="absolute top-2 right-3 text-[7px] text-slate-700 font-mono pointer-events-none select-none">
+              {/* Audio Overlay Metrics */}
+              {/* Top Left: Input Level */}
+              <div className="absolute top-3 left-4 text-[9px] text-slate-500 font-mono pointer-events-none select-none flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500/80" />
+                <span>IN: {recordingState === 'recording' ? `${Math.round(vuLeft * 100)}%` : '—'}</span>
+              </div>
+              
+              {/* Top Right: Specs */}
+              <div className="absolute top-3 right-4 text-[9px] text-slate-500 font-mono pointer-events-none select-none">
                 {sampleRateSelect} · {channels}ch · {bitDepthSelect}
               </div>
-              <div className="absolute bottom-2 left-3 text-[7px] text-slate-700 font-mono pointer-events-none">-∞</div>
+
+              {/* Bottom Left: Loudness */}
+              <div className="absolute bottom-3 left-4 text-[9px] text-slate-500 font-mono pointer-events-none select-none">
+                LOUDNESS: {recordingState === 'recording' ? `${currentLoudness}%` : '—'}
+              </div>
+
+              {/* Bottom Right: Elapsed Time */}
+              <div className="absolute bottom-3 right-4 text-[9px] text-slate-500 font-mono pointer-events-none select-none font-bold">
+                {recordingState === 'idle' ? '00:00' : formatTime(duration)}
+              </div>
+
+              {/* Center Reference Label Overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none z-10">
+                <span className="text-[9px] text-slate-600 font-mono uppercase tracking-widest bg-slate-950/60 px-3 py-1 rounded-full border border-white/[0.02] backdrop-blur-sm">
+                  {recordingState === 'idle' && 'Standby: Press Record'}
+                  {recordingState === 'recording' && 'Recording Live'}
+                  {recordingState === 'paused' && 'Recording Paused'}
+                  {recordingState === 'stopped' && 'Finalizing Recording'}
+                </span>
+              </div>
 
               <canvas
                 ref={mainCanvasRef}
                 width={800}
-                height={160}
+                height={240}
                 className="w-full h-full block"
                 style={{
                   opacity: recordingState === 'paused' ? 0.4 : 1,
