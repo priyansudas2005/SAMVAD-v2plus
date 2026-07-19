@@ -723,7 +723,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── LEFT CONTROL PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-5 flex flex-col gap-4 overflow-y-auto backdrop-blur-md shadow-xl scrollbar-none select-none"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4.5 flex flex-col gap-3.5 overflow-y-auto max-h-[82vh] backdrop-blur-md shadow-xl scrollbar-none select-none"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Capture Options</h3>
@@ -961,10 +961,10 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2 px-1">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <div>
+              <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              <div className="min-w-0">
                 <span className="block text-[8px] text-slate-500 font-bold uppercase tracking-wider">Format</span>
-                <span className="text-xs font-extrabold text-slate-300 font-mono leading-none">
+                <span className="text-[10px] font-extrabold text-slate-300 font-mono leading-none whitespace-nowrap">
                   {formatSelect} · {bitDepthSelect.split(' ')[0]}
                 </span>
               </div>
@@ -1050,7 +1050,7 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
         {/* ── RIGHT LIVE STATUS PANEL ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-5 flex flex-col gap-3 overflow-y-auto backdrop-blur-md shadow-xl scrollbar-none select-none pb-6"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-2.5 overflow-y-auto max-h-[82vh] backdrop-blur-md shadow-xl scrollbar-none select-none pb-6"
         >
           <div>
             <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Signal Health</h3>
