@@ -1197,126 +1197,158 @@ export const RecorderPage: React.FC<RecorderPageProps> = ({
           )}
         </main>
 
-        {/* ── RIGHT LIVE STATUS PANEL ── */}
+        {/* ── RIGHT LIVE STATUS PANEL (AI Engine & System Diagnostics) ── */}
         <aside
           onMouseMove={handleMouseMove}
-          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-2.5 overflow-y-auto h-[calc(100vh-190px)] backdrop-blur-md shadow-xl select-none pb-10"
+          className="col-span-12 lg:col-span-3 bg-slate-950/45 border border-white/[0.03] premium-card-interaction rounded-3xl p-4 flex flex-col gap-3 overflow-y-auto h-[calc(100vh-190px)] backdrop-blur-md shadow-xl select-none pb-12"
         >
           <div>
-            <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-1">Signal Health</h3>
-            <p className="text-[10px] text-slate-500">Live hardware & stream diagnostics.</p>
+            <h3 className="text-xs font-bold text-white tracking-wider uppercase mb-0.5">AI Operations Console</h3>
+            <p className="text-[9px] text-slate-500">Live offline engine & pipeline analytics.</p>
           </div>
 
-          <div className="flex flex-col gap-2.5">
-            {/* Audio Quality */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
-              {/* Top glow accent */}
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <AudioLines className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Audio Quality</span>
-                </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold uppercase font-mono">EXCELLENT</span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-300 mt-0.5">
-                <span>Signal Strength</span><span className="font-mono">{audioQuality}%</span>
-              </div>
-              <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${audioQuality}%` }} />
-              </div>
-            </div>
-
-            {/* Noise Floor */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <Activity className="w-3.5 h-3.5 text-indigo-400" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Noise Floor</span>
-                </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-bold uppercase font-mono">{noiseFloor} dB</span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-300 mt-0.5">
-                <span>Interference Ratio</span><span className="font-mono">Low</span>
-              </div>
-              <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-500 rounded-full" style={{ width: '15%' }} />
-              </div>
-            </div>
-
-            {/* VAD State */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">VAD State</span>
-                </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 font-bold uppercase font-mono">
-                  {recordingState === 'recording' && isSpeech ? 'SPEECH' : 'SILENCE'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-300 mt-0.5">
-                <span>Confidence Rating</span>
-                <span className="font-mono">{recordingState === 'recording' && isSpeech ? '96%' : '0%'}</span>
-              </div>
-              <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
-                <div className="h-full bg-purple-500 rounded-full transition-all duration-300"
-                  style={{ width: recordingState === 'recording' && isSpeech ? '96%' : '5%' }} />
-              </div>
-            </div>
-
-            {/* Clipping */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-1.5 overflow-hidden shadow-md">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-rose-500/35 to-transparent" />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <Gauge className="w-3.5 h-3.5 text-rose-400" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Clipping</span>
-                </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold uppercase font-mono">NOMINAL</span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-300 mt-0.5">
-                <span>Peak Headroom</span><span className="font-mono">-6.2 dB</span>
-              </div>
-              <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '80%' }} />
-              </div>
-            </div>
-
-            {/* System Resources */}
-            <div className="relative bg-[#0d0e12]/60 border border-slate-900/80 p-3 rounded-2xl flex flex-col gap-2 overflow-hidden shadow-md">
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-sky-500/35 to-transparent" />
-              <div className="flex items-center gap-1.5 text-slate-400 border-b border-white/[0.02] pb-1.5">
-                <Cpu className="w-3.5 h-3.5 text-sky-400" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">Resource Allocation</span>
-              </div>
-              <div className="space-y-1.5 text-[9px]">
+          <div className="flex flex-col gap-3">
+            
+            {/* SECTION 1: AI Engine Services Status */}
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900 p-2.5 rounded-2xl flex flex-col gap-2">
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">AI Component Stack</span>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
                 {[
-                  { label: 'CPU Threads', value: `${cpuUsage}%`, pct: cpuUsage },
-                  { label: 'RAM Footprint', value: `${ramUsage}%`, pct: ramUsage },
-                  { label: 'GPU Compute', value: `${gpuUsage}%`, pct: gpuUsage },
-                ].map(({ label, value, pct }) => (
-                  <div key={label}>
-                    <div className="flex justify-between text-slate-300 mb-0.5">
-                      <span>{label}</span><span className="font-mono">{value}</span>
-                    </div>
-                    <div className="w-full h-0.5 bg-slate-900 rounded-full overflow-hidden">
-                      <div className="h-full bg-sky-400 transition-all duration-1000" style={{ width: `${pct}%` }} />
-                    </div>
+                  { name: 'VAD Engine', status: recordingState === 'recording' ? 'Running' : 'Idle', col: '#10b981' },
+                  { name: 'Enhancement', status: speechEnhancement && recordingState === 'recording' ? 'Running' : 'Idle', col: '#10b981' },
+                  { name: 'Noise Filter', status: noiseSuppression && recordingState === 'recording' ? 'Running' : 'Idle', col: '#10b981' },
+                  { name: 'Whisper ASG', status: recordingState === 'recording' ? 'Running' : 'Idle', col: '#10b981' },
+                  { name: 'Diarizer', status: recordingState === 'recording' ? 'Running' : 'Idle', col: '#10b981' },
+                  { name: 'QA Embedder', status: 'Idle', col: '#6366f1' }
+                ].map(svc => (
+                  <div key={svc.name} className="flex items-center justify-between">
+                    <span className="text-slate-400">{svc.name}</span>
+                    <span className="flex items-center gap-1 font-semibold text-slate-300">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: svc.status === 'Running' ? '#a78bfa' : '#64748b' }} />
+                      {svc.status}
+                    </span>
                   </div>
                 ))}
-                <div className="flex justify-between text-slate-300 pt-1 border-t border-white/[0.02] mt-1">
-                  <div className="flex items-center gap-1"><HardDrive className="w-2.5 h-2.5 text-slate-500" /><span>Disk IO</span></div>
-                  <span className="font-mono">{diskSpeed} MB/s</span>
+              </div>
+            </div>
+
+            {/* SECTION 2: Model Information */}
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900 p-2.5 rounded-2xl flex flex-col gap-1.5 text-[9px]">
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Active Models & Specs</span>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Speech Model</span>
+                <span className="text-slate-300 font-mono">faster-whisper-small (Loaded)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Diarization</span>
+                <span className="text-slate-300 font-mono">Pyannote v3.1</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">QA Engine</span>
+                <span className="text-slate-300 font-mono">Local Transformer</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Inference Device</span>
+                <span className="text-purple-400 font-mono">ONNX-CUDA / GPU</span>
+              </div>
+            </div>
+
+            {/* SECTION 3 & 4: Audio Diagnostics & System Performance */}
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900 p-2.5 rounded-2xl flex flex-col gap-2">
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">System Resources & Audio</span>
+              
+              {/* Mini visual bars */}
+              <div className="space-y-1.5 text-[9px]">
+                <div>
+                  <div className="flex justify-between text-slate-400 mb-0.5">
+                    <span>CPU Thread Use</span><span className="font-mono text-slate-300">{cpuUsage}%</span>
+                  </div>
+                  <div className="w-full h-0.5 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-500" style={{ width: `${cpuUsage}%` }} />
+                  </div>
                 </div>
-                <div className="flex justify-between text-slate-300">
-                  <div className="flex items-center gap-1"><Activity className="w-2.5 h-2.5 text-slate-500" /><span>AI Latency</span></div>
-                  <span className="font-mono">{latency} ms</span>
+                <div>
+                  <div className="flex justify-between text-slate-400 mb-0.5">
+                    <span>GPU Engine</span><span className="font-mono text-slate-300">{gpuUsage}%</span>
+                  </div>
+                  <div className="w-full h-0.5 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500" style={{ width: `${gpuUsage}%` }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-slate-400 mb-0.5">
+                    <span>RAM Allocation</span><span className="font-mono text-slate-300">{ramUsage}%</span>
+                  </div>
+                  <div className="w-full h-0.5 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-sky-500" style={{ width: `${ramUsage}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Text parameters */}
+              <div className="grid grid-cols-2 gap-y-1 text-[9px] pt-1.5 border-t border-white/[0.02]">
+                <div className="flex justify-between pr-2">
+                  <span className="text-slate-500">Noise Floor</span><span className="font-mono text-slate-300">{noiseFloor} dB</span>
+                </div>
+                <div className="flex justify-between pl-2 border-l border-white/[0.02]">
+                  <span className="text-slate-500">Stability</span><span className="text-slate-300 font-mono">99.4%</span>
+                </div>
+                <div className="flex justify-between pr-2">
+                  <span className="text-slate-500">AI Latency</span><span className="font-mono text-slate-300">{latency} ms</span>
+                </div>
+                <div className="flex justify-between pl-2 border-l border-white/[0.02]">
+                  <span className="text-slate-500">Disk IO</span><span className="font-mono text-slate-300">{diskSpeed} MB/s</span>
                 </div>
               </div>
             </div>
+
+            {/* SECTION 6: Live Pipeline Processing Monitor */}
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900 p-2.5 rounded-2xl flex flex-col gap-2">
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Pipeline Processing States</span>
+              <div className="flex flex-wrap gap-1.5 text-[8px] font-semibold">
+                {[
+                  { name: 'Capture', state: recordingState === 'recording' ? 'Running' : 'Waiting' },
+                  { name: 'Enhancement', state: recordingState === 'recording' && speechEnhancement ? 'Running' : 'Waiting' },
+                  { name: 'Speech Detect', state: recordingState === 'recording' ? 'Running' : 'Waiting' },
+                  { name: 'Whisper Transcription', state: 'Queued' },
+                  { name: 'Speaker Diarization', state: 'Queued' },
+                  { name: 'Embedding Gen', state: 'Queued' }
+                ].map(step => (
+                  <span
+                    key={step.name}
+                    className={`px-2 py-0.5 rounded border font-mono ${
+                      step.state === 'Running'
+                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/25 animate-pulse'
+                        : step.state === 'Queued'
+                        ? 'bg-amber-500/5 text-amber-500/80 border-amber-500/10'
+                        : 'bg-slate-900/60 text-slate-500 border-slate-800'
+                    }`}
+                  >
+                    {step.name} · {step.state}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* SECTION 8: AI Circular Metrics Confidence */}
+            <div className="relative bg-[#0d0e12]/60 border border-slate-900 p-2.5 rounded-2xl flex flex-col gap-2">
+              <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">AI Operations Gauges</span>
+              <div className="grid grid-cols-3 gap-2 text-center text-[9px]">
+                <div className="p-1 border border-white/[0.02] bg-slate-950/20 rounded-lg">
+                  <span className="block font-mono text-emerald-400 font-extrabold text-[10px]">96%</span>
+                  <span className="text-[7px] text-slate-500 uppercase font-bold block leading-tight mt-0.5">Clarity</span>
+                </div>
+                <div className="p-1 border border-white/[0.02] bg-slate-950/20 rounded-lg">
+                  <span className="block font-mono text-purple-400 font-extrabold text-[10px]">98%</span>
+                  <span className="text-[7px] text-slate-500 uppercase font-bold block leading-tight mt-0.5">VAD</span>
+                </div>
+                <div className="p-1 border border-white/[0.02] bg-slate-950/20 rounded-lg">
+                  <span className="block font-mono text-sky-400 font-extrabold text-[10px]">99%</span>
+                  <span className="text-[7px] text-slate-500 uppercase font-bold block leading-tight mt-0.5">Reliability</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </aside>
       </div>
