@@ -364,7 +364,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <DashboardPage 
                 meetings={meetings}
@@ -383,7 +383,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <RecorderPage 
                 stream={stream}
@@ -413,7 +413,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <HistoryPage 
                 meetings={meetings}
@@ -432,7 +432,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <TranscriptPage 
                 currentMeeting={currentMeeting}
@@ -449,7 +449,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <SummaryPage 
                 currentMeeting={currentMeeting}
@@ -465,7 +465,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <Suspense fallback={<TabSkeleton />}>
                 <StatsPage currentMeeting={currentMeeting} onUpdateMeeting={handleUpdateCurrentMeeting} />
@@ -481,7 +481,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <Suspense fallback={<TabSkeleton />}>
                 <QAPage 
@@ -500,7 +500,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <Suspense fallback={<TabSkeleton />}>
                 <AnalyticsPage currentMeeting={currentMeeting} />
@@ -516,7 +516,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <SettingsPage />
             </motion.div>
