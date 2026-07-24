@@ -42,6 +42,7 @@ import { Toast } from '../components/Toast';
 import { UnsavedChangesIndicator } from '../components/UnsavedChangesIndicator';
 import { SpeakerManagerPanel } from '../components/SpeakerManagerPanel';
 import { SpeakerBadge } from '../components/SpeakerBadge';
+import { EmptyState } from '../components/EmptyState';
 import { RenameSpeakerModal, SPEAKER_COLORS } from '../components/SpeakerManagerPanel';
 
 interface TranscriptPageProps {
@@ -747,26 +748,24 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
             </div>
           ) : !hasTranscript ? (
             /* Process Request Layout */
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center max-w-md mx-auto w-full space-y-6 font-sans">
-              <div className="w-12 h-12 bg-[#090a0e] border border-white/[0.05] rounded-xl flex items-center justify-center text-[#98A2B3] shadow-inner">
-                <FileAudio className="w-6 h-6 text-[#8B5CF6]" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-widest">Audio Analysis Required</h3>
-                <p className="text-xs text-[#98A2B3] mt-2 leading-relaxed">
-                  No transcript exists yet. Run local audio transcription parameters below to initialize the editor.
-                </p>
-              </div>
+            <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-lg mx-auto w-full font-sans">
+              <EmptyState 
+                scenario="no-transcript"
+                primaryCtaText={processing ? "Running Whisper..." : "Run Whisper Pipeline"}
+                onPrimaryCta={handleProcess}
+                layout="card"
+                className="w-full"
+              />
 
               {error && (
-                <div className="flex items-center gap-2 text-rose-455 text-xs font-semibold bg-rose-500/5 p-3 rounded-xl border border-rose-500/10">
+                <div className="flex items-center gap-2 text-rose-455 text-xs font-semibold bg-rose-500/5 p-3 rounded-xl border border-rose-500/10 mt-4 w-full">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* Whisper Parameters */}
-              <div className="w-full bg-[#0e1016]/72 backdrop-blur-[24px] border border-white/[0.06] rounded-xl p-4 text-left space-y-3.5">
+              <div className="w-full bg-[#0e1016]/72 backdrop-blur-[24px] border border-white/[0.06] rounded-xl p-4 text-left space-y-3.5 mt-4">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 mb-1.5">
                   <span className="text-[8px] font-bold text-[#98A2B3] uppercase tracking-widest">AI Parameters</span>
                   <Settings className="w-3.5 h-3.5 text-slate-555" />
