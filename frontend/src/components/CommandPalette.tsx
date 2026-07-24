@@ -68,13 +68,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   startRecording,
   stopRecording,
   recordingState,
-  pinnedMeetingIds = [],
-  onTogglePin
+  pinnedMeetingIds = []
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Focus input on open
   useEffect(() => {
@@ -86,22 +85,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       setSelectedIndex(0);
     }
   }, [isOpen]);
-
-  // Handle global shortcut (Ctrl+K / Cmd+K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        if (isOpen) {
-          onClose();
-        } else {
-          // Open handled by parent or state toggle
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   // Compute all available commands dynamically based on state & query
   const allCommands = useMemo<CommandItem[]>(() => {
@@ -248,12 +231,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       );
     }
 
-    // --- CATEGORY 3: Search & Intelligence (Across Meetings, Speakers, Topics, Decisions) ---
+    // --- CATEGORY 3: Search & Intelligence ---
     if (query.trim().length > 0) {
       const qLower = query.toLowerCase();
 
       meetings.forEach((m) => {
-        // Match meeting titles
         if (m.title.toLowerCase().includes(qLower)) {
           items.push({
             id: `search-mtg-${m.meeting_id}`,
@@ -265,7 +247,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           });
         }
 
-        // Match Speakers inside transcript
         if (m.transcript) {
           const matchedSpeakers = new Set<string>();
           m.transcript.forEach((seg: any) => {
@@ -285,7 +266,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           });
         }
 
-        // Match Decisions & Action Items in Memo
         if (m.memo) {
           if (m.memo.execution?.decisions) {
             m.memo.execution.decisions.forEach((d: any, i: number) => {
@@ -323,7 +303,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
 
     // --- CATEGORY 4: Recent & Pinned Meetings ---
-    // Pinned Meetings
     meetings.filter(m => pinnedMeetingIds.includes(m.meeting_id)).forEach(m => {
       items.push({
         id: `pinned-${m.meeting_id}`,
@@ -336,7 +315,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       });
     });
 
-    // Recent Meetings (Top 4 recent)
     meetings.slice(0, 4).forEach(m => {
       items.push({
         id: `recent-${m.meeting_id}`,
@@ -362,7 +340,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     );
   }, [allCommands, query]);
 
-  // Handle keyboard navigation (Arrow Up, Arrow Down, Enter, Esc)
+  // Reset selectedIndex if commands list length changes
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [filteredCommands.length]);
+
+  // Scroll active item into view reliably
+  useEffect(() => {
+    if (itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [selectedIndex]);
+
+  // Handle keyboard navigation inside search input
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -381,27 +371,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
   }, [filteredCommands, selectedIndex, onClose]);
 
-  // Ensure selected item scrolls into view
-  useEffect(() => {
-    const selectedEl = listRef.current?.children[selectedIndex] as HTMLElement;
-    if (selectedEl) {
-      selectedEl.scrollIntoView({ block: 'nearest' });
-    }
-  }, [selectedIndex]);
+  // Group commands by category with global indexing
+  const groupedCommandsWithIndices = useMemo(() => {
+    const groups: { category: string; items: { cmd: CommandItem; index: number }[] }[] = [];
+    let counter = 0;
 
-  // Group commands by category
-  const groupedCommands = useMemo(() => {
-    const groups: Record<string, CommandItem[]> = {};
     filteredCommands.forEach(cmd => {
-      if (!groups[cmd.category]) groups[cmd.category] = [];
-      groups[cmd.category].push(cmd);
+      let group = groups.find(g => g.category === cmd.category);
+      if (!group) {
+        group = { category: cmd.category, items: [] };
+        groups.push(group);
+      }
+      group.items.push({ cmd, index: counter++ });
     });
+
     return groups;
   }, [filteredCommands]);
 
   if (!isOpen) return null;
-
-  let globalIndexCounter = 0;
 
   return (
     <AnimatePresence>
@@ -424,7 +411,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
+              onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type a command, search meetings, speakers, decisions..."
               className="bg-transparent text-white placeholder-slate-500 text-sm font-medium focus:outline-none flex-1 min-w-0"
@@ -443,7 +430,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           </div>
 
           {/* Commands Scrollable List */}
-          <div ref={listRef} className="overflow-y-auto p-2 space-y-4 flex-1">
+          <div className="overflow-y-auto p-2 space-y-4 flex-1">
             {filteredCommands.length === 0 ? (
               <div className="py-12 text-center text-slate-500 space-y-2">
                 <Search className="w-8 h-8 mx-auto text-slate-600 opacity-60" />
@@ -451,24 +438,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <p className="text-[11px] text-slate-600">Try searching for "Analytics", "Transcript", "Whisper" or a speaker name.</p>
               </div>
             ) : (
-              Object.entries(groupedCommands).map(([category, items]) => (
-                <div key={category} className="space-y-1">
+              groupedCommandsWithIndices.map((group) => (
+                <div key={group.category} className="space-y-1">
                   <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-                    {category}
+                    {group.category}
                   </div>
-                  {items.map((cmd) => {
-                    const itemIndex = globalIndexCounter++;
-                    const isSelected = itemIndex === selectedIndex;
+                  {group.items.map(({ cmd, index }) => {
+                    const isSelected = index === selectedIndex;
                     const IconComponent = cmd.icon;
 
                     return (
                       <div
                         key={cmd.id}
+                        ref={(el) => (itemRefs.current[index] = el)}
                         onClick={() => cmd.action()}
-                        onMouseEnter={() => setSelectedIndex(itemIndex)}
+                        onMouseEnter={() => setSelectedIndex(index)}
                         className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 group ${
                           isSelected 
-                            ? 'bg-violet-600/15 border border-violet-500/30 text-white shadow-sm' 
+                            ? 'bg-violet-600/20 border border-violet-500/40 text-white shadow-sm' 
                             : 'hover:bg-slate-900/60 text-slate-300 border border-transparent'
                         }`}
                       >
