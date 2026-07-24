@@ -393,15 +393,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   return (
     <AnimatePresence>
       <div 
-        className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 bg-slate-950/80 px-4 transition-opacity"
+        className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 bg-slate-950/60 backdrop-blur-sm px-4 transition-opacity duration-150"
         onClick={onClose}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.98, y: -6 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.98, y: -6 }}
-          transition={{ duration: 0.1, ease: 'easeOut' }}
-          className="bg-[#10131c] border border-slate-800/90 shadow-2xl rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[75vh] transform-gpu"
+          transition={{ duration: 0.12, ease: 'easeOut' }}
+          className="bg-[#10131c]/95 backdrop-blur-md border border-slate-800/90 shadow-2xl rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[75vh] transform-gpu will-change-transform"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header Search Input */}
