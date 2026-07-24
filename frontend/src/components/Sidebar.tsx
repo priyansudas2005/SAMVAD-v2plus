@@ -151,62 +151,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
             />
 
-            {/* Custom SAMVAD Vector Logo (Speech Bubble + Document + Equalizer Soundwaves) */}
+            {/* Modern Minimal SAMVAD Vector Icon (Apple / Linear / Notion Style) */}
             <svg
               width="36" height="36" viewBox="0 0 100 100" fill="none"
               xmlns="http://www.w3.org/2000/svg"
               className="relative z-10"
-              style={{ filter: 'drop-shadow(0 4px 12px rgba(139, 92, 246, 0.4))' }}
+              style={{ filter: 'drop-shadow(0 4px 14px rgba(124, 58, 237, 0.45))' }}
             >
               <defs>
-                <linearGradient id="samvadGradBubble" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="50%" stopColor="#38bdf8" />
-                  <stop offset="100%" stopColor="#2563eb" />
-                </linearGradient>
-                <linearGradient id="samvadGradDoc" x1="50" y1="20" x2="90" y2="80" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#1e1b4b" />
-                  <stop offset="50%" stopColor="#1e293b" />
-                  <stop offset="100%" stopColor="#0f172a" />
+                <linearGradient id="sidebarModernGrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#7C3AED" />
+                  <stop offset="50%" stopColor="#6366F1" />
+                  <stop offset="100%" stopColor="#2563EB" />
                 </linearGradient>
               </defs>
 
-              {/* Speech Bubble Base (Left Side) */}
+              {/* Abstract Outer Rounded Squircle / Speech Envelope */}
               <path
-                d="M 22 18 C 12 18, 6 24, 6 34 L 6 52 C 6 62, 12 68, 22 68 L 30 68 L 22 80 L 36 68 L 52 68 C 55 68, 58 67, 60 65 L 60 48 C 60 30, 48 18, 22 18 Z"
-                stroke="url(#samvadGradBubble)"
-                strokeWidth="4.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
+                d="M 28 16 H 72 C 81 16 88 23 88 32 V 64 C 88 73 81 80 72 80 H 42 L 26 92 V 80 C 18 80 12 73 12 64 V 32 C 12 23 18 16 28 16 Z"
+                fill="url(#sidebarModernGrad)"
               />
 
-              {/* Soundwave Bars Inside Speech Bubble */}
-              <rect x="15" y="38" width="3" height="10" rx="1.5" fill="#8b5cf6" />
-              <rect x="22" y="33" width="3" height="20" rx="1.5" fill="#a78bfa" />
-              <rect x="29" y="26" width="3.5" height="34" rx="1.75" fill="#38bdf8" />
-              <rect x="36" y="31" width="3" height="24" rx="1.5" fill="#38bdf8" />
-              <rect x="43" y="38" width="3" height="10" rx="1.5" fill="#60a5fa" />
+              {/* 3 Symmetrical Vertical Waveform Columns cut out of center */}
+              <rect x="32" y="36" width="6" height="24" rx="3" fill="#040404" />
+              <rect x="47" y="28" width="6" height="40" rx="3" fill="#040404" />
+              <rect x="62" y="36" width="6" height="24" rx="3" fill="#040404" />
 
-              {/* Document Sheet (Right Side Overlap) */}
-              <path
-                d="M 54 22 L 72 22 L 82 32 L 82 72 C 82 77, 78 81, 72 81 L 54 81 C 48 81, 44 77, 44 72 L 44 31 C 44 26, 48 22, 54 22 Z"
-                fill="url(#samvadGradBubble)"
-              />
-
-              {/* Folded Corner Detail on Document */}
-              <path
-                d="M 72 22 L 72 32 L 82 32 Z"
-                fill="#38bdf8"
-                opacity="0.9"
-              />
-
-              {/* Horizontal Text Lines on Document */}
-              <line x1="52" y1="42" x2="74" y2="42" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
-              <line x1="52" y1="50" x2="74" y2="50" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
-              <line x1="52" y1="58" x2="68" y2="58" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
-              <circle cx="53" cy="66" r="1.8" fill="#ffffff" opacity="0.9" />
-              <line x1="58" y1="66" x2="74" y2="66" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+              {/* Minimal Document Corner Fold */}
+              <path d="M 72 16 L 88 32 H 72 V 16 Z" fill="#FFFFFF" opacity="0.25" />
             </svg>
           </div>
 
@@ -217,16 +189,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div className="flex flex-col gap-0.5 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-md font-bold tracking-tight text-white font-sans flex items-center gap-1.5">
-              S<span className="text-violet-400">Λ</span>MV<span className="text-sky-400">Λ</span>D
-            </h1>
+            <svg width="120" height="22" viewBox="0 0 180 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="wordmarkGradSidebar" x1="0" y1="0" x2="180" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#7C3AED" />
+                  <stop offset="50%" stopColor="#6366F1" />
+                  <stop offset="100%" stopColor="#2563EB" />
+                </linearGradient>
+              </defs>
+              <path d="M 18 10 C 13 10 9 13 9 17 C 9 21 13 22 18 23 C 23 24 27 25 27 29 C 27 33 23 36 17 36 C 11 36 8 32 8 32" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" fill="none" />
+              <path d="M 36 36 L 47 8 L 58 36" stroke="url(#wordmarkGradSidebar)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <circle cx="47" cy="24" r="2.5" fill="#6366F1" />
+              <path d="M 68 36 V 8 L 78 24 L 88 8 V 36" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M 98 8 L 108 36 L 118 8" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M 128 36 L 139 8 L 150 36" stroke="url(#wordmarkGradSidebar)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <circle cx="139" cy="24" r="2.5" fill="#2563EB" />
+              <path d="M 160 8 H 168 C 176 8 180 14 180 22 C 180 30 176 36 168 36 H 160 V 8 Z" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
             <span
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide"
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide shrink-0"
             >
               v2.0
             </span>
           </div>
-          <p className="text-[10px] text-slate-400 font-medium font-sans">AI Meeting Assistant</p>
+          <p className="text-[10px] text-slate-400 font-medium font-sans tracking-widest uppercase">AI MEETING ASSISTANT</p>
         </div>
 
         {/* Bell Notification Center Launcher Button */}
