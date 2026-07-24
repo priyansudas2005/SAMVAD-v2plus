@@ -17,7 +17,8 @@ import {
   Activity,
   CheckCircle2,
   Power,
-  Trash2
+  Trash2,
+  Bell
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
@@ -54,6 +55,9 @@ interface SidebarProps {
   // Loopback Mixer Capture Source
   captureSource: 'mic' | 'system' | 'both';
   setCaptureSource: (s: 'mic' | 'system' | 'both') => void;
+
+  // Notification Center Trigger
+  onOpenNotifications?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -85,6 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   captureSource,
   setCaptureSource,
+  onOpenNotifications,
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -198,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
           )}
         </div>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-0.5 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="text-md font-bold tracking-tight text-white font-sans">
               SAMVAD
@@ -211,6 +216,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <p className="text-[10px] text-slate-400 font-medium font-sans">Offline Intelligence</p>
         </div>
+
+        {/* Bell Notification Center Launcher Button */}
+        {onOpenNotifications && (
+          <button
+            onClick={onOpenNotifications}
+            className="relative p-2 rounded-xl bg-slate-900/80 hover:bg-violet-600/20 border border-slate-800 hover:border-violet-500/40 text-slate-400 hover:text-violet-300 transition-all group shrink-0"
+            title="Open Notification Center"
+          >
+            <Bell className="w-4 h-4 transition-transform group-hover:rotate-12" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-violet-500 rounded-full animate-pulse" />
+          </button>
+        )}
       </div>
 
       {/* Main Navigation */}

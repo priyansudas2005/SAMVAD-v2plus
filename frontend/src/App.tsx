@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { CommandPalette } from './components/CommandPalette';
+import { NotificationCenter } from './components/NotificationCenter';
 import { 
   DashboardSkeleton, 
   RecorderSkeleton, 
@@ -54,6 +55,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [appError, setAppError] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState<boolean>(false);
 
   // Global Ctrl+K / Cmd+K Command Palette Trigger
   useEffect(() => {
@@ -331,6 +333,7 @@ function App() {
         currentMeeting={currentMeeting}
         meetings={meetings}
         onSelectMeeting={handleSelectMeeting}
+        onOpenNotifications={() => setIsNotificationCenterOpen(true)}
         
         // Recording states
         recordingState={recordingState}
@@ -559,6 +562,13 @@ function App() {
         startRecording={startRecording}
         stopRecording={stopRecording}
         recordingState={recordingState}
+      />
+
+      {/* Desktop Notification Center Drawer */}
+      <NotificationCenter
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
+        onNavigate={setActivePage}
       />
     </div>
   );
