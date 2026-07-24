@@ -223,13 +223,22 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     }
   };
 
+  // Redirect Action Handler
+  const handleQuickAction = (targetPage: string, notifAction?: () => void) => {
+    if (notifAction) notifAction();
+    if (onNavigate && targetPage) {
+      onNavigate(targetPage);
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       >
         {/* Desktop Notification Drawer (Right Side Overlay) */}
@@ -237,30 +246,30 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           initial={{ x: '100%' }}
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#10131c] border-l border-slate-800/90 shadow-2xl flex flex-col z-50 overflow-hidden transform-gpu"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="p-4 border-b border-slate-800/80 bg-[#141722]/80 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-violet-600/15 border border-violet-500/30 text-violet-400">
+          <div className="p-4 border-b border-slate-800/80 bg-[#141722]/90 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 rounded-xl bg-violet-600/15 border border-violet-500/30 text-violet-400 shrink-0">
                 <Bell className="w-4 h-4" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                  Notification Center
+                  <span className="truncate">Notification Center</span>
                   {unreadCount > 0 && (
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-violet-500 text-white rounded-full">
+                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-violet-500 text-white rounded-full shrink-0">
                       {unreadCount}
                     </span>
                   )}
                 </h3>
-                <p className="text-[11px] text-slate-400 font-mono">SAMVAD Studio System Logs</p>
+                <p className="text-[11px] text-slate-400 font-mono truncate">SAMVAD Studio System Logs</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0 ml-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
@@ -280,13 +289,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           </div>
 
           {/* Categories & Filter Bar */}
-          <div className="px-4 py-2.5 border-b border-slate-800/60 bg-[#0e1016] flex items-center justify-between gap-2 overflow-x-auto scrollbar-none text-[11px]">
-            <div className="flex items-center gap-1.5">
+          <div className="px-3 py-2 border-b border-slate-800/60 bg-[#0e1016] flex items-center justify-between gap-2 overflow-x-auto scrollbar-none text-[11px] shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               {['All', 'AI & Intelligence', 'Transcription', 'Recording', 'System & Storage'].map(cat => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-all shrink-0 ${
+                  className={`px-2 py-1 rounded-lg font-semibold transition-all shrink-0 ${
                     activeCategory === cat 
                       ? 'bg-violet-600 text-white shadow-sm' 
                       : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
@@ -322,6 +331,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                 const iconMeta = getNotificationIcon(notif.type);
                 const IconComp = iconMeta.icon;
 
+                // Determine navigation page target based on notification type
+                const targetPage = 
+                  notif.category === 'AI & Intelligence' ? 'summary' :
+                  notif.category === 'Transcription' ? 'transcript' :
+                  notif.category === 'Recording' ? 'recorder' :
+                  notif.category === 'Export' ? 'summary' : 'settings';
+
                 return (
                   <div
                     key={notif.id}
@@ -331,7 +347,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                         : 'bg-[#0e1016]/80 border-slate-800/60 opacity-80 hover:opacity-100'
                     }`}
                   >
-                    {/* Unread Indicator Accent Bar */}
+                    {/* Unread Accent Bar */}
                     {!notif.isRead && (
                       <div className="absolute left-0 top-3 bottom-3 w-1 bg-violet-500 rounded-r-full" />
                     )}
@@ -342,54 +358,72 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                         <IconComp className={`w-4 h-4 ${iconMeta.color}`} />
                       </div>
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
+                      {/* Content Area with pr-16 padding to prevent text overlap with action toolbar */}
+                      <div className="flex-1 min-w-0 pr-14">
                         <div className="flex items-center justify-between gap-2">
                           <h4 className="text-xs font-bold text-white truncate">{notif.title}</h4>
-                          <span className="text-[10px] font-mono text-slate-500 shrink-0">{notif.timestamp}</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{notif.description}</p>
+                        
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400 mt-0.5">
+                          <span>{notif.timestamp}</span>
+                          <span>•</span>
+                          <span className="text-violet-400">{notif.category}</span>
+                          {notif.isPinned && (
+                            <span className="text-amber-400 font-bold flex items-center gap-0.5">
+                              <Pin className="w-2.5 h-2.5" /> Pinned
+                            </span>
+                          )}
+                        </div>
 
-                        {/* Quick Actions */}
-                        {notif.quickActions && notif.quickActions.length > 0 && (
-                          <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-800/60">
+                        <p className="text-[11px] text-slate-300 mt-1.5 leading-snug break-words">{notif.description}</p>
+
+                        {/* Quick Action Redirect Buttons */}
+                        {notif.quickActions && notif.quickActions.length > 0 ? (
+                          <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-800/60 flex-wrap">
                             {notif.quickActions.map((qa, i) => (
                               <button
                                 key={i}
-                                onClick={qa.action}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono transition-all ${
+                                onClick={() => handleQuickAction(targetPage, qa.action)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono transition-all flex items-center gap-1 ${
                                   qa.primary 
-                                    ? 'bg-violet-600 hover:bg-violet-500 text-white' 
+                                    ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-sm' 
                                     : 'bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300'
                                 }`}
                               >
-                                {qa.label}
+                                {qa.label} <ChevronRight className="w-3 h-3" />
                               </button>
                             ))}
                           </div>
+                        ) : (
+                          <button
+                            onClick={() => handleQuickAction(targetPage)}
+                            className="mt-2 text-[10px] font-mono font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors"
+                          >
+                            Open Details <ChevronRight className="w-3 h-3" />
+                          </button>
                         )}
                       </div>
                     </div>
 
-                    {/* Hover Item Actions (Pin, Mark Read, Delete) */}
-                    <div className="absolute right-2 top-2 hidden group-hover:flex items-center gap-1 bg-[#10131c] border border-slate-800 p-1 rounded-lg shadow-md">
+                    {/* Action Toolbar (Pinned top right, structured position) */}
+                    <div className="absolute right-2 top-2.5 flex items-center gap-1 bg-[#10131c] border border-slate-800 p-1 rounded-lg shadow-lg z-10">
                       <button
-                        onClick={() => togglePin(notif.id)}
-                        className={`p-1 rounded hover:bg-slate-800 ${notif.isPinned ? 'text-violet-400' : 'text-slate-400'}`}
-                        title={notif.isPinned ? 'Unpin' : 'Pin to top'}
+                        onClick={(e) => { e.stopPropagation(); togglePin(notif.id); }}
+                        className={`p-1.5 rounded hover:bg-slate-800 transition-colors ${notif.isPinned ? 'text-amber-400 bg-amber-500/10' : 'text-slate-400'}`}
+                        title={notif.isPinned ? 'Unpin notification' : 'Pin to top'}
                       >
                         <Pin className="w-3 h-3" />
                       </button>
                       <button
-                        onClick={() => toggleRead(notif.id)}
-                        className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
+                        onClick={(e) => { e.stopPropagation(); toggleRead(notif.id); }}
+                        className={`p-1.5 rounded hover:bg-slate-800 transition-colors ${notif.isRead ? 'text-emerald-400' : 'text-slate-400'}`}
                         title={notif.isRead ? 'Mark as unread' : 'Mark as read'}
                       >
                         <Check className="w-3 h-3" />
                       </button>
                       <button
-                        onClick={() => deleteNotif(notif.id)}
-                        className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-400"
+                        onClick={(e) => { e.stopPropagation(); deleteNotif(notif.id); }}
+                        className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-rose-400 transition-colors"
                         title="Delete notification"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -402,7 +436,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           </div>
 
           {/* Footer Controls */}
-          <div className="p-3 bg-[#0e1016] border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+          <div className="p-3 bg-[#0e1016] border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 font-mono shrink-0">
             <button
               onClick={clearAll}
               className="text-slate-500 hover:text-rose-400 transition-colors flex items-center gap-1"
