@@ -27,6 +27,7 @@ import { api } from '../services/api';
 import { SystemSettings } from '../types';
 import { ShortcutSettingsPanel } from '../components/KeyboardShortcuts';
 import { BrandIdentitySystem } from '../components/BrandIdentitySystem';
+import { MasterBrandSystemShowcase } from '../components/MasterBrandSystemShowcase';
 
 type SectionId = 'general' | 'appearance' | 'brand' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
 
@@ -1910,7 +1911,8 @@ export const SettingsPage: React.FC = () => {
 
           {/* Brand & Identity System Section */}
           {activeSection === 'brand' && (
-            <div className="space-y-6">
+            <div className="space-y-8">
+              <MasterBrandSystemShowcase />
               <BrandIdentitySystem />
             </div>
           )}
