@@ -27,15 +27,187 @@ export interface TranscriptSegment {
   };
 }
 
-export interface Memo {
-  meeting_id: string;
-  summary: string;
-  action_items: string[];
-  decisions: string[];
-  key_points: string[];
-  generated_at: string;
+export interface SpeakerRef {
+  speaker_id: string;
+  display_name: string;
+  color?: string;
+}
+
+export interface TranscriptRef {
+  segment_id: string | number;
+  timestamp: string;
+}
+
+export interface KeyTopicItem {
+  id: string;
+  title: string;
+  references?: TranscriptRef[];
+}
+
+export interface MeetingOutcomeObj {
+  status: string;
+  overall_result: string;
+  business_impact: string;
   confidence: number;
 }
+
+export interface MeetingHealthObj {
+  productivity_score: number;
+  decision_quality: number;
+  actionability: number;
+  participation_balance: number;
+  overall_rating: string;
+}
+
+export interface OverviewSection {
+  executive_summary: string;
+  meeting_outcome?: string | MeetingOutcomeObj;
+  meeting_health?: MeetingHealthObj;
+  key_topics?: KeyTopicItem[];
+}
+
+export interface DecisionItem {
+  id: string;
+  title?: string;
+  decision: string;
+  confidence: number;
+  needs_human_review?: boolean;
+  references?: TranscriptRef[];
+}
+
+export interface ActionItemObj {
+  id: string;
+  task: string;
+  owner?: SpeakerRef | string | null;
+  priority: 'High' | 'Medium' | 'Low';
+  severity?: 'Critical' | 'High' | 'Moderate' | 'Low';
+  deadline?: string;
+  confidence: number;
+  needs_human_review?: boolean;
+  references?: TranscriptRef[];
+}
+
+export interface PendingDecisionItem {
+  id: string;
+  topic: string;
+  status: string;
+  current_status?: string;
+  related_discussion?: string;
+  suggested_follow_up?: string;
+  priority?: string;
+  severity?: string;
+  confidence: number;
+  needs_human_review?: boolean;
+  references?: TranscriptRef[];
+}
+
+export interface ExecutionSection {
+  decisions: DecisionItem[];
+  action_items: ActionItemObj[];
+  pending_decisions?: PendingDecisionItem[];
+}
+
+export interface IntelligenceItem {
+  id: string;
+  category?: 'Risk' | 'Blocker' | 'Dependency' | 'Open Question' | 'Missing Info';
+  title?: string;
+  risk?: string;
+  blocker?: string;
+  dependent_task?: string;
+  relies_on?: string;
+  question?: string;
+  item?: string;
+  affected_area?: string;
+  evidence?: string;
+  current_status?: string;
+  suggested_resolution?: string;
+  suggested_owner?: string;
+  required_before?: string;
+  priority?: 'High' | 'Medium' | 'Low';
+  severity?: 'Critical' | 'High' | 'Moderate' | 'Low';
+  confidence: number;
+  needs_human_review?: boolean;
+  speaker?: SpeakerRef | string;
+  asked_by?: SpeakerRef | string;
+  promised_by?: SpeakerRef | string;
+  references?: TranscriptRef[];
+  followUp?: string;
+}
+
+export interface IntelligenceSection {
+  risks?: IntelligenceItem[];
+  blockers?: IntelligenceItem[];
+  dependencies?: IntelligenceItem[];
+  open_questions?: IntelligenceItem[];
+  missing_information?: IntelligenceItem[];
+}
+
+export interface AIRecommendationItem {
+  id: string;
+  recommendation: string;
+  reason: string;
+  related_item?: string;
+  related_decision_or_risk?: string;
+  confidence: number;
+  needs_human_review?: boolean;
+  references?: TranscriptRef[];
+}
+
+export interface FollowUpMeetingObj {
+  id?: string;
+  proposed: boolean;
+  topic: string;
+  why_needed?: string;
+  suggested_participants?: (SpeakerRef | string)[];
+  suggested_duration?: string;
+  suggested_agenda?: string[];
+  expected_outcomes?: string[];
+  target_date?: string;
+  suggested_timeframe?: string;
+  confidence: number;
+}
+
+export interface SuggestedEmailObj {
+  id?: string;
+  subject: string;
+  greeting?: string;
+  executive_summary?: string;
+  decisions?: string[];
+  action_items?: string[];
+  deadlines?: string;
+  closing?: string;
+  body?: string;
+}
+
+export interface ExecutiveDecisionSnapshotObj {
+  meeting_status: 'Completed Successfully' | 'In Progress' | 'Needs Follow-up' | string;
+  decision_confidence: number;
+  execution_readiness: 'High' | 'Medium' | 'Low' | string;
+  follow_up_priority: 'High' | 'Medium' | 'Low' | string;
+}
+
+export interface FollowUpSection {
+  ai_recommendations?: AIRecommendationItem[];
+  follow_up_meeting?: FollowUpMeetingObj;
+  suggested_email?: SuggestedEmailObj;
+  decision_snapshot?: ExecutiveDecisionSnapshotObj;
+}
+
+export interface StructuredMemo {
+  meeting_id: string;
+  summary?: string;
+  action_items?: string[];
+  decisions?: string[];
+  key_points?: string[];
+  generated_at?: string;
+  confidence?: number;
+  overview?: OverviewSection;
+  execution?: ExecutionSection;
+  intelligence?: IntelligenceSection;
+  follow_up?: FollowUpSection;
+}
+
+export interface Memo extends StructuredMemo {}
 
 export interface QAEntry {
   id?: number;
