@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
+import { CommandPalette } from './components/CommandPalette';
 import { DashboardPage } from './pages/DashboardPage';
 import { RecorderPage } from './pages/RecorderPage';
 import { TranscriptPage } from './pages/TranscriptPage';
@@ -42,6 +43,19 @@ function App() {
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [appError, setAppError] = useState<string | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+
+  // Global Ctrl+K / Cmd+K Command Palette Trigger
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Global Recording States
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'paused' | 'stopped'>('idle');
@@ -523,6 +537,19 @@ function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Universal Command Palette Launcher Overlay */}
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        setActivePage={setActivePage}
+        meetings={meetings}
+        currentMeeting={currentMeeting}
+        onSelectMeeting={handleSelectMeeting}
+        startRecording={startRecording}
+        stopRecording={stopRecording}
+        recordingState={recordingState}
+      />
     </div>
   );
 }
