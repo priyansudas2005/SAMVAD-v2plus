@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { CommandPalette } from './components/CommandPalette';
+import { 
+  DashboardSkeleton, 
+  RecorderSkeleton, 
+  HistorySkeleton, 
+  TranscriptSkeleton, 
+  SummarySkeleton, 
+  AnalyticsSkeleton, 
+  QASkeleton, 
+  SettingsSkeleton 
+} from './components/Skeletons';
 import { DashboardPage } from './pages/DashboardPage';
 import { RecorderPage } from './pages/RecorderPage';
 import { TranscriptPage } from './pages/TranscriptPage';
@@ -497,7 +507,7 @@ function App() {
               transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <Suspense fallback={<TabSkeleton />}>
+              <Suspense fallback={<QASkeleton />}>
                 <QAPage 
                   currentMeeting={currentMeeting}
                   onUpdateMeeting={handleUpdateCurrentMeeting}
@@ -516,7 +526,7 @@ function App() {
               transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <Suspense fallback={<TabSkeleton />}>
+              <Suspense fallback={<AnalyticsSkeleton />}>
                 <AnalyticsPage currentMeeting={currentMeeting} />
               </Suspense>
             </motion.div>
