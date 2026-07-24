@@ -151,50 +151,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
             />
 
-            {/* Microphone + Sound Waves SVG — scaled down to fit box */}
+            {/* Custom SAMVAD Vector Logo (Speech Bubble + Document + Equalizer Soundwaves) */}
             <svg
-              width="32" height="32" viewBox="0 0 52 52" fill="none"
+              width="36" height="36" viewBox="0 0 100 100" fill="none"
               xmlns="http://www.w3.org/2000/svg"
               className="relative z-10"
-              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+              style={{ filter: 'drop-shadow(0 4px 12px rgba(139, 92, 246, 0.4))' }}
             >
               <defs>
-                <linearGradient id="micGrad" x1="26" y1="4" x2="26" y2="30" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="var(--accent-primary)" />
-                  <stop offset="100%" stopColor="var(--accent-glow)" />
+                <linearGradient id="samvadGradBubble" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#8b5cf6" />
+                  <stop offset="50%" stopColor="#38bdf8" />
+                  <stop offset="100%" stopColor="#2563eb" />
                 </linearGradient>
-                <radialGradient id="micBodyFill" cx="50%" cy="30%" r="70%">
-                  <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity="0.03" />
-                </radialGradient>
+                <linearGradient id="samvadGradDoc" x1="50" y1="20" x2="90" y2="80" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#1e1b4b" />
+                  <stop offset="50%" stopColor="#1e293b" />
+                  <stop offset="100%" stopColor="#0f172a" />
+                </linearGradient>
               </defs>
 
-              {/* Microphone capsule */}
-              <rect x="19" y="5" width="14" height="21" rx="7"
-                fill="url(#micBodyFill)" stroke="url(#micGrad)" strokeWidth="2"
+              {/* Speech Bubble Base (Left Side) */}
+              <path
+                d="M 22 18 C 12 18, 6 24, 6 34 L 6 52 C 6 62, 12 68, 22 68 L 30 68 L 22 80 L 36 68 L 52 68 C 55 68, 58 67, 60 65 L 60 48 C 60 30, 48 18, 22 18 Z"
+                stroke="url(#samvadGradBubble)"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
               />
-              <line x1="22" y1="12" x2="30" y2="12" stroke="url(#micGrad)" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round" />
-              <line x1="22" y1="15.5" x2="30" y2="15.5" stroke="url(#micGrad)" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round" />
-              <line x1="22" y1="19" x2="30" y2="19" stroke="url(#micGrad)" strokeWidth="0.8" strokeOpacity="0.4" strokeLinecap="round" />
 
-              {/* Pickup arm + stand */}
-              <path d="M13 24 Q13 36 26 36 Q39 36 39 24"
-                stroke="url(#micGrad)" strokeWidth="2.2" fill="none" strokeLinecap="round"
+              {/* Soundwave Bars Inside Speech Bubble */}
+              <rect x="15" y="38" width="3" height="10" rx="1.5" fill="#8b5cf6" />
+              <rect x="22" y="33" width="3" height="20" rx="1.5" fill="#a78bfa" />
+              <rect x="29" y="26" width="3.5" height="34" rx="1.75" fill="#38bdf8" />
+              <rect x="36" y="31" width="3" height="24" rx="1.5" fill="#38bdf8" />
+              <rect x="43" y="38" width="3" height="10" rx="1.5" fill="#60a5fa" />
+
+              {/* Document Sheet (Right Side Overlap) */}
+              <path
+                d="M 54 22 L 72 22 L 82 32 L 82 72 C 82 77, 78 81, 72 81 L 54 81 C 48 81, 44 77, 44 72 L 44 31 C 44 26, 48 22, 54 22 Z"
+                fill="url(#samvadGradBubble)"
               />
-              <line x1="26" y1="36" x2="26" y2="44" stroke="url(#micGrad)" strokeWidth="2.2" strokeLinecap="round" />
-              <line x1="18" y1="44" x2="34" y2="44" stroke="url(#micGrad)" strokeWidth="2.8" strokeLinecap="round" />
 
-              {/* Sound waves LEFT */}
-              <path d="M9 21 Q7 26 9 31" stroke="var(--accent-primary)" strokeWidth="2" fill="none" strokeLinecap="round"
-                style={{ animation: 'wave-in 1.8s ease-in-out infinite' }} />
-              <path d="M5 17 Q2 26 5 35" stroke="var(--accent-primary)" strokeWidth="1.5" fill="none" strokeLinecap="round"
-                style={{ animation: 'wave-out 1.8s ease-in-out infinite 0.3s' }} />
+              {/* Folded Corner Detail on Document */}
+              <path
+                d="M 72 22 L 72 32 L 82 32 Z"
+                fill="#38bdf8"
+                opacity="0.9"
+              />
 
-              {/* Sound waves RIGHT */}
-              <path d="M43 21 Q45 26 43 31" stroke="var(--accent-primary)" strokeWidth="2" fill="none" strokeLinecap="round"
-                style={{ animation: 'wave-in 1.8s ease-in-out infinite 0.15s' }} />
-              <path d="M47 17 Q50 26 47 35" stroke="var(--accent-primary)" strokeWidth="1.5" fill="none" strokeLinecap="round"
-                style={{ animation: 'wave-out 1.8s ease-in-out infinite 0.45s' }} />
+              {/* Horizontal Text Lines on Document */}
+              <line x1="52" y1="42" x2="74" y2="42" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
+              <line x1="52" y1="50" x2="74" y2="50" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
+              <line x1="52" y1="58" x2="68" y2="58" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.9" />
+              <circle cx="53" cy="66" r="1.8" fill="#ffffff" opacity="0.9" />
+              <line x1="58" y1="66" x2="74" y2="66" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
             </svg>
           </div>
 
@@ -205,8 +217,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div className="flex flex-col gap-0.5 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-md font-bold tracking-tight text-white font-sans">
-              SAMVAD
+            <h1 className="text-md font-bold tracking-tight text-white font-sans flex items-center gap-1.5">
+              S<span className="text-violet-400">Λ</span>MV<span className="text-sky-400">Λ</span>D
             </h1>
             <span
               className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide"
@@ -214,7 +226,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               v2.0
             </span>
           </div>
-          <p className="text-[10px] text-slate-400 font-medium font-sans">Offline Intelligence</p>
+          <p className="text-[10px] text-slate-400 font-medium font-sans">AI Meeting Assistant</p>
         </div>
 
         {/* Bell Notification Center Launcher Button */}
