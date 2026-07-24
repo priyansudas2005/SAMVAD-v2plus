@@ -345,10 +345,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     setSelectedIndex(0);
   }, [filteredCommands.length]);
 
-  // Scroll active item into view reliably
+  // Instant crisp scroll active item into view
   useEffect(() => {
     if (itemRefs.current[selectedIndex]) {
-      itemRefs.current[selectedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      itemRefs.current[selectedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
     }
   }, [selectedIndex]);
 
@@ -393,19 +393,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   return (
     <AnimatePresence>
       <div 
-        className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 bg-slate-950/70 backdrop-blur-md px-4 transition-all"
+        className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 bg-slate-950/80 px-4 transition-opacity"
         onClick={onClose}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: -10 }}
+          initial={{ opacity: 0, scale: 0.98, y: -6 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: -10 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="bg-[#10131c] border border-slate-800/90 shadow-2xl rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[75vh]"
+          exit={{ opacity: 0, scale: 0.98, y: -6 }}
+          transition={{ duration: 0.1, ease: 'easeOut' }}
+          className="bg-[#10131c] border border-slate-800/90 shadow-2xl rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[75vh] transform-gpu"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header Search Input */}
-          <div className="flex items-center px-4 py-3.5 border-b border-slate-800/80 bg-[#141722]/60 gap-3">
+          <div className="flex items-center px-4 py-3.5 border-b border-slate-800/80 bg-[#141722] gap-3">
             <Search className="w-5 h-5 text-violet-400 shrink-0" />
             <input
               ref={inputRef}
@@ -429,8 +429,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             </div>
           </div>
 
-          {/* Commands Scrollable List */}
-          <div className="overflow-y-auto p-2 space-y-4 flex-1">
+          {/* Commands Scrollable List (hardware accelerated) */}
+          <div className="overflow-y-auto p-2 space-y-4 flex-1 scrollbar-thin transform-gpu">
             {filteredCommands.length === 0 ? (
               <div className="py-12 text-center text-slate-500 space-y-2">
                 <Search className="w-8 h-8 mx-auto text-slate-600 opacity-60" />
@@ -453,9 +453,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         ref={(el) => (itemRefs.current[index] = el)}
                         onClick={() => cmd.action()}
                         onMouseEnter={() => setSelectedIndex(index)}
-                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 group ${
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-colors duration-75 group ${
                           isSelected 
-                            ? 'bg-violet-600/20 border border-violet-500/40 text-white shadow-sm' 
+                            ? 'bg-violet-600/25 border border-violet-500/50 text-white' 
                             : 'hover:bg-slate-900/60 text-slate-300 border border-transparent'
                         }`}
                       >
