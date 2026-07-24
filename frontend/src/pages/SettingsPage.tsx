@@ -25,8 +25,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { SystemSettings } from '../types';
+import { ShortcutSettingsPanel } from '../components/KeyboardShortcuts';
 
-type SectionId = 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
+type SectionId = 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
 
 interface SectionConfig {
   id: SectionId;
@@ -397,6 +398,7 @@ export const SettingsPage: React.FC = () => {
     { id: 'recording', label: 'Recording', icon: Mic },
     { id: 'ai_models', label: 'AI Models', icon: Cpu },
     { id: 'intelligence', label: 'Meeting Intelligence', icon: BrainCircuit },
+    { id: 'shortcuts', label: 'Keyboard & Shortcuts', icon: Settings },
     { id: 'export', label: 'Export', icon: Download },
     { id: 'storage', label: 'Storage', icon: Database },
     { id: 'privacy', label: 'Privacy', icon: Shield },
@@ -1903,6 +1905,13 @@ export const SettingsPage: React.FC = () => {
               </div>
             );
           })()}
+
+          {/* Shortcuts Section */}
+          {activeSection === 'shortcuts' && (
+            <div className="space-y-6">
+              <ShortcutSettingsPanel />
+            </div>
+          )}
 
           {/* 6. EXPORT STUDIO WORKSPACE */}
           {activeSection === 'export' && (() => {

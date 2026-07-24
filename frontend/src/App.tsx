@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { CommandPalette } from './components/CommandPalette';
 import { NotificationCenter } from './components/NotificationCenter';
+import { KeyboardProvider } from './components/KeyboardShortcuts';
 import { 
   DashboardSkeleton, 
   RecorderSkeleton, 
@@ -574,4 +575,10 @@ function App() {
   );
 }
 
-export default App;
+export default function WrappedApp() {
+  return (
+    <KeyboardProvider>
+      <App />
+    </KeyboardProvider>
+  );
+}
