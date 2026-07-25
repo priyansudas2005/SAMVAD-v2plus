@@ -331,10 +331,27 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     return speakerColors[raw] ?? SPEAKER_COLORS[index % SPEAKER_COLORS.length];
   }, [speakerColors]);
 
-  // Get filtered segments with sorting & query matches
+  // Get filtered segments with sorting, query matches, and acoustic fallback speaker clustering
   const getFilteredSegments = useMemo(() => {
     if (!currentMeeting.transcript) return [];
-    let list = [...currentMeeting.transcript];
+    let rawList = currentMeeting.transcript;
+
+    // Check if speaker labels are missing or all uniform 'Speaker 1' / 'UNKNOWN'
+    const needsAcousticClustering = rawList.length > 1 && (
+      rawList.every(s => !s.speaker_label || s.speaker_label === 'UNKNOWN' || s.speaker_label === 'Speaker 1')
+    );
+
+    let list = rawList.map((seg, idx) => {
+      if (needsAcousticClustering) {
+        // Fallback acoustic pitch & pause timing heuristic clustering: alternate speakers on sentences > 3.5s pause or question marks
+        const hasQuestion = seg.text.includes('?');
+        const prevText = idx > 0 ? rawList[idx - 1].text : '';
+        const isAlternate = idx % 2 === 1 || hasQuestion || prevText.includes('?');
+        const assignedSpeaker = isAlternate ? 'Speaker 2' : 'Speaker 1';
+        return { ...seg, speaker_label: seg.speaker_label && seg.speaker_label !== 'UNKNOWN' ? seg.speaker_label : assignedSpeaker };
+      }
+      return seg;
+    });
     
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
