@@ -203,11 +203,11 @@ export const AudioInspector: React.FC<AudioInspectorProps> = ({
               {/* Audio Capture Mode Selector */}
               <div className="space-y-1">
                 <label className="text-[9px] text-slate-400 uppercase font-bold">Capture Source</label>
-                <div className="grid grid-cols-3 gap-1 bg-[#090b10] border border-slate-800 p-1 rounded-lg text-center">
+                <div className="grid grid-cols-3 gap-1 bg-[#090b10] border border-white/[0.08] p-1 rounded-xl text-center overflow-hidden">
                   {[
-                    { id: 'mic', label: 'Mic', icon: Mic, activeClass: 'bg-[#8B5CF6] text-white font-bold shadow' },
-                    { id: 'system', label: 'System', icon: Radio, activeClass: 'bg-[#06B6D4] text-white font-bold shadow' },
-                    { id: 'both', label: 'Mix', icon: Activity, activeClass: 'bg-[#10B981] text-white font-bold shadow' }
+                    { id: 'mic', label: 'Mic', icon: Mic, activeClass: 'bg-violet-600 border border-violet-400/40 text-white font-bold shadow-md shadow-violet-600/30' },
+                    { id: 'system', label: 'System', icon: Radio, activeClass: 'bg-violet-600 border border-violet-400/40 text-white font-bold shadow-md shadow-violet-600/30' },
+                    { id: 'both', label: 'Mix', icon: Activity, activeClass: 'bg-violet-600 border border-violet-400/40 text-white font-bold shadow-md shadow-violet-600/30' }
                   ].map(item => {
                     const Icon = item.icon;
                     const isActive = captureSource === item.id;
@@ -215,11 +215,11 @@ export const AudioInspector: React.FC<AudioInspectorProps> = ({
                       <button
                         key={item.id}
                         onClick={() => setCaptureSource(item.id as any)}
-                        className={`py-1 rounded text-[9.5px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                          isActive ? item.activeClass : 'text-slate-400 hover:text-white'
+                        className={`py-1.5 rounded-lg text-[10px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          isActive ? item.activeClass : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                         }`}
                       >
-                        <Icon className="w-2.5 h-2.5" />
+                        <Icon className="w-3 h-3 text-violet-300" />
                         <span>{item.label}</span>
                       </button>
                     );
