@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudioInspector } from '../components/AudioInspector';
+import { RecordingMonitor } from '../components/RecordingMonitor';
 
 export interface FlagshipDAWRecorderProps {
   stream: MediaStream | null;
@@ -1032,61 +1033,15 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
         </main>
 
-        {/* ── 5. PREMIUM LIVE TELEMETRY PANEL (RIGHT - 18% WIDTH) ─────────────── */}
-        <aside className="w-64 bg-[#050609]/90 backdrop-blur-md p-3.5 flex flex-col justify-between shrink-0 space-y-4 font-mono text-xs overflow-y-auto">
-          <div className="space-y-4">
-            <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/80 pb-2 flex items-center gap-1.5">
-              <Gauge className="w-3.5 h-3.5 text-sky-400" /> Premium Live Telemetry
-            </div>
-
-            <div className="space-y-2 text-[10px]">
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Elapsed Time:</span>
-                <span className="text-emerald-400 font-bold font-mono">{telemetry.elapsedTime}</span>
-              </div>
-
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Recording Duration:</span>
-                <span className="text-white font-bold font-mono">{formatHMS(duration)}</span>
-              </div>
-
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Sample Rate / Bit:</span>
-                <span className="text-sky-400 font-bold font-mono">44.1 kHz / 24-bit</span>
-              </div>
-
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Current Loudness:</span>
-                <span className="text-amber-400 font-bold font-mono">{telemetry.currentLoudnessDb} dB</span>
-              </div>
-
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Peak Level:</span>
-                <span className="text-rose-400 font-bold font-mono">{telemetry.peakLevelDb} dB</span>
-              </div>
-
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Audio Latency:</span>
-                <span className="text-emerald-400 font-bold font-mono">{telemetry.latencyMs} ms</span>
-              </div>
-
-              <div className="p-2 bg-[#0a0c12] border border-slate-800/80 rounded flex justify-between items-center">
-                <span className="text-slate-400">Recording Size:</span>
-                <span className="text-white font-bold font-mono">{telemetry.recordingSizeMb} MB</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-2.5 bg-[#0b0d14] border border-slate-800/80 rounded space-y-1 text-[9.5px] text-slate-400 font-mono">
-            <div className="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> System Status
-            </div>
-            <div className="flex justify-between text-slate-300">
-              <span>Whisper STT:</span>
-              <span className="text-emerald-400 font-bold">CUDA Active</span>
-            </div>
-          </div>
-        </aside>
+        {/* ── 5. RECORDING MONITOR PANEL (RIGHT - 18% WIDTH) ──────────────────── */}
+        <RecordingMonitor
+          recordingState={recordingState}
+          duration={duration}
+          captureSource={captureSource}
+          vadEnabled={vadEnabled}
+          liveVolumeLeft={liveVolumeLeft.current}
+          peakHoldLeft={peakHoldLeft.current}
+        />
 
       </div>
 
