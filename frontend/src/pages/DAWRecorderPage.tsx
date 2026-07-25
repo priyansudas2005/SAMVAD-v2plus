@@ -794,18 +794,27 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   return (
     <div className="flex-1 flex flex-col h-screen w-full bg-[#020305] text-slate-100 font-sans select-none overflow-hidden border-t border-slate-900/60 relative">
       
-      {/* ── 0. CINEMATIC AMBIENT MESH GRADIENT BLOOMS (OLED SLOW-MOVING BLOOM) ─ */}
+      {/* ── 0. CINEMATIC AMBIENT MESH GRADIENT BLOOMS & STUDIO ATMOSPHERE ─────── */}
       {!prefersReducedMotion && (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Slow-moving primary mesh gradient */}
           <div 
-            className="absolute -top-[15%] left-[20%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-violet-600/10 via-indigo-600/5 to-transparent blur-[140px] opacity-70"
-            style={{ animation: 'orb-slow-drift 45s infinite alternate ease-in-out' }}
+            className="absolute -top-[20%] left-[15%] w-[55%] h-[55%] rounded-full bg-gradient-to-br from-violet-600/12 via-indigo-600/6 to-transparent blur-[160px] opacity-75"
+            style={{ animation: 'orb-slow-drift 45s infinite alternate cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
+          {/* Active Recording Soft Bloom Aura */}
+          {recordingState === 'recording' && (
+            <div 
+              className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-gradient-to-r from-rose-500/10 via-amber-500/5 to-transparent blur-[140px] opacity-90 transition-opacity duration-1000"
+            />
+          )}
+          {/* Secondary ambient fill */}
           <div 
-            className="absolute bottom-[10%] right-[15%] w-[45%] h-[45%] rounded-full bg-gradient-to-tl from-sky-500/8 via-cyan-500/4 to-transparent blur-[130px] opacity-60"
-            style={{ animation: 'orb-slow-drift-rev 55s infinite alternate ease-in-out' }}
+            className="absolute -bottom-[10%] right-[10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-sky-500/10 via-cyan-500/5 to-transparent blur-[150px] opacity-65"
+            style={{ animation: 'orb-slow-drift-rev 60s infinite alternate cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,#020305_100%)] opacity-85 z-10 pointer-events-none" />
+          {/* Vignette & Radial focus overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,#010204_100%)] opacity-90 z-10 pointer-events-none" />
         </div>
       )}
 
