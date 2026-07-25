@@ -78,13 +78,14 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const [inputGain, setInputGain] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'multitrack' | 'mixer' | 'spectrogram'>('multitrack');
   const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const [scrollX, setScrollX] = useState<number>(0);
 
-  // High DPI HTML5 Canvas References for Track 1 (Mic) and Track 2 (System)
+  // High DPI HTML5 Canvas References
+  const rulerCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const track1CanvasRef = useRef<HTMLCanvasElement | null>(null);
   const track2CanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const trackContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Web Audio API Analyser Nodes
+  // Web Audio API References
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -106,16 +107,13 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  // Real-time Web Audio API Stream Sampling (Live Microphone Stream Analysis)
+  // Real-time Web Audio API Stream Sampling
   useEffect(() => {
     if (stream && recordingState === 'recording') {
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContextClass();
-        
-        if (ctx.state === 'suspended') {
-          ctx.resume();
-        }
+        if (ctx.state === 'suspended') ctx.resume();
 
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 1024;
@@ -146,7 +144,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     };
   }, [stream, recordingState]);
 
-  // Append Real-time Audio Amplitude Points from Time Domain AnalyserNode
+  // Append Live Audio Amplitude Points from Peak-to-Peak Time Domain
   useEffect(() => {
     let interval: any;
     if (recordingState === 'recording') {
@@ -156,16 +154,13 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         if (analyserRef.current) {
           analyserRef.current.getByteTimeDomainData(dataArray);
           
-          // Calculate true Peak-to-Peak amplitude from live waveform samples
           let maxVal = 128;
           let minVal = 128;
-
           for (let i = 0; i < dataArray.length; i++) {
             if (dataArray[i] > maxVal) maxVal = dataArray[i];
             if (dataArray[i] < minVal) minVal = dataArray[i];
           }
 
-          // Peak difference from center 128 (0 to 1.0)
           const peakDiff = (maxVal - minVal) / 256;
           const gainMultiplier = Math.pow(10, inputGain / 20);
           const liveAmp = Math.min(1.0, Math.max(0.05, peakDiff * 2.2 * gainMultiplier));
@@ -173,7 +168,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           targetAmp1.current = liveAmp;
           targetAmp2.current = Math.max(0.04, liveAmp * 0.85);
         } else {
-          // Fallback pulse if audio stream is initializing
           targetAmp1.current = Math.random() * 0.35 + 0.08;
           targetAmp2.current = Math.random() * 0.3 + 0.06;
         }
@@ -181,8 +175,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         track1Buffer.current.push(currentAmp1.current);
         track2Buffer.current.push(currentAmp2.current);
 
-        // Keep last 1200 sample points for continuous infinite scrolling
-        if (track1Buffer.current.length > 1200) {
+        if (track1Buffer.current.length > 2400) {
           track1Buffer.current.shift();
           track2Buffer.current.shift();
         }
@@ -196,26 +189,94 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     if (recordingState === 'idle') {
       track1Buffer.current = [];
       track2Buffer.current = [];
-      currentAmp1.current = 0.2;
-      currentAmp2.current = 0.15;
+      currentAmp1.current = 0.1;
+      currentAmp2.current = 0.08;
     }
   }, [recordingState]);
 
-  // High DPI Canvas Renderer Loop (requestAnimationFrame GPU Acceleration)
+  // RENDER PROFESSIONAL DAW TIMELINE RULER (Major & Minor Markers, Minute/Second Labels)
+  useEffect(() => {
+    const canvas = rulerCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    const width = rect.width;
+    const height = rect.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Background Gradient Header
+    ctx.fillStyle = '#07080d';
+    ctx.fillRect(0, 0, width, height);
+
+    // Adaptive Spacing based on Zoom
+    const pixelsPerSecond = (10 * (zoomLevel / 100));
+    const majorIntervalSec = zoomLevel < 75 ? 10 : zoomLevel > 150 ? 2 : 5;
+    const minorIntervalSec = majorIntervalSec / 5;
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+
+    const startSec = Math.floor(scrollX / pixelsPerSecond);
+    const endSec = startSec + Math.ceil(width / pixelsPerSecond) + 5;
+
+    for (let s = startSec; s <= endSec; s += minorIntervalSec) {
+      const x = s * pixelsPerSecond - scrollX;
+      if (x < 0 || x > width) continue;
+
+      const isMajor = Math.abs(s % majorIntervalSec) < 0.01;
+
+      if (isMajor) {
+        // Major Tick Line
+        ctx.beginPath();
+        ctx.moveTo(x, height - 12);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+
+        // Minute / Second Timecode Label (00:00, 00:05, 01:00)
+        const mins = Math.floor(s / 60);
+        const secs = Math.floor(s % 60);
+        const timeLabel = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        ctx.fillText(timeLabel, x, height - 15);
+      } else {
+        // Minor Tick Line
+        ctx.beginPath();
+        ctx.moveTo(x, height - 6);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }, [zoomLevel, scrollX]);
+
+  // RENDER DUAL STEREO TRACK CANVASES (Vertical Timing Grid, Channel Guides, Alternating Sections, Glowing Playhead)
   useEffect(() => {
     let animId: number;
 
     const renderTrackCanvas = (
       canvas: HTMLCanvasElement | null, 
       buffer: number[], 
-      colorHex: string, 
-      glowHex: string
+      colorHex: string
     ) => {
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Handle High DPI Device Pixel Ratio Scaling
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
 
@@ -230,28 +291,46 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       const width = rect.width;
       const height = rect.height;
 
-      // Clear Canvas Frame
       ctx.clearRect(0, 0, width, height);
 
-      // Render Subdued Time Grid Lines
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      // 1. Alternating Background Sections (DAW Grid Bars)
+      const sectionWidth = 100 * (zoomLevel / 100);
+      const totalSections = Math.ceil(width / sectionWidth) + 2;
+
+      for (let i = 0; i < totalSections; i++) {
+        const secX = i * sectionWidth - (scrollX % sectionWidth);
+        ctx.fillStyle = i % 2 === 0 ? '#030407' : '#05060b';
+        ctx.fillRect(secX, 0, sectionWidth, height);
+      }
+
+      // 2. Vertical Timing Grid Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.lineWidth = 1;
-      const stepX = (60 * (zoomLevel / 100));
-      for (let x = 0; x < width; x += stepX) {
+      for (let x = 0; x < width; x += 30 * (zoomLevel / 100)) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
         ctx.stroke();
       }
 
-      // Center Amplitude Baseline
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      // 3. Horizontal Channel Reference Guides (+6dB, 0dB baseline, -6dB)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      const guideLevels = [0.2, 0.5, 0.8];
+      guideLevels.forEach(lvl => {
+        ctx.beginPath();
+        ctx.moveTo(0, height * lvl);
+        ctx.lineTo(width, height * lvl);
+        ctx.stroke();
+      });
+
+      // Baseline 0dB Line
+      ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
       ctx.beginPath();
       ctx.moveTo(0, height / 2);
       ctx.lineTo(width, height / 2);
       ctx.stroke();
 
-      // Render Adaptive Waveform with Rounded Peaks
+      // 4. Render Live Audio Waveform Bars
       const barWidth = 3 * (zoomLevel / 100);
       const gap = 1.5;
       const totalBars = Math.floor(width / (barWidth + gap));
@@ -263,22 +342,26 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         const bufIdx = bufferLen - totalBars + i;
         if (bufIdx < 0) continue;
 
-        const amp = buffer[bufIdx] || 0.05;
+        const amp = buffer[bufIdx] || 0.04;
         const barH = Math.max(3, amp * (height * 0.85));
         const x = i * (barWidth + gap);
         const y = (height - barH) / 2;
         const radius = Math.min(barWidth / 2, barH / 2);
 
-        // Draw Rounded Bar Peak
         ctx.beginPath();
         ctx.roundRect(x, y, barWidth, barH, radius);
         ctx.fill();
       }
 
-      // Render Red Playhead / Cursor Position
+      // 5. THIN GLOWING RECORDING PLAYHEAD & CURSOR (Soft Bloom + Shadow + Pulse)
       if (recordingState === 'recording' || recordingState === 'paused' || recordingState === 'stopped') {
-        const playheadX = Math.min(width - 4, bufferLen * (barWidth + gap));
-        
+        const playheadX = Math.min(width - 6, bufferLen * (barWidth + gap));
+
+        // Soft Bloom Layer Behind Cursor
+        ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
+        ctx.shadowBlur = 12;
+
+        // Thin Glowing Red Playhead Line
         ctx.strokeStyle = '#EF4444';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -286,40 +369,41 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.lineTo(playheadX, height);
         ctx.stroke();
 
+        // Cursor Diamond Head with Pulse Outline
         ctx.fillStyle = '#EF4444';
         ctx.beginPath();
-        ctx.moveTo(playheadX - 4, 0);
-        ctx.lineTo(playheadX + 4, 0);
-        ctx.lineTo(playheadX, 6);
+        ctx.moveTo(playheadX - 5, 0);
+        ctx.lineTo(playheadX + 5, 0);
+        ctx.lineTo(playheadX, 8);
         ctx.closePath();
         ctx.fill();
+
+        // Reset Shadow for Next Pass
+        ctx.shadowBlur = 0;
       }
 
       ctx.restore();
     };
 
     const renderLoop = () => {
-      // Smooth linear interpolation (lerp) for amplitude transitions
       currentAmp1.current += (targetAmp1.current - currentAmp1.current) * 0.15;
       currentAmp2.current += (targetAmp2.current - currentAmp2.current) * 0.15;
 
-      renderTrackCanvas(track1CanvasRef.current, track1Buffer.current, '#8B5CF6', 'rgba(139, 92, 246, 0.4)');
-      renderTrackCanvas(track2CanvasRef.current, track2Buffer.current, '#38BDF8', 'rgba(56, 189, 248, 0.4)');
+      renderTrackCanvas(track1CanvasRef.current, track1Buffer.current, '#8B5CF6');
+      renderTrackCanvas(track2CanvasRef.current, track2Buffer.current, '#38BDF8');
 
       animId = requestAnimationFrame(renderLoop);
     };
 
     renderLoop();
     return () => cancelAnimationFrame(animId);
-  }, [recordingState, zoomLevel]);
+  }, [recordingState, zoomLevel, scrollX]);
 
   return (
     <div className="flex-1 flex flex-col h-screen w-full bg-[#020305] text-slate-100 font-sans select-none overflow-hidden border-t border-slate-900/60">
       
       {/* ── 1. COMPACT TOP TOOLBAR ─────────────────────────────────────────── */}
       <header className="h-10 bg-[#07080d] border-b border-slate-800/90 px-4 flex items-center justify-between shrink-0 font-mono text-[11px]">
-        
-        {/* Left Title */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-violet-600/15 border border-violet-500/30 text-violet-300 font-bold text-[10px] tracking-wider">
             <Radio className="w-3 h-3 text-violet-400" /> FLAGSHIP DAW ENGINE
@@ -336,37 +420,40 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           />
         </div>
 
-        {/* Center Hardware Telemetry */}
-        <div className="hidden lg:flex items-center gap-2 text-[10px]">
-          <span className="px-2 py-0.5 rounded bg-[#0b0d14] border border-slate-800 text-slate-400">
-            ENGINE: <strong className="text-emerald-400">HTML5 CANVAS GPU</strong>
-          </span>
-          <span className="px-2 py-0.5 rounded bg-[#0b0d14] border border-slate-800 text-slate-400">
-            ENCODING: <strong className="text-slate-200">32-BIT FLOAT PCM</strong>
-          </span>
-        </div>
+        {/* Zoom & Scroll Toolbar Controls */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[9.5px] text-slate-500 font-bold uppercase">ZOOM:</span>
+            <button onClick={() => setZoomLevel(prev => Math.max(50, prev - 25))} className="px-2 py-0.5 bg-[#0b0d14] border border-slate-800 rounded text-slate-400 hover:text-white text-[10px] font-bold">
+              -
+            </button>
+            <span className="text-[10px] text-slate-300 font-bold font-mono">{zoomLevel}%</span>
+            <button onClick={() => setZoomLevel(prev => Math.min(250, prev + 25))} className="px-2 py-0.5 bg-[#0b0d14] border border-slate-800 rounded text-slate-400 hover:text-white text-[10px] font-bold">
+              +
+            </button>
+          </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={discardRecording}
-            disabled={recordingState === 'idle'}
-            className="px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-[10.5px] font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1"
-          >
-            <Trash2 className="w-3 h-3" /> Discard
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={discardRecording}
+              disabled={recordingState === 'idle'}
+              className="px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-[10.5px] font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1"
+            >
+              <Trash2 className="w-3 h-3" /> Discard
+            </button>
 
-          <button 
-            onClick={saveRecording}
-            disabled={recordingState === 'idle' || uploading}
-            className="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold shadow-md shadow-emerald-600/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
-          >
-            <Download className="w-3 h-3" /> {uploading ? 'Processing...' : 'Save & Analyze'}
-          </button>
+            <button 
+              onClick={saveRecording}
+              disabled={recordingState === 'idle' || uploading}
+              className="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold shadow-md shadow-emerald-600/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-3 h-3" /> {uploading ? 'Processing...' : 'Save & Analyze'}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* ── MAIN INTEGRATED WORKSPACE ──────────────────────────────────────── */}
+      {/* ── MAIN WORKSPACE GRID ─────────────────────────────────────────────── */}
       <div className="flex-1 flex w-full min-h-0 overflow-hidden">
         
         {/* ── 2. RECORDING INSPECTOR (LEFT - 12% WIDTH) ────────────────────── */}
@@ -436,10 +523,10 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           </div>
         </aside>
 
-        {/* ── 3. MASSIVE RECORDING WORKSPACE (DOMINANT 75–80% WIDTH WITH HTML5 CANVAS) ── */}
-        <main ref={trackContainerRef} className="flex-1 bg-[#010204] flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">
+        {/* ── 3. PROFESSIONAL DAW TIMELINE WORKSPACE (75-80% DOMINANT WIDTH) ─── */}
+        <main className="flex-1 bg-[#010204] flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">
           
-          {/* Mode Tabs */}
+          {/* Mode Tabs Bar */}
           <div className="h-8 bg-[#06070a] border-b border-slate-800/90 px-4 flex items-center justify-between font-mono text-xs shrink-0">
             <div className="flex items-center gap-2">
               {['multitrack', 'mixer', 'spectrogram'].map((t) => (
@@ -457,34 +544,28 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[9.5px] text-slate-500 font-bold uppercase">ZOOM:</span>
-              <button onClick={() => setZoomLevel(prev => Math.max(50, prev - 25))} className="px-1.5 py-0.5 bg-[#0b0d14] border border-slate-800 rounded text-slate-400 hover:text-white text-[10px]">
-                -
-              </button>
-              <span className="text-[9.5px] text-slate-300 font-bold">{zoomLevel}%</span>
-              <button onClick={() => setZoomLevel(prev => Math.min(200, prev + 25))} className="px-1.5 py-0.5 bg-[#0b0d14] border border-slate-800 rounded text-slate-400 hover:text-white text-[10px]">
-                +
-              </button>
+            <div className="text-[10px] font-mono text-slate-400 flex items-center gap-2">
+              <span>HORIZONTAL SCROLL:</span>
+              <input
+                type="range"
+                min="0"
+                max="1000"
+                value={scrollX}
+                onChange={(e) => setScrollX(Number(e.target.value))}
+                className="w-32 accent-violet-500 h-1 bg-slate-900 rounded cursor-pointer"
+              />
             </div>
           </div>
 
-          {/* Timeline Ruler Header Bar */}
-          <div className="h-6 bg-[#08090f] border-b border-slate-800/80 px-4 flex items-center justify-between font-mono text-[9px] text-slate-500 shrink-0">
-            <span>00:00:00</span>
-            <span>00:15:00</span>
-            <span>00:30:00</span>
-            <span>00:45:00</span>
-            <span>01:00:00</span>
-            <span>01:15:00</span>
-            <span>01:30:00</span>
-            <span className="text-emerald-400 font-bold">PLAYHEAD: {formatHMS(duration)}</span>
+          {/* PROFESSIONAL TIMELINE RULER CANVAS (Major & Minor Time Markers + Minute/Second Labels) */}
+          <div className="h-7 border-b border-slate-800/90 relative overflow-hidden shrink-0">
+            <canvas ref={rulerCanvasRef} className="w-full h-full block" />
           </div>
 
-          {/* DUAL STEREO HTML5 CANVAS WORKSPACE ENGINE (HIGH DPI + GPU RENDER) */}
+          {/* DUAL MULTITRACK STEREO WAVEFORM CANVAS WORKSPACE */}
           <div className="flex-1 flex flex-col justify-stretch overflow-hidden relative bg-[#020305] divide-y divide-slate-800/80">
             
-            {/* Track 1: Physical Microphone Channel (HTML5 Canvas) */}
+            {/* Track 1: Physical Microphone Channel */}
             <div className="flex-1 flex min-h-0 relative">
               <div className="w-36 bg-[#07080e] border-r border-slate-800/80 p-2.5 flex flex-col justify-between shrink-0 font-mono text-[10px]">
                 <div className="flex items-center justify-between font-bold text-violet-300">
@@ -500,14 +581,11 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
               {/* Track 1 HTML5 Waveform Canvas */}
               <div className="flex-1 bg-[#030407] relative overflow-hidden flex items-center justify-center">
-                <canvas
-                  ref={track1CanvasRef}
-                  className="w-full h-full block"
-                />
+                <canvas ref={track1CanvasRef} className="w-full h-full block" />
               </div>
             </div>
 
-            {/* Track 2: System Audio Loopback Channel (HTML5 Canvas) */}
+            {/* Track 2: System Audio Loopback Channel */}
             <div className="flex-1 flex min-h-0 relative">
               <div className="w-36 bg-[#07080e] border-r border-slate-800/80 p-2.5 flex flex-col justify-between shrink-0 font-mono text-[10px]">
                 <div className="flex items-center justify-between font-bold text-sky-300">
@@ -523,22 +601,19 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
               {/* Track 2 HTML5 Waveform Canvas */}
               <div className="flex-1 bg-[#030407] relative overflow-hidden flex items-center justify-center">
-                <canvas
-                  ref={track2CanvasRef}
-                  className="w-full h-full block"
-                />
+                <canvas ref={track2CanvasRef} className="w-full h-full block" />
               </div>
             </div>
 
           </div>
 
-          {/* Workspace Status Bar */}
+          {/* Workspace Bottom Telemetry Bar */}
           <div className="h-7 bg-[#07080d] border-t border-slate-800/80 px-4 flex items-center justify-between font-mono text-[9.5px] text-slate-400 shrink-0">
             <div className="flex items-center gap-3">
               <span>STATE: <strong className="text-white">{recordingState.toUpperCase()}</strong></span>
-              <span>PLAYHEAD: <strong className="text-emerald-400">{formatHMS(duration)}</strong></span>
+              <span>PLAYHEAD TIMECODE: <strong className="text-emerald-400">{formatHMS(duration)}</strong></span>
             </div>
-            <span>GPU RENDERER: ACTIVE</span>
+            <span>GPU STEREO ENGINE ACTIVE</span>
           </div>
 
         </main>
@@ -584,7 +659,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             recordingState === 'recording' ? 'bg-rose-500 animate-ping' : recordingState === 'paused' ? 'bg-amber-400' : 'bg-slate-600'
           }`} />
           <span className="text-xs text-slate-300 font-bold uppercase">
-            TRANSPORT: {recordingState.toUpperCase()}
+            MASTER PLAYHEAD: {formatHMS(duration)}
           </span>
         </div>
 
