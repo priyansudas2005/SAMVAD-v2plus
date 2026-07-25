@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
-import { Concept2InfinityLoop, SamvadBrandWordmarkCorrected } from './SamvadAlternativeLogos';
+import { SamvadMetallicGlassLogo } from './SamvadMetallicGlassLogo';
+import { SamvadBrandWordmarkCorrected } from './SamvadAlternativeLogos';
 
 interface SidebarProps {
   activePage: string;
@@ -127,38 +128,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Section */}
       <div className="p-6 border-b border-slate-900/20 flex items-center gap-3.5 relative z-10">
         <div
-          className="relative flex items-center justify-center cursor-pointer"
+          className="relative flex items-center justify-center cursor-pointer shrink-0"
           onClick={() => {}}
         >
-          {/* App icon box - Apple-style glass surface with soft inner highlights */}
-          <div
-            className="relative w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-500 hover:scale-102"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: `0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1)`,
-            }}
-          >
-            {/* Inner top shine */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-            {/* Faint violet ambient glow behind the icon only */}
-            <div
-              className="absolute rounded-full pointer-events-none"
-              style={{
-                width: 38, height: 38,
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
-                filter: 'blur(6px)',
-              }}
-            />
-
-            {/* Infinite Dialogue Loop Minimal Logo */}
-            <Concept2InfinityLoop size={34} />
-          </div>
+          {/* Standalone Metallic Glassy Modern Logo Mark (No Box) */}
+          <SamvadMetallicGlassLogo size={42} />
 
           {/* Recording live indicator */}
           {recordingState === 'recording' && (
-            <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
           )}
         </div>
         <div className="flex flex-col gap-0.5 flex-1">
