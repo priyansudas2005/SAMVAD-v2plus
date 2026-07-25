@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { SystemSettings } from '../types';
 import { ShortcutSettingsPanel } from '../components/KeyboardShortcuts';
+import { SamvadSignatureHelixLogo } from '../components/SamvadSignatureHelixLogo';
 
 type SectionId = 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
 
@@ -3111,9 +3112,7 @@ export const SettingsPage: React.FC = () => {
               {/* Header Branding Card with SAMVAD Logo */}
               <div className="p-6 bg-[#0e1016] border border-white/[0.08] rounded-xl flex items-center justify-between gap-4 shadow-2xl">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-white shadow-lg shadow-[#8B5CF6]/30 shrink-0 font-mono font-black text-xl tracking-tighter">
-                    SAM
-                  </div>
+                  <SamvadSignatureHelixLogo size={54} />
                   <div>
                     <h2 className="text-base font-extrabold text-[#F5F7FA] uppercase tracking-wider font-mono flex items-center gap-2">
                       SAMVAD Studio
