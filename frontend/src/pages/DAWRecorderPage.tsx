@@ -965,9 +965,17 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             <canvas ref={rulerCanvasRef} className="w-full h-full block" />
           </div>
 
-          {/* DUAL MULTITRACK STEREO WORKSPACE */}
+          {/* DUAL MULTITRACK STEREO WORKSPACE WITH FLANKING L & R STEREO METERS */}
           <div className="flex-1 flex overflow-hidden relative bg-[#020305]">
             
+            {/* LEFT CHANNEL (L) STEREO METER STRIP */}
+            <div className="w-8 bg-[#05060b]/90 backdrop-blur-md border-r border-slate-800/90 flex flex-col items-center p-1 shrink-0 font-mono select-none">
+              <span className="text-[8px] font-bold text-violet-400 mb-0.5">L</span>
+              <div className="flex-1 w-full relative overflow-hidden rounded-xs border border-slate-800/80">
+                <canvas ref={meterLeftCanvasRef} className="w-full h-full block" />
+              </div>
+            </div>
+
             {/* Multitrack Canvas Region */}
             <div className="flex-1 flex flex-col divide-y divide-slate-800/80 overflow-hidden">
               
@@ -1011,26 +1019,16 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
             </div>
 
-            {/* STEREO METER PANEL */}
-            <div className="w-16 bg-[#05060b]/90 backdrop-blur-md border-l border-slate-800/90 flex shrink-0 font-mono select-none">
-              <div className="w-7 py-2 inset-y-0 flex flex-col justify-between items-end pr-1 text-[8px] font-bold text-slate-500 border-r border-slate-800/60">
-                {dBValues.map(v => <span key={v}>{v}</span>)}
-              </div>
+            {/* CENTRAL dB SCALE RULER */}
+            <div className="w-6 bg-[#05060b]/90 backdrop-blur-md py-2 flex flex-col justify-between items-center text-[7.5px] font-bold text-slate-500 border-l border-r border-slate-800/60 shrink-0 font-mono select-none">
+              {dBValues.map(v => <span key={v}>{v}</span>)}
+            </div>
 
-              <div className="flex-1 flex p-1 gap-1">
-                <div className="flex-1 relative flex flex-col items-center">
-                  <span className="text-[7.5px] font-bold text-violet-400 mb-0.5">L</span>
-                  <div className="flex-1 w-full relative overflow-hidden rounded-xs border border-slate-800/80">
-                    <canvas ref={meterLeftCanvasRef} className="w-full h-full block" />
-                  </div>
-                </div>
-
-                <div className="flex-1 relative flex flex-col items-center">
-                  <span className="text-[7.5px] font-bold text-sky-400 mb-0.5">R</span>
-                  <div className="flex-1 w-full relative overflow-hidden rounded-xs border border-slate-800/80">
-                    <canvas ref={meterRightCanvasRef} className="w-full h-full block" />
-                  </div>
-                </div>
+            {/* RIGHT CHANNEL (R) STEREO METER STRIP */}
+            <div className="w-8 bg-[#05060b]/90 backdrop-blur-md border-l border-slate-800/90 flex flex-col items-center p-1 shrink-0 font-mono select-none">
+              <span className="text-[8px] font-bold text-sky-400 mb-0.5">R</span>
+              <div className="flex-1 w-full relative overflow-hidden rounded-xs border border-slate-800/80">
+                <canvas ref={meterRightCanvasRef} className="w-full h-full block" />
               </div>
             </div>
 
