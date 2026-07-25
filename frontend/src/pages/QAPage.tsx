@@ -250,6 +250,19 @@ export const QAPage: React.FC<QAPageProps> = ({
 
     try {
       const entry = await api.askQuestion(currentMeeting.meeting_id, trimmed);
+      
+      // Simulate real-time token streaming for smooth LLM response reveal
+      const words = entry.answer.split(' ');
+      let currentText = '';
+      for (let i = 0; i < words.length; i++) {
+        currentText += (i === 0 ? '' : ' ') + words[i];
+        const partialAnswer = currentText;
+        setOptimisticHistory(prev =>
+          prev.map(item => item.id === tempId ? { ...item, answer: partialAnswer } : item)
+        );
+        await new Promise(r => setTimeout(r, 25));
+      }
+
       const updatedHistory = [...qaHistory, entry];
       onUpdateMeeting({
         ...currentMeeting,
