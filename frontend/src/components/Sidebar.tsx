@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10 relative overflow-hidden">
+    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10 relative overflow-hidden bg-[#040508]/80 backdrop-blur-3xl border-r border-white/[0.08] shadow-[10px_0_40px_rgba(0,0,0,0.6)]">
       {/* Apple VisionOS Progressive Blur Layering */}
       <div className="sidebar-progressive-blur">
         <div className="sidebar-blur-layer sidebar-blur-layer--8" />
@@ -129,8 +129,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Specular highlight border overlay */}
       <div className="sidebar-specular-highlight" />
 
+      {/* Ambient Radial Mesh Backdrop Light */}
+      <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-violet-600/10 blur-[90px] pointer-events-none" />
+
       {/* Brand Section */}
-      <div className="px-5 py-4 border-b border-slate-900/20 flex items-center justify-between gap-2.5 relative z-10">
+      <div className="px-5 py-4 border-b border-white/[0.06] bg-[#07080f]/50 backdrop-blur-md flex items-center justify-between gap-2.5 relative z-10">
         <div
           className="relative flex items-center gap-3 cursor-pointer shrink-0 min-w-0"
           onClick={() => {}}
@@ -158,13 +161,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onStartTour}
               className="p-1.5 rounded-lg bg-slate-900/80 hover:bg-sky-600/20 border border-slate-800 hover:border-sky-500/40 text-slate-400 hover:text-sky-300 transition-all group"
-              title="Help → Replay Product Tour"
+              title="Replay Product Tour"
             >
-              <HelpCircle className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+              <Sparkles className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
             </button>
           )}
 
-          {/* Bell Notification Center Launcher Button */}
+          {/* Open Notification Center */}
           {onOpenNotifications && (
             <button
               onClick={onOpenNotifications}
@@ -179,10 +182,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 relative z-10">
+      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5 relative z-10 scrollbar-none">
         
         {/* Live Audio Capture Module in Sidebar */}
-        <div className="p-4 rounded-2xl flex flex-col gap-3 transition-all duration-300" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}>
+        <div className="p-4 rounded-2xl flex flex-col gap-3 transition-all duration-300 bg-gradient-to-b from-white/[0.03] to-white/[0.005] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           <div
             className={`flex items-center justify-between ${activePage !== 'recorder' ? 'cursor-pointer group' : ''}`}
             onClick={() => activePage !== 'recorder' && setActivePage('recorder')}
