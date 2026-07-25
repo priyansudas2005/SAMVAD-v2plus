@@ -41,6 +41,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AudioInspector } from '../components/AudioInspector';
 import { RecordingMonitor } from '../components/RecordingMonitor';
 import { DAWTransportSystem } from '../components/DAWTransportSystem';
+import { DAWContextMenu, ContextMenuPosition } from '../components/DAWContextMenu';
 
 export interface FlagshipDAWRecorderProps {
   stream: MediaStream | null;
@@ -95,7 +96,14 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [scrollX, setScrollX] = useState<number>(0);
 
-  // Cinematic FX States
+  // Context Menu State
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent, type: ContextMenuPosition['targetType'], data?: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, targetType: type, targetData: data });
+  };
   const [isMuteMonitoring, setIsMuteMonitoring] = useState<boolean>(false);
   const [followRecording, setFollowRecording] = useState<boolean>(true);
   const [bookmarks, setBookmarks] = useState<{ id: number; time: string; label: string }[]>([]);
@@ -888,22 +896,24 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       <div className="flex-1 flex w-full min-h-0 overflow-hidden relative z-20">
         
         {/* ── 3. RECORDING AUDIO INSPECTOR (LEFT - 15% WIDTH) ────────────────────── */}
-        <AudioInspector
-          title={title}
-          setTitle={setTitle}
-          recordingState={recordingState}
-          inputGain={inputGain}
-          setInputGain={setInputGain}
-          captureSource={captureSource}
-          setCaptureSource={setCaptureSource}
-          modelSize={modelSize}
-          setModelSize={setModelSize}
-          vadEnabled={vadEnabled}
-          setVadEnabled={setVadEnabled}
-          selectedMicDevice={selectedMicDevice}
-          setSelectedMicDevice={setSelectedMicDevice}
-          duration={duration}
-        />
+        <div onContextMenu={(e) => handleContextMenu(e, 'inspector')}>
+          <AudioInspector
+            title={title}
+            setTitle={setTitle}
+            recordingState={recordingState}
+            inputGain={inputGain}
+            setInputGain={setInputGain}
+            captureSource={captureSource}
+            setCaptureSource={setCaptureSource}
+            modelSize={modelSize}
+            setModelSize={setModelSize}
+            vadEnabled={vadEnabled}
+            setVadEnabled={setVadEnabled}
+            selectedMicDevice={selectedMicDevice}
+            setSelectedMicDevice={setSelectedMicDevice}
+            duration={duration}
+          />
+        </div>
 
         {/* ── 4. PROFESSIONAL DAW WORKSPACE WITH FLOATING TOOLBAR (75-80%) ─────── */}
         <main className="flex-1 bg-[#010204]/90 flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">
@@ -973,12 +983,18 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           </div>
 
           {/* TIMELINE RULER CANVAS */}
-          <div className="h-7 border-b border-slate-800/90 relative overflow-hidden shrink-0">
+          <div 
+            className="h-7 border-b border-slate-800/90 relative overflow-hidden shrink-0 cursor-crosshair"
+            onContextMenu={(e) => handleContextMenu(e, 'timeline')}
+          >
             <canvas ref={rulerCanvasRef} className="w-full h-full block" />
           </div>
 
           {/* DUAL MULTITRACK STEREO WORKSPACE WITH FLANKING L & R STEREO METERS */}
-          <div className="flex-1 flex overflow-hidden relative bg-[#020305]">
+          <div 
+            className="flex-1 flex overflow-hidden relative bg-[#020305]"
+            onContextMenu={(e) => handleContextMenu(e, 'waveform')}
+          >
             
             {/* LEFT CHANNEL (L) STEREO METER STRIP */}
             <div className="w-8 bg-[#05060b]/90 backdrop-blur-md border-r border-slate-800/90 flex flex-col items-center p-1 shrink-0 font-mono select-none">
@@ -1057,40 +1073,66 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         </main>
 
         {/* ── 5. RECORDING MONITOR PANEL (RIGHT - 18% WIDTH) ──────────────────── */}
-        <RecordingMonitor
-          recordingState={recordingState}
-          duration={duration}
-          captureSource={captureSource}
-          vadEnabled={vadEnabled}
-          liveVolumeLeft={liveVolumeLeft.current}
-          peakHoldLeft={peakHoldLeft.current}
-        />
+        <div onContextMenu={(e) => handleContextMenu(e, 'monitor')}>
+          <RecordingMonitor
+            recordingState={recordingState}
+            duration={duration}
+            captureSource={captureSource}
+            vadEnabled={vadEnabled}
+            liveVolumeLeft={liveVolumeLeft.current}
+            peakHoldLeft={peakHoldLeft.current}
+          />
+        </div>
 
       </div>
 
       {/* ── 6. PROFESSIONAL TACTILE HARDWARE DAW TRANSPORT SYSTEM ────────────── */}
-      <DAWTransportSystem
-        recordingState={recordingState}
-        duration={duration}
-        startRecording={startRecording}
-        pauseRecording={pauseRecording}
-        resumeRecording={resumeRecording}
-        stopRecording={stopRecording}
+      <div onContextMenu={(e) => handleContextMenu(e, 'transport')}>
+        <DAWTransportSystem
+          recordingState={recordingState}
+          duration={duration}
+          startRecording={startRecording}
+          pauseRecording={pauseRecording}
+          resumeRecording={resumeRecording}
+          stopRecording={stopRecording}
+          onAddMarker={addBookmark}
+          onBookmarkTime={addBookmark}
+          markersCount={bookmarks.length}
+          selectedMicDevice={selectedMicDevice}
+          onSelectMicDevice={setSelectedMicDevice}
+          inputGain={inputGain}
+          onChangeInputGain={setInputGain}
+          isMuteMonitoring={isMuteMonitoring}
+          onToggleMonitoring={() => setIsMuteMonitoring(prev => !prev)}
+          followRecording={followRecording}
+          onToggleFollowRecording={() => setFollowRecording(prev => !prev)}
+          onZoomIn={() => setZoomLevel(prev => Math.min(prev + 25, 400))}
+          onZoomOut={() => setZoomLevel(prev => Math.max(prev - 25, 50))}
+          onFitRecording={() => setZoomLevel(100)}
+          onJumpToBeginning={() => setScrollX(0)}
+        />
+      </div>
+
+      {/* ── 7. PROFESSIONAL DESKTOP CONTEXT MENU SYSTEM ───────────────────────── */}
+      <DAWContextMenu
+        position={contextMenu}
+        onClose={() => setContextMenu(null)}
         onAddMarker={addBookmark}
         onBookmarkTime={addBookmark}
-        markersCount={bookmarks.length}
-        selectedMicDevice={selectedMicDevice}
-        onSelectMicDevice={setSelectedMicDevice}
-        inputGain={inputGain}
-        onChangeInputGain={setInputGain}
-        isMuteMonitoring={isMuteMonitoring}
-        onToggleMonitoring={() => setIsMuteMonitoring(prev => !prev)}
-        followRecording={followRecording}
-        onToggleFollowRecording={() => setFollowRecording(prev => !prev)}
         onZoomIn={() => setZoomLevel(prev => Math.min(prev + 25, 400))}
         onZoomOut={() => setZoomLevel(prev => Math.max(prev - 25, 50))}
         onFitRecording={() => setZoomLevel(100)}
+        onResetZoom={() => setZoomLevel(100)}
         onJumpToBeginning={() => setScrollX(0)}
+        onJumpToPlayhead={() => setScrollX(0)}
+        onStartRecording={startRecording}
+        onPauseRecording={pauseRecording}
+        onStopRecording={stopRecording}
+        onToggleMonitoring={() => setIsMuteMonitoring(prev => !prev)}
+        onToggleFollowRecording={() => setFollowRecording(prev => !prev)}
+        recordingState={recordingState}
+        isMuteMonitoring={isMuteMonitoring}
+        followRecording={followRecording}
       />
 
     </div>
