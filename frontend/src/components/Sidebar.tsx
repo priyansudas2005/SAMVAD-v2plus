@@ -252,16 +252,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="glass-glider"
                   style={{
                     transform: `translateX(${captureSource === 'mic' ? 0 : captureSource === 'system' ? 100 : 200}%)`,
-                    background: captureSource === 'mic'
-                      ? 'linear-gradient(135deg, rgba(139,92,246,0.35), rgba(139,92,246,0.6))'
-                      : captureSource === 'system'
-                      ? 'linear-gradient(135deg, rgba(56,189,248,0.35), rgba(56,189,248,0.6))'
-                      : 'linear-gradient(135deg, rgba(52,211,153,0.35), rgba(52,211,153,0.6))',
-                    boxShadow: captureSource === 'mic'
-                      ? '0 0 14px rgba(139,92,246,0.5), inset 0 0 8px rgba(139,92,246,0.3)'
-                      : captureSource === 'system'
-                      ? '0 0 14px rgba(56,189,248,0.5), inset 0 0 8px rgba(56,189,248,0.3)'
-                      : '0 0 14px rgba(52,211,153,0.5), inset 0 0 8px rgba(52,211,153,0.3)',
+                    background: 'linear-gradient(135deg, rgba(139,92,246,0.35), rgba(139,92,246,0.7))',
+                    boxShadow: '0 0 14px rgba(139,92,246,0.5), inset 0 0 8px rgba(139,92,246,0.3)'
                   }}
                 />
               </div>
