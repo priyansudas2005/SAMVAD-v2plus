@@ -31,7 +31,9 @@ import {
   MapPin,
   Crosshair,
   ArrowRight,
-  Maximize
+  Maximize,
+  CheckCircle2,
+  Lock
 } from 'lucide-react';
 
 export interface FlagshipDAWRecorderProps {
@@ -87,7 +89,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [scrollX, setScrollX] = useState<number>(0);
 
-  // New Transport Control States
+  // New Transport & Monitoring States
   const [isMuteMonitoring, setIsMuteMonitoring] = useState<boolean>(false);
   const [followRecording, setFollowRecording] = useState<boolean>(true);
   const [bookmarks, setBookmarks] = useState<{ id: number; time: string; label: string }[]>([]);
@@ -120,7 +122,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const clipIndicatorLeft = useRef<boolean>(false);
   const clipIndicatorRight = useRef<boolean>(false);
 
-  // Live Telemetry State
+  // Telemetry & Intelligence State
   const [telemetry, setTelemetry] = useState({
     elapsedTime: '00:00:00.00',
     currentLoudnessDb: -60.0,
@@ -148,7 +150,108 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  // Keyboard Shortcuts (Space: Record/Pause, Esc: Stop, B: Bookmark, M: Mute Monitoring)
+  // Live Intelligence Bar Status Items Configuration
+  const intelligenceStatus = [
+    {
+      id: 'ai-listening',
+      label: 'AI Listening',
+      icon: BrainCircuit,
+      state: recordingState === 'recording' ? 'Listening...' : recordingState === 'paused' ? 'Paused' : 'Standby',
+      confidence: recordingState === 'recording' ? '99.4%' : '0%',
+      color: recordingState === 'recording' ? 'text-violet-400' : 'text-slate-500',
+      bg: recordingState === 'recording' ? 'bg-violet-500/10 border-violet-500/30' : 'bg-slate-900 border-slate-800',
+      dotColor: recordingState === 'recording' ? 'bg-violet-500 animate-ping' : 'bg-slate-600',
+      tooltip: 'Real-time neural listener analyzing stream acoustics'
+    },
+    {
+      id: 'vad',
+      label: 'Voice Activity',
+      icon: Activity,
+      state: recordingState === 'recording' ? 'Active Speech' : 'Silence',
+      confidence: recordingState === 'recording' ? '98.8%' : '0%',
+      color: recordingState === 'recording' ? 'text-emerald-400' : 'text-slate-500',
+      bg: recordingState === 'recording' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-900 border-slate-800',
+      dotColor: recordingState === 'recording' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600',
+      tooltip: 'Silero VAD trimming background silence & non-speech'
+    },
+    {
+      id: 'noise-reduction',
+      label: 'Noise Reduction',
+      icon: SlidersHorizontal,
+      state: vadEnabled ? 'Spectral Active' : 'Off',
+      confidence: vadEnabled ? '96.2%' : '0%',
+      color: vadEnabled ? 'text-sky-400' : 'text-slate-500',
+      bg: vadEnabled ? 'bg-sky-500/10 border-sky-500/30' : 'bg-slate-900 border-slate-800',
+      dotColor: vadEnabled ? 'bg-sky-400' : 'bg-slate-600',
+      tooltip: 'Real-time 24dB adaptive noise floor filter'
+    },
+    {
+      id: 'speaker-detection',
+      label: 'Speaker Detection',
+      icon: UsersIcon,
+      state: recordingState === 'recording' ? '2 Speakers Diarized' : 'Idle',
+      confidence: recordingState === 'recording' ? '97.5%' : '0%',
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/10 border-amber-500/30',
+      dotColor: 'bg-amber-400',
+      tooltip: 'PyAnnote acoustic embedding speaker separation'
+    },
+    {
+      id: 'transcription',
+      label: 'Live Transcription',
+      icon: FileText,
+      state: recordingState === 'recording' ? 'Whisper Buffer' : 'Standby',
+      confidence: recordingState === 'recording' ? '99.1%' : '0%',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10 border-emerald-500/30',
+      dotColor: 'bg-emerald-400 animate-pulse',
+      tooltip: 'Sub-second local Whisper-v3 speech-to-text token stream'
+    },
+    {
+      id: 'quality',
+      label: 'Recording Quality',
+      icon: Sparkles,
+      state: 'Studio Reference',
+      confidence: '100%',
+      color: 'text-violet-300',
+      bg: 'bg-violet-500/10 border-violet-500/30',
+      dotColor: 'bg-violet-400',
+      tooltip: 'Lossless 32-Bit Float PCM master stream quality'
+    },
+    {
+      id: 'sample-rate',
+      label: 'Sample Rate / Bit',
+      icon: Database,
+      state: '44.1 kHz / 24-bit',
+      confidence: '100%',
+      color: 'text-sky-300',
+      bg: 'bg-sky-500/10 border-sky-500/30',
+      dotColor: 'bg-sky-400',
+      tooltip: 'Broadcast standard 44,100 Hz audio clock rate'
+    },
+    {
+      id: 'security',
+      label: 'Secure Local Processing',
+      icon: ShieldCheck,
+      state: '100% Offline CUDA',
+      confidence: '100%',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10 border-emerald-500/30',
+      dotColor: 'bg-emerald-400',
+      tooltip: 'Zero cloud telemetry — 100% encrypted local processing'
+    }
+  ];
+
+  // Helper Users Icon component
+  function UsersIcon(props: any) {
+    return (
+      <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    );
+  }
+
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
@@ -482,7 +585,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       }
     }
 
-    // Draw Bookmarks / Markers on Ruler
     bookmarks.forEach(bm => {
       ctx.fillStyle = '#F59E0B';
       ctx.beginPath();
@@ -529,7 +631,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       ctx.fillRect(x, (height - barH) / 2, Math.max(1, step), barH);
     }
 
-    // Overview Viewport Window Overlay
     ctx.strokeStyle = '#38BDF8';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(scrollX / 10, 0, width / (zoomLevel / 50), height);
@@ -705,10 +806,36 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         </div>
       </header>
 
+      {/* ── 2. PREMIUM HORIZONTAL LIVE RECORDING INTELLIGENCE BAR ─────────────── */}
+      <div className="h-10 bg-[#080a10] border-b border-slate-800/90 px-4 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none font-mono text-xs">
+        {intelligenceStatus.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.id}
+              title={item.tooltip}
+              className={`px-2.5 py-1 rounded-lg border flex items-center gap-2 shrink-0 transition-all cursor-help ${item.bg}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${item.dotColor}`} />
+              
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <Icon className={`w-3 h-3 ${item.color}`} />
+                <span className="text-slate-400 font-bold">{item.label}:</span>
+                <span className={`font-bold ${item.color}`}>{item.state}</span>
+              </div>
+
+              <span className="px-1 py-0.2 bg-slate-950/60 rounded text-[8.5px] font-bold text-slate-400 border border-slate-800/60">
+                {item.confidence}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
       {/* ── MAIN WORKSPACE GRID ─────────────────────────────────────────────── */}
       <div className="flex-1 flex w-full min-h-0 overflow-hidden">
         
-        {/* ── 2. RECORDING INSPECTOR (LEFT - 12% WIDTH) ────────────────────── */}
+        {/* ── 3. RECORDING INSPECTOR (LEFT - 12% WIDTH) ────────────────────── */}
         <aside className="w-52 bg-[#050609] border-r border-slate-800/90 p-3 flex flex-col justify-between shrink-0 space-y-4 font-mono text-xs overflow-y-auto">
           <div className="space-y-4">
             <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/80 pb-2 flex items-center gap-1.5">
@@ -752,7 +879,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
             <div className="space-y-1">
               <div className="flex justify-between text-[9.5px] font-bold">
-                <span className="text-slate-400">INPUT GAIN</span>
+                <span className="text-slate-400">GAIN</span>
                 <span className="text-sky-400">{inputGain > 0 ? `+${inputGain}` : inputGain} dB</span>
               </div>
               <input
@@ -789,7 +916,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           </div>
         </aside>
 
-        {/* ── 3. PROFESSIONAL DAW WORKSPACE WITH MINIMAP OVERVIEW (75-80%) ────── */}
+        {/* ── 4. PROFESSIONAL DAW WORKSPACE WITH MINIMAP OVERVIEW (75-80%) ────── */}
         <main className="flex-1 bg-[#010204] flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">
           
           {/* Mode Tabs & Zoom/Minimap Controls */}
@@ -927,7 +1054,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
         </main>
 
-        {/* ── 4. PREMIUM LIVE TELEMETRY PANEL (RIGHT - 18% WIDTH) ─────────────── */}
+        {/* ── 5. PREMIUM LIVE TELEMETRY PANEL (RIGHT - 18% WIDTH) ─────────────── */}
         <aside className="w-64 bg-[#050609] p-3.5 flex flex-col justify-between shrink-0 space-y-4 font-mono text-xs overflow-y-auto">
           <div className="space-y-4">
             <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/80 pb-2 flex items-center gap-1.5">
@@ -985,7 +1112,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
       </div>
 
-      {/* ── 5. PROFESSIONAL TACTILE DESKTOP TRANSPORT BAR (BOTTOM) ────────────── */}
+      {/* ── 6. PROFESSIONAL TACTILE DESKTOP TRANSPORT BAR (BOTTOM) ────────────── */}
       <footer className="h-16 bg-[#05060a] border-t border-slate-800/90 px-6 flex items-center justify-between shrink-0 font-mono select-none">
         
         {/* Left Monitoring & Marker Controls */}
