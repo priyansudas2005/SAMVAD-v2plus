@@ -61,11 +61,11 @@ export const SamvadSignatureHelixLogo: React.FC<{
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </linearGradient>
 
-        {/* Bevel shadow — bottom-right */}
+        {/* Bevel shadow — bottom-right (softened to avoid harsh black arc) */}
         <linearGradient id="bevelSH" x1="100" y1="100" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#020508" stopOpacity="1.0" />
-          <stop offset="45%"  stopColor="#0F1825" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#020508" stopOpacity="0" />
+          <stop offset="0%"   stopColor="#0A1525" stopOpacity="0.55" />
+          <stop offset="45%"  stopColor="#152030" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#0A1525" stopOpacity="0" />
         </linearGradient>
 
         {/* Iridescent oil-slick fringe for ring edge */}
@@ -152,9 +152,9 @@ export const SamvadSignatureHelixLogo: React.FC<{
         stroke="url(#bevelHL)" strokeWidth="4" strokeLinecap="round"
         fill="none" filter="url(#specBloom)" />
 
-      {/* Ring shadow bevel arc (bottom-right) */}
+      {/* Ring shadow bevel arc (bottom-right) — subtle only */}
       <path d="M 87 67 A 39 39 0 0 1 33 89"
-        stroke="url(#bevelSH)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+        stroke="url(#bevelSH)" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.5" />
 
       {/* ── LAYER 2: Knurl / radial score lines on ring bezel ── */}
       {/* 16 equidistant fine radial lines — precision-machined knurl texture */}
@@ -179,9 +179,9 @@ export const SamvadSignatureHelixLogo: React.FC<{
       {/* Inner well plasma ambient bloom */}
       <circle cx="50" cy="50" r="35" fill="url(#wellGlow)" />
 
-      {/* Well inner-edge ambient occlusion shadow */}
+      {/* Well inner-edge ambient occlusion — feathered, not a hard line */}
       <circle cx="50" cy="50" r="34.5"
-        fill="none" stroke="#000000" strokeWidth="4" opacity="0.75" />
+        fill="none" stroke="#000000" strokeWidth="2.5" opacity="0.30" />
 
       {/* ══════════════════════════════════════════
           LAYER 4 — Raised metallic platform
@@ -200,10 +200,10 @@ export const SamvadSignatureHelixLogo: React.FC<{
         stroke="url(#bevelHL)" strokeWidth="2.2" strokeLinecap="round"
         fill="none" filter="url(#specBloom)" opacity="0.90" />
 
-      {/* Platform shadow bevel arc */}
+      {/* Platform shadow bevel arc — barely visible, no harsh line */}
       <path d="M 72 72 A 23 23 0 0 1 28 72"
-        stroke="url(#bevelSH)" strokeWidth="2" strokeLinecap="round"
-        fill="none" opacity="0.80" />
+        stroke="url(#bevelSH)" strokeWidth="1.5" strokeLinecap="round"
+        fill="none" opacity="0.35" />
 
       {/* Fill light bounce on platform bottom-right */}
       <circle cx="50" cy="50" r="26" fill="url(#fillLight)" />
