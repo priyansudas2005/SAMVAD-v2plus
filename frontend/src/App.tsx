@@ -561,7 +561,13 @@ function App() {
               transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <SettingsPage />
+              <SettingsPage 
+                onUpdateGlobalSettings={(newModel, newLang, newVad) => {
+                  if (newModel) setModelSize(newModel);
+                  if (newLang) setLanguage(newLang);
+                  if (newVad !== undefined) setVadEnabled(newVad);
+                }}
+              />
             </motion.div>
           )}
 

@@ -36,7 +36,11 @@ interface SectionConfig {
   icon: React.ElementType;
 }
 
-export const SettingsPage: React.FC = () => {
+interface SettingsPageProps {
+  onUpdateGlobalSettings?: (modelSize?: string, language?: string, vadEnabled?: boolean) => void;
+}
+
+export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettings }) => {
   const [settings, setSettings] = useState<SystemSettings>({
     model_size: 'base',
     default_language: 'auto',
@@ -462,6 +466,9 @@ export const SettingsPage: React.FC = () => {
   const handleInstantSave = async (updated: SystemSettings) => {
     setSettings(updated);
     localStorage.setItem('samvad_user_settings', JSON.stringify({ ...settings, ...updated }));
+    if (onUpdateGlobalSettings) {
+      onUpdateGlobalSettings(updated.model_size, updated.default_language, updated.vad_enabled);
+    }
     try {
       await api.updateSettings(updated);
       showToast("Settings updated instantly");
