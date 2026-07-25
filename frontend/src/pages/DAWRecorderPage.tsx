@@ -453,6 +453,8 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       currentAmp2.current = 0.08;
       clipIndicatorLeft.current = false;
       clipIndicatorRight.current = false;
+      cursorInertiaX.current = 0;
+      setScrollX(0);
       setBookmarks([]);
     }
   }, [recordingState]);

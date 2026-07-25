@@ -118,7 +118,16 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
         }));
       }, 100);
     } else {
-      setTelemetry(prev => ({ ...prev, currentLoudnessDb: -60.0, peakLevelDb: -60.0 }));
+      setTelemetry(prev => ({ 
+        ...prev, 
+        elapsedTime: '00:00:00.00',
+        recordingSizeMb: 0.0,
+        currentLoudnessDb: -60.0, 
+        peakLevelDb: -60.0 
+      }));
+      if (recordingState === 'idle') {
+        waveformBuffer.current = Array(40).fill(0.05);
+      }
     }
     return () => clearInterval(interval);
   }, [recordingState, duration, liveVolumeLeft, peakHoldLeft]);
