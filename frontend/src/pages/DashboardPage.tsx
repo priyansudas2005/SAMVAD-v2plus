@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Meeting } from '../types';
 import { api } from '../services/api';
+import { FirstRecordingWizard } from '../components/FirstRecordingWizard';
 
 // Mouse-tracking spotlight and 3D parallax tilt bento card widget
 const BentoItem: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = '', children }) => {
@@ -296,6 +297,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
         </BentoItem>
       </div>
+
+      {/* ── First Recording Onboarding Workflow Banner (Shows when no meetings exist) ── */}
+      {meetings.length === 0 && (
+        <div className="relative z-10">
+          <FirstRecordingWizard
+            onStartRecording={() => setActivePage('recorder')}
+            activeStep="record"
+          />
+        </div>
+      )}
 
       {/* ── Upload + Telemetry Row (Telemetry and Pipeline laid out horizontally internally) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 relative z-10">
