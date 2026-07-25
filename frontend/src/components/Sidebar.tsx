@@ -126,39 +126,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-specular-highlight" />
 
       {/* Brand Section */}
-      <div className="p-6 border-b border-slate-900/20 flex items-center gap-3.5 relative z-10">
+      <div className="px-5 py-4 border-b border-slate-900/20 flex items-center justify-between gap-2.5 relative z-10">
         <div
-          className="relative flex items-center justify-center cursor-pointer shrink-0"
+          className="relative flex items-center gap-3 cursor-pointer shrink-0 min-w-0"
           onClick={() => {}}
         >
           {/* Quantum Sonic Helix Signature Logo Mark (Standalone, No Box) */}
-          <SamvadSignatureHelixLogo size={46} />
+          <SamvadSignatureHelixLogo size={38} />
+
+          <div className="flex items-center gap-1.5 min-w-0">
+            <SamvadBrandWordmarkCorrected mode="dark" />
+            <span
+              className="text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide shrink-0"
+            >
+              v2.0
+            </span>
+          </div>
 
           {/* Recording live indicator */}
           {recordingState === 'recording' && (
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
           )}
         </div>
-        <div className="flex flex-col gap-0.5 flex-1">
-          <div className="flex items-center gap-2">
-            <SamvadBrandWordmarkCorrected mode="dark" />
-            <span
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide shrink-0"
-            >
-              v2.0
-            </span>
-          </div>
-        </div>
 
         {/* Bell Notification Center Launcher Button */}
         {onOpenNotifications && (
           <button
             onClick={onOpenNotifications}
-            className="relative p-2 rounded-xl bg-slate-900/80 hover:bg-violet-600/20 border border-slate-800 hover:border-violet-500/40 text-slate-400 hover:text-violet-300 transition-all group shrink-0"
+            className="relative p-1.5 rounded-lg bg-slate-900/80 hover:bg-violet-600/20 border border-slate-800 hover:border-violet-500/40 text-slate-400 hover:text-violet-300 transition-all group shrink-0"
             title="Open Notification Center"
           >
-            <Bell className="w-4 h-4 transition-transform group-hover:rotate-12" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-violet-500 rounded-full animate-pulse" />
+            <Bell className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse" />
           </button>
         )}
       </div>

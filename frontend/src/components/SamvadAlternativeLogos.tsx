@@ -71,15 +71,15 @@ export const Concept4PrismFocus: React.FC<{ size?: number }> = ({ size = 48 }) =
   </svg>
 );
 
-// Corrected Wordmark Subtext: "AI MEETING ASSISTANT"
+// Corrected Wordmark Subtext: "AI MEETING ASSISTANT" (Single-line whitespace-nowrap)
 export const SamvadBrandWordmarkCorrected: React.FC<{ mode?: 'dark' | 'light' }> = ({ mode = 'dark' }) => (
-  <div className="flex flex-col select-none">
-    <div className="flex items-center gap-1.5 font-sans font-black tracking-tight text-xl">
+  <div className="flex flex-col select-none justify-center">
+    <div className="flex items-center gap-1 font-sans font-black tracking-wider text-base leading-none">
       <span className={mode === 'light' ? 'text-slate-900' : 'text-white'}>
         S<span className="text-violet-400">Λ</span>MV<span className="text-cyan-400">Λ</span>D
       </span>
     </div>
-    <span className="text-[9px] font-mono tracking-[0.25em] text-slate-400 uppercase font-bold mt-0.5">
+    <span className="text-[8px] font-mono tracking-[0.16em] text-slate-400 uppercase font-semibold mt-1 whitespace-nowrap">
       AI MEETING ASSISTANT
     </span>
   </div>
