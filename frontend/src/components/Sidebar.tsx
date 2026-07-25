@@ -136,11 +136,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="flex items-center gap-1.5 min-w-0">
             <SamvadBrandWordmarkCorrected mode="dark" />
-            <span
-              className="text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide shrink-0"
-            >
+            <div className="badge-v2 shrink-0">
               v2.0
-            </span>
+              <span />
+            </div>
           </div>
 
           {/* Recording live indicator */}
