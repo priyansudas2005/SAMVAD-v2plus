@@ -445,14 +445,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   whileTap={item.disabled ? undefined : { scale: 0.98 }}
                   className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-[11px] font-semibold transition-all duration-[200ms] ease-out border focus:outline-none ${
                     item.disabled
-                      ? 'text-slate-700 cursor-not-allowed border-transparent opacity-20'
+                      ? 'text-slate-500/70 cursor-not-allowed border-white/[0.03] bg-black/40 opacity-50'
                       : isActive
                       ? 'btn-nav-liquid-active text-white'
-                      : 'btn-nav-liquid-inactive text-slate-350 hover:text-white'
+                      : 'btn-nav-liquid-inactive text-slate-300 hover:text-white'
                   }`}
                   style={{
-                    borderColor: item.disabled ? 'transparent' : 'rgba(255, 255, 255, 0.12)',
-                    background: item.disabled ? 'rgba(20, 20, 20, 0.15)' : undefined
+                    borderColor: item.disabled ? 'rgba(255, 255, 255, 0.03)' : undefined
                   }}
                 >
                   <motion.div
@@ -463,9 +462,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     } : {}}
                     transition={{ duration: 0.65, ease: "easeInOut" }}
                   >
-                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : item.disabled ? 'text-slate-750' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : item.disabled ? 'text-slate-600' : 'text-slate-400'}`} />
                   </motion.div>
-                  <span style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' } : undefined}>
+                  <span className={item.disabled ? 'text-slate-500/80 font-medium' : ''} style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' } : undefined}>
                     {item.label}
                   </span>
                 </motion.button>
@@ -475,16 +474,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Model parameters selectors inside sidebar */}
-        <div className="p-4 rounded-2xl space-y-3.5" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}>
-          <h2 className="text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em]">AI parameters</h2>
+        <div className="p-4 rounded-2xl space-y-3.5 bg-white/[0.02] border border-white/[0.06] shadow-lg backdrop-blur-md">
+          <h2 className="text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em]">AI Parameters</h2>
           
           <div className="space-y-2">
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Whisper Model</label>
+              <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Whisper Model</label>
               <select 
                 value={modelSize}
                 onChange={e => setModelSize(e.target.value)}
-                className="w-full bg-slate-950/40 border border-slate-900/60 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-sky-400 font-semibold"
+                className="w-full bg-[#080a0f] border border-white/[0.08] hover:border-white/20 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-mono font-semibold"
               >
                 <option value="tiny">Tiny (39M params)</option>
                 <option value="base">Base (74M params)</option>
@@ -495,11 +494,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Language</label>
+              <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Language</label>
               <select 
                 value={language}
                 onChange={e => setLanguage(e.target.value)}
-                className="w-full bg-slate-950/40 border border-slate-900/60 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-sky-400 font-semibold"
+                className="w-full bg-[#080a0f] border border-white/[0.08] hover:border-white/20 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-mono font-semibold"
               >
                 <option value="auto">Auto-Detect</option>
                 <option value="en">English</option>
@@ -515,21 +514,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-4 border-t border-slate-900/30 bg-transparent flex flex-col gap-2 relative z-10">
+      <div className="p-4 border-t border-white/[0.06] bg-[#06070d]/60 backdrop-blur-md flex flex-col gap-2 relative z-10">
         {currentMeeting && (
-          <div className="p-3 rounded-xl flex flex-col gap-1" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider font-semibold">Loaded Meeting</span>
+          <div className="p-3 rounded-xl flex flex-col gap-1 bg-white/[0.02] border border-white/[0.06]">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Loaded Meeting</span>
             <span className="text-xs text-white font-medium truncate">{currentMeeting.title}</span>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-slate-400 font-mono">
               Duration: {currentMeeting.duration ? `${(currentMeeting.duration / 60).toFixed(1)}m` : '0.0m'}
             </span>
           </div>
         )}
-        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[10px] font-semibold text-slate-400/90 transition-all duration-300" style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.03)', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
-          <span className="tracking-wide">Engine Status</span>
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/15 text-emerald-400 text-[9.5px] font-bold">
-            <span className="relative w-2 h-2 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0" />
-            <span className="tracking-wider">ACTIVE</span>
+        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[10px] font-semibold text-slate-300 transition-all duration-300 bg-[#080a0f]/80 border border-white/[0.08] shadow-inner">
+          <span className="tracking-wide text-slate-400 font-mono">Engine Status</span>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9.5px] font-bold">
+            <span className="relative w-2 h-2 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0 animate-pulse" />
+            <span className="tracking-wider font-mono">ACTIVE</span>
           </div>
         </div>
       </div>
