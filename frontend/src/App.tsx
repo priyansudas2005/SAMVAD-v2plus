@@ -14,7 +14,7 @@ import {
   SettingsSkeleton 
 } from './components/Skeletons';
 import { DashboardPage } from './pages/DashboardPage';
-import { RecorderPage } from './pages/RecorderPage';
+import { DAWRecorderPage } from './pages/DAWRecorderPage';
 import { TranscriptPage } from './pages/TranscriptPage';
 import { SummaryPage } from './pages/SummaryPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -421,8 +421,7 @@ function App() {
               transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <RecorderPage 
-                stream={stream}
+              <DAWRecorderPage 
                 recordingState={recordingState}
                 duration={duration}
                 title={title}
@@ -435,6 +434,12 @@ function App() {
                 stopRecording={stopRecording}
                 discardRecording={discardRecording}
                 saveRecording={saveRecording}
+                modelSize={modelSize}
+                setModelSize={setModelSize}
+                language={language}
+                setLanguage={setLanguage}
+                vadEnabled={vadEnabled}
+                setVadEnabled={setVadEnabled}
                 captureSource={captureSource}
                 setCaptureSource={setCaptureSource}
               />
