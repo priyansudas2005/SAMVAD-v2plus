@@ -896,8 +896,44 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         {/* ── 4. PROFESSIONAL DAW WORKSPACE WITH FLOATING TOOLBAR (75-80%) ─────── */}
         <main className="flex-1 bg-[#010204]/90 flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">
           
-          {/* Mode Tabs & Inline Studio Controls */}
-          <div className="h-8 bg-[#06070a]/90 backdrop-blur-md border-b border-slate-800/90 px-3 flex items-center justify-between font-mono text-xs shrink-0">
+          {/* FLOATING CONTEXTUAL TOOLBAR OVERLAY */}
+          <AnimatePresence>
+            {showFloatingToolbar && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-12 left-[35%] -translate-x-1/2 z-50 px-3.5 py-1.5 bg-[#0b0d14]/95 border border-slate-700/80 rounded-xl shadow-2xl backdrop-blur-xl flex items-center gap-2.5 font-mono text-xs whitespace-nowrap pointer-events-auto"
+              >
+                <span className="text-[9.5px] font-bold text-violet-400 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> FLOATING STUDIO BAR
+                </span>
+
+                <div className="h-3.5 w-px bg-slate-800" />
+
+                <button onClick={() => setZoomLevel(prev => Math.max(50, prev - 25))} className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-300 hover:text-white text-[10px] font-bold">
+                  Zoom -
+                </button>
+                <span className="text-sky-400 font-bold text-[10px]">{zoomLevel}%</span>
+                <button onClick={() => setZoomLevel(prev => Math.min(250, prev + 25))} className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-300 hover:text-white text-[10px] font-bold">
+                  Zoom +
+                </button>
+
+                <div className="h-3.5 w-px bg-slate-800" />
+
+                <button onClick={() => setScrollX(0)} className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-300 hover:text-white text-[10px] font-bold">
+                  Reset View
+                </button>
+
+                <button onClick={() => setShowFloatingToolbar(false)} className="text-slate-500 hover:text-slate-300 text-xs ml-1 font-bold">
+                  ✕
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Mode Tabs */}
+          <div className="h-8 bg-[#06070a]/90 backdrop-blur-md border-b border-slate-800/90 px-4 flex items-center justify-between font-mono text-xs shrink-0">
             <div className="flex items-center gap-2">
               {['multitrack', 'mixer', 'spectrogram'].map((t) => (
                 <button
@@ -914,47 +950,10 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
               ))}
             </div>
 
-            {/* Inline Compact Studio Controls Bar */}
-            <div className="flex items-center gap-2">
-              <AnimatePresence>
-                {showFloatingToolbar && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="px-2.5 py-0.5 bg-[#0b0d14] border border-slate-800 rounded-lg flex items-center gap-2 font-mono text-[10px]"
-                  >
-                    <span className="font-bold text-violet-400 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> STUDIO BAR
-                    </span>
-
-                    <div className="h-3 w-px bg-slate-800" />
-
-                    <button onClick={() => setZoomLevel(prev => Math.max(50, prev - 25))} className="px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded text-slate-300 hover:text-white font-bold">
-                      Zoom -
-                    </button>
-                    <span className="text-sky-400 font-bold">{zoomLevel}%</span>
-                    <button onClick={() => setZoomLevel(prev => Math.min(250, prev + 25))} className="px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded text-slate-300 hover:text-white font-bold">
-                      Zoom +
-                    </button>
-
-                    <div className="h-3 w-px bg-slate-800" />
-
-                    <button onClick={() => setScrollX(0)} className="px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded text-slate-300 hover:text-white font-bold">
-                      Reset View
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setShowFloatingToolbar(prev => !prev)}
-                className={`text-[9.5px] font-bold px-2 py-0.5 rounded border transition-all ${
-                  showFloatingToolbar 
-                    ? 'bg-violet-600/20 border-violet-500/40 text-violet-300' 
-                    : 'bg-[#0b0d14] border-slate-800 text-slate-400 hover:text-white'
-                }`}
-                title="Toggle Inline Studio Controls Bar (Key F)"
+                className="text-[9.5px] text-slate-400 hover:text-white font-bold bg-[#0b0d14] px-2 py-0.5 rounded border border-slate-800"
               >
                 Float Bar (Key F)
               </button>
