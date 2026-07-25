@@ -567,12 +567,25 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
 
-    const startSec = Math.floor(scrollX / pixelsPerSecond);
-    const endSec = startSec + Math.ceil(width / pixelsPerSecond) + 5;
+    // Account for Left Track Control Header Width (144px) so 00:00 aligns with the start of the audio canvas
+    const headerOffset = 144;
+    
+    // Draw Header Background
+    ctx.fillStyle = '#07080e';
+    ctx.fillRect(0, 0, headerOffset, height);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.beginPath();
+    ctx.moveTo(headerOffset, 0);
+    ctx.lineTo(headerOffset, height);
+    ctx.stroke();
 
+    const startSec = Math.floor(scrollX / pixelsPerSecond);
+    const endSec = startSec + Math.ceil((width - headerOffset) / pixelsPerSecond) + 5;
+
+    ctx.fillStyle = '#94A3B8';
     for (let s = startSec; s <= endSec; s += minorIntervalSec) {
-      const x = s * pixelsPerSecond - scrollX;
-      if (x < 0 || x > width) continue;
+      const x = headerOffset + (s * pixelsPerSecond - scrollX);
+      if (x < headerOffset || x > width) continue;
 
       const isMajor = Math.abs(s % majorIntervalSec) < 0.01;
 
