@@ -1089,31 +1089,8 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       {/* ── 6. SLEEK & ESSENTIAL STUDIO RECORDER TRANSPORT BAR (BOTTOM) ─────────── */}
       <footer className="h-14 bg-[#06080e]/95 backdrop-blur-xl border-t border-white/[0.08] px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-20">
         
-        {/* Left: Input Source Selector, Mic Device & Monitoring */}
+        {/* Left: Mic Device & Monitoring */}
         <div className="flex items-center gap-2">
-          {/* Capture Source Segmented Control */}
-          <div className="flex items-center gap-0.5 bg-[#0b0d14] border border-white/[0.08] p-1 rounded-xl text-xs overflow-hidden">
-            {[
-              { id: 'mic', label: 'Mic', icon: Mic, activeClass: 'bg-[#8B5CF6] text-white shadow-[0_0_12px_rgba(139,92,246,0.4)]' },
-              { id: 'system', label: 'System', icon: Radio, activeClass: 'bg-[#06B6D4] text-white shadow-[0_0_12px_rgba(6,182,212,0.4)]' },
-              { id: 'both', label: 'Mix', icon: Activity, activeClass: 'bg-[#10B981] text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]' }
-            ].map(item => {
-              const Icon = item.icon;
-              const isActive = captureSource === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setCaptureSource(item.id as any)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                    isActive ? item.activeClass : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <Icon className="w-3 h-3" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
 
           {/* Quick Microphone Input Selector */}
           <select
