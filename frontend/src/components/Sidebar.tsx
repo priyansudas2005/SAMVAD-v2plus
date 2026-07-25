@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
-import { SamvadMetallicGlassLogo } from './SamvadMetallicGlassLogo';
+import { SamvadSignatureHelixLogo } from './SamvadSignatureHelixLogo';
 import { SamvadBrandWordmarkCorrected } from './SamvadAlternativeLogos';
 
 interface SidebarProps {
@@ -131,8 +131,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="relative flex items-center justify-center cursor-pointer shrink-0"
           onClick={() => {}}
         >
-          {/* Standalone Metallic Glassy Modern Logo Mark (No Box) */}
-          <SamvadMetallicGlassLogo size={42} />
+          {/* Quantum Sonic Helix Signature Logo Mark (Standalone, No Box) */}
+          <SamvadSignatureHelixLogo size={46} />
 
           {/* Recording live indicator */}
           {recordingState === 'recording' && (
