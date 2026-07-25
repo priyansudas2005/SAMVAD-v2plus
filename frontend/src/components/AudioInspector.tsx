@@ -19,7 +19,8 @@ import {
   Zap,
   Volume2,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Radio
 } from 'lucide-react';
 
 export interface AudioInspectorProps {
@@ -199,6 +200,33 @@ export const AudioInspector: React.FC<AudioInspectorProps> = ({
 
           {openSections.audioInput && (
             <div className="p-3 space-y-2 bg-[#030407]/60 text-[10px]">
+              {/* Audio Capture Mode Selector */}
+              <div className="space-y-1">
+                <label className="text-[9px] text-slate-400 uppercase font-bold">Capture Source</label>
+                <div className="grid grid-cols-3 gap-1 bg-[#090b10] border border-slate-800 p-1 rounded-lg text-center">
+                  {[
+                    { id: 'mic', label: 'Mic', icon: Mic, activeClass: 'bg-[#8B5CF6] text-white font-bold shadow' },
+                    { id: 'system', label: 'System', icon: Radio, activeClass: 'bg-[#06B6D4] text-white font-bold shadow' },
+                    { id: 'both', label: 'Mix', icon: Activity, activeClass: 'bg-[#10B981] text-white font-bold shadow' }
+                  ].map(item => {
+                    const Icon = item.icon;
+                    const isActive = captureSource === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setCaptureSource(item.id as any)}
+                        className={`py-1 rounded text-[9.5px] transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                          isActive ? item.activeClass : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Icon className="w-2.5 h-2.5" />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-[9px] text-slate-400 uppercase font-bold">Selected Microphone</label>
                 <select
