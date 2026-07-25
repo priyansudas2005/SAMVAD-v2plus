@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Gauge, 
   Clock, 
@@ -15,7 +15,9 @@ import {
   ShieldCheck, 
   Database, 
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  Wifi,
+  BarChart2
 } from 'lucide-react';
 import { AudioHealth } from './AudioHealth';
 
@@ -56,6 +58,18 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
     estimatedSnrDb: 42.8
   });
 
+  // Micro-visualization Canvas References
+  const thinMeterLoudnessRef = useRef<HTMLCanvasElement | null>(null);
+  const thinMeterPeakRef = useRef<HTMLCanvasElement | null>(null);
+  const miniWaveformThumbnailRef = useRef<HTMLCanvasElement | null>(null);
+  const miniCpuSparklineRef = useRef<HTMLCanvasElement | null>(null);
+  const miniMemorySparklineRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Sparkline history buffers
+  const cpuHistory = useRef<number[]>(Array(30).fill(3.8));
+  const memoryHistory = useRef<number[]>(Array(30).fill(142.5));
+  const waveformBuffer = useRef<number[]>(Array(40).fill(0.05));
+
   const formatHMS = (secs: number) => {
     const hrs = Math.floor(secs / 3600);
     const mins = Math.floor((secs % 3600) / 60);
@@ -78,6 +92,18 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
         const peakDb = peakHoldLeft > 0.01 ? (20 * Math.log10(peakHoldLeft)).toFixed(1) : -60.0;
         const sizeMb = (duration * 0.1764).toFixed(2);
 
+        const cpu = Number((3.5 + Math.random() * 1.8).toFixed(1));
+        const mem = Number((140.2 + (duration * 0.1)).toFixed(1));
+
+        cpuHistory.current.shift();
+        cpuHistory.current.push(cpu);
+
+        memoryHistory.current.shift();
+        memoryHistory.current.push(mem);
+
+        waveformBuffer.current.shift();
+        waveformBuffer.current.push(Math.max(0.04, currentVol));
+
         setTelemetry(prev => ({
           ...prev,
           elapsedTime: formattedElapsed,
@@ -85,9 +111,9 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
           peakLevelDb: Number(peakDb),
           latencyMs: Math.floor(Math.random() * 3) + 12,
           recordingSizeMb: Number(sizeMb),
-          cpuUsage: Number((3.5 + Math.random() * 1.8).toFixed(1)),
+          cpuUsage: cpu,
           gpuUsage: Number((11.8 + Math.random() * 2.5).toFixed(1)),
-          memoryUsageMb: Number((140.2 + (duration * 0.1)).toFixed(1)),
+          memoryUsageMb: mem,
           diskThroughputKbps: Number((705.6 + (Math.random() * 4 - 2)).toFixed(1))
         }));
       }, 100);
@@ -96,6 +122,168 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
     }
     return () => clearInterval(interval);
   }, [recordingState, duration, liveVolumeLeft, peakHoldLeft]);
+
+  // 1. Render Thin Audio Meters & Peak Hold Canvas
+  useEffect(() => {
+    let animId: number;
+
+    const renderThinMeter = (
+      canvas: HTMLCanvasElement | null, 
+      valDb: number, 
+      peakDb: number,
+      colorHex: string
+    ) => {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = '#090b10';
+      ctx.fillRect(0, 0, width, height);
+
+      const fillPct = Math.min(1.0, Math.max(0, (valDb + 60) / 60));
+      const fillW = fillPct * width;
+
+      ctx.fillStyle = colorHex;
+      ctx.fillRect(0, 0, fillW, height);
+
+      // Peak Hold Line Marker
+      const peakPct = Math.min(1.0, Math.max(0, (peakDb + 60) / 60));
+      const peakX = peakPct * width;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(Math.max(0, peakX - 1), 0, 2, height);
+
+      ctx.restore();
+    };
+
+    const renderLoop = () => {
+      renderThinMeter(thinMeterLoudnessRef.current, telemetry.currentLoudnessDb, telemetry.peakLevelDb, '#F59E0B');
+      renderThinMeter(thinMeterPeakRef.current, telemetry.peakLevelDb, telemetry.peakLevelDb, '#EF4444');
+      animId = requestAnimationFrame(renderLoop);
+    };
+
+    renderLoop();
+    return () => cancelAnimationFrame(animId);
+  }, [telemetry.currentLoudnessDb, telemetry.peakLevelDb]);
+
+  // 2. Render Live Waveform Thumbnail Canvas
+  useEffect(() => {
+    let animId: number;
+
+    const renderWaveformThumbnail = () => {
+      const canvas = miniWaveformThumbnailRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = '#05060b';
+      ctx.fillRect(0, 0, width, height);
+
+      const buf = waveformBuffer.current;
+      const step = width / buf.length;
+
+      ctx.fillStyle = '#38BDF8';
+      for (let i = 0; i < buf.length; i++) {
+        const amp = buf[i];
+        const barH = Math.max(2, amp * height * 0.9);
+        const x = i * step;
+        const y = (height - barH) / 2;
+        ctx.fillRect(x, y, Math.max(1, step - 0.5), barH);
+      }
+
+      ctx.restore();
+      animId = requestAnimationFrame(renderWaveformThumbnail);
+    };
+
+    renderWaveformThumbnail();
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  // 3. Render Mini CPU & Memory Sparkline Graphs
+  useEffect(() => {
+    let animId: number;
+
+    const renderSparkline = (canvas: HTMLCanvasElement | null, history: number[], colorHex: string, maxVal: number) => {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = '#090b10';
+      ctx.fillRect(0, 0, width, height);
+
+      const step = width / (history.length - 1);
+
+      ctx.beginPath();
+      history.forEach((val, i) => {
+        const x = i * step;
+        const y = height - ((val / maxVal) * (height - 2)) - 1;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      ctx.strokeStyle = colorHex;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.restore();
+    };
+
+    const renderLoop = () => {
+      renderSparkline(miniCpuSparklineRef.current, cpuHistory.current, '#38BDF8', 10);
+      renderSparkline(miniMemorySparklineRef.current, memoryHistory.current, '#8B5CF6', 300);
+      animId = requestAnimationFrame(renderLoop);
+    };
+
+    renderLoop();
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   const statusPills = [
     {
@@ -198,7 +386,6 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
             </span>
           </div>
 
-          {/* Large Monospace Elapsed Timecode Display */}
           <div className="p-2.5 bg-[#090b10] border border-slate-800 rounded text-center space-y-0.5 shadow-inner">
             <div className="text-[8.5px] text-slate-500 font-bold uppercase">ELAPSED TIME</div>
             <div className="text-xl font-extrabold font-mono text-emerald-400 tracking-wider">
@@ -219,114 +406,75 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
               <span>Audio Channels:</span>
               <span className="text-violet-400 font-bold">{captureSource === 'both' ? 'Stereo (2 Ch)' : 'Mono (1 Ch)'}</span>
             </div>
-            <div className="flex justify-between text-slate-400">
-              <span>Master Encoding:</span>
-              <span className="text-slate-300 font-bold">32-Bit Float PCM</span>
+          </div>
+        </div>
+
+        {/* ── 2. AUDIO METERING & LIVE WAVEFORM THUMBNAIL ─────────────────────── */}
+        <div className="p-3 space-y-2.5">
+          <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/60 pb-1.5 flex items-center justify-between">
+            <span>Audio Metering</span>
+            <span className="text-[8.5px] text-emerald-400 font-bold flex items-center gap-1">
+              <Wifi className="w-3 h-3" /> {telemetry.latencyMs} ms
+            </span>
+          </div>
+
+          {/* Thin Loudness Canvas Meter + Peak Hold */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] text-slate-400">
+              <span>LOUDNESS (dB)</span>
+              <span className="text-amber-400 font-bold">{telemetry.currentLoudnessDb} dB</span>
+            </div>
+            <div className="h-1.5 w-full rounded overflow-hidden border border-slate-800">
+              <canvas ref={thinMeterLoudnessRef} className="w-full h-full block" />
+            </div>
+          </div>
+
+          {/* Thin Peak Canvas Meter */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] text-slate-400">
+              <span>PEAK EXCURSION</span>
+              <span className="text-rose-400 font-bold">{telemetry.peakLevelDb} dB</span>
+            </div>
+            <div className="h-1.5 w-full rounded overflow-hidden border border-slate-800">
+              <canvas ref={thinMeterPeakRef} className="w-full h-full block" />
+            </div>
+          </div>
+
+          {/* Live Waveform Thumbnail Canvas */}
+          <div className="space-y-1 pt-1">
+            <div className="text-[8.5px] text-slate-500 font-bold uppercase">LIVE WAVEFORM THUMBNAIL</div>
+            <div className="h-6 w-full rounded overflow-hidden border border-slate-800">
+              <canvas ref={miniWaveformThumbnailRef} className="w-full h-full block" />
             </div>
           </div>
         </div>
 
-        {/* ── 2. AUDIO SECTION (Compact Horizontal dB Meters) ────────────────── */}
+        {/* ── 3. SYSTEM RESOURCES (Mini Sparkline Graphs) ────────────────────── */}
         <div className="p-3 space-y-2.5">
           <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/60 pb-1.5">
-            Audio Metering
+            System Micro-Graphs
           </div>
 
           <div className="space-y-2 text-[10px]">
-            {/* Loudness Compact Horizontal Meter */}
-            <div className="space-y-0.5">
+            {/* CPU Mini Sparkline */}
+            <div className="space-y-1">
               <div className="flex justify-between text-[9px] text-slate-400">
-                <span>LOUDNESS (dB)</span>
-                <span className="text-amber-400 font-bold">{telemetry.currentLoudnessDb} dB</span>
-              </div>
-              <div className="w-full h-1.5 bg-[#090b10] border border-slate-800 rounded-full overflow-hidden p-0.2 flex">
-                <div 
-                  className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 rounded-full transition-all duration-75"
-                  style={{ width: `${Math.min(100, Math.max(0, (telemetry.currentLoudnessDb + 60) * 1.5))}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Peak Level Compact Meter */}
-            <div className="space-y-0.5">
-              <div className="flex justify-between text-[9px] text-slate-400">
-                <span>PEAK LEVEL</span>
-                <span className="text-rose-400 font-bold">{telemetry.peakLevelDb} dB</span>
-              </div>
-              <div className="w-full h-1.5 bg-[#090b10] border border-slate-800 rounded-full overflow-hidden p-0.2 flex">
-                <div 
-                  className="h-full bg-rose-500 rounded-full transition-all duration-75"
-                  style={{ width: `${Math.min(100, Math.max(0, (telemetry.peakLevelDb + 60) * 1.5))}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[9.5px] pt-1">
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">AVERAGE LEVEL</div>
-                <div className="text-slate-200 font-bold mt-0.5">{telemetry.avgLoudnessDb} dB</div>
-              </div>
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">NOISE FLOOR</div>
-                <div className="text-sky-400 font-bold mt-0.5">{telemetry.noiseFloorDb} dB</div>
-              </div>
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">LATENCY</div>
-                <div className="text-emerald-400 font-bold mt-0.5">{telemetry.latencyMs} ms</div>
-              </div>
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">DYNAMIC RANGE</div>
-                <div className="text-violet-400 font-bold mt-0.5">{telemetry.dynamicRangeDb} dB</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── 3. SYSTEM SECTION (Micro-Bars with Numeric Values) ──────────────── */}
-        <div className="p-3 space-y-2.5">
-          <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/60 pb-1.5">
-            System Resources
-          </div>
-
-          <div className="space-y-2 text-[10px]">
-            {/* CPU Micro-Bar */}
-            <div className="space-y-0.5">
-              <div className="flex justify-between text-[9px] text-slate-400">
-                <span>CPU Usage:</span>
+                <span>CPU Usage Micro-Graph:</span>
                 <span className="text-sky-400 font-bold">{telemetry.cpuUsage}%</span>
               </div>
-              <div className="w-full h-1 bg-[#090b10] rounded overflow-hidden">
-                <div className="h-full bg-sky-400 transition-all duration-300" style={{ width: `${telemetry.cpuUsage * 3}%` }} />
+              <div className="h-3 w-full rounded overflow-hidden border border-slate-800">
+                <canvas ref={miniCpuSparklineRef} className="w-full h-full block" />
               </div>
             </div>
 
-            {/* GPU Micro-Bar */}
-            <div className="space-y-0.5">
+            {/* Memory Mini Sparkline */}
+            <div className="space-y-1">
               <div className="flex justify-between text-[9px] text-slate-400">
-                <span>GPU CUDA Load:</span>
-                <span className="text-emerald-400 font-bold">{telemetry.gpuUsage}%</span>
+                <span>Memory Allocation Graph:</span>
+                <span className="text-violet-400 font-bold">{telemetry.memoryUsageMb} MB</span>
               </div>
-              <div className="w-full h-1 bg-[#090b10] rounded overflow-hidden">
-                <div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${telemetry.gpuUsage * 2}%` }} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[9.5px] pt-1">
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">MEMORY ALLOC</div>
-                <div className="text-violet-400 font-bold mt-0.5">{telemetry.memoryUsageMb} MB</div>
-              </div>
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">DISK WRITE</div>
-                <div className="text-emerald-400 font-bold mt-0.5">{telemetry.diskThroughputKbps} KB/s</div>
-              </div>
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">SESSION SIZE</div>
-                <div className="text-white font-bold mt-0.5">{telemetry.recordingSizeMb} MB</div>
-              </div>
-              <div className="p-1.5 bg-[#090b10] border border-slate-800/80 rounded">
-                <div className="text-slate-500 text-[8.5px]">DISK FREE</div>
-                <div className="text-sky-400 font-bold mt-0.5">{telemetry.availableStorageGb} GB</div>
+              <div className="h-3 w-full rounded overflow-hidden border border-slate-800">
+                <canvas ref={miniMemorySparklineRef} className="w-full h-full block" />
               </div>
             </div>
           </div>
