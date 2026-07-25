@@ -361,7 +361,7 @@ export const SettingsPage: React.FC = () => {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
+    setTimeout(() => setToastMessage(null), 1500);
   };
 
   useEffect(() => {
@@ -499,16 +499,17 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="flex-1 bg-slate-950 flex flex-col h-screen overflow-hidden text-[#F5F7FA] font-sans select-none relative">
       
-      {/* Toast Notification */}
+      {/* Non-intrusive Floating Toast Notification (Bottom Right) */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            className="absolute top-4 right-6 z-50 px-3.5 py-2 bg-[#8B5CF6] text-white rounded-lg font-mono text-xs shadow-2xl flex items-center gap-2"
+            initial={{ y: 20, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 20, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-6 right-6 z-50 px-3.5 py-2 bg-[#0e1016]/90 backdrop-blur-md border border-[#8B5CF6]/40 text-[#F5F7FA] rounded-xl font-mono text-[11px] shadow-2xl flex items-center gap-2 pointer-events-none"
           >
-            <Check className="w-4 h-4" />
+            <div className="w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse" />
             <span>{toastMessage}</span>
           </motion.div>
         )}
