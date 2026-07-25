@@ -17,6 +17,7 @@ import {
   Zap,
   CheckCircle2
 } from 'lucide-react';
+import { AudioHealth } from './AudioHealth';
 
 export interface RecordingMonitorProps {
   recordingState: 'idle' | 'recording' | 'paused' | 'stopped';
@@ -331,38 +332,13 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
           </div>
         </div>
 
-        {/* ── 4. QUALITY SECTION (Circular / Compact Badges) ──────────────────── */}
-        <div className="p-3 space-y-2.5">
-          <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/60 pb-1.5">
-            Audio Quality Score
-          </div>
-
-          <div className="flex items-center justify-between bg-[#090b10] border border-slate-800/80 p-2 rounded">
-            {/* Circular Health Ring */}
-            <div className="relative w-10 h-10 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="20" cy="20" r="16" stroke="rgba(255,255,255,0.08)" strokeWidth="3" fill="transparent" />
-                <circle cx="20" cy="20" r="16" stroke="#10B981" strokeWidth="3" fill="transparent" strokeDasharray="100" strokeDashoffset="5" />
-              </svg>
-              <span className="absolute text-[10px] font-bold text-white">{telemetry.healthScore}</span>
-            </div>
-
-            <div className="text-right space-y-0.5">
-              <div className="text-[10px] font-bold text-emerald-400">{telemetry.signalQuality}</div>
-              <div className="text-[9px] text-slate-400">Coverage: <strong className="text-sky-400">{telemetry.speechCoverage}%</strong></div>
-              <div className="text-[9px] text-slate-400">SNR: <strong className="text-amber-400">+{telemetry.estimatedSnrDb} dB</strong></div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1.5 text-[9px]">
-            <span className="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded font-bold text-center">
-              0 Clipping Distortion
-            </span>
-            <span className="px-2 py-1 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded font-bold text-center">
-              -42dB Background Noise
-            </span>
-          </div>
-        </div>
+        {/* ── 4. LIVE AUDIO HEALTH INTELLIGENCE ASSESSMENT ─────────────────────── */}
+        <AudioHealth
+          recordingState={recordingState}
+          liveVolumeLeft={liveVolumeLeft}
+          peakHoldLeft={peakHoldLeft}
+          inputGain={0}
+        />
 
         {/* ── 5. RECORDING STATUS PILLS SECTION ─────────────────────────────── */}
         <div className="p-3 space-y-2">
