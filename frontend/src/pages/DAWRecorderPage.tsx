@@ -38,6 +38,7 @@ import {
   Sparkle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AudioInspector } from '../components/AudioInspector';
 
 export interface FlagshipDAWRecorderProps {
   stream: MediaStream | null;
@@ -860,85 +861,23 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       {/* ── MAIN WORKSPACE GRID ─────────────────────────────────────────────── */}
       <div className="flex-1 flex w-full min-h-0 overflow-hidden relative z-20">
         
-        {/* ── 3. RECORDING INSPECTOR (LEFT - 12% WIDTH) ────────────────────── */}
-        <aside className="w-52 bg-[#050609]/90 backdrop-blur-md border-r border-slate-800/90 p-3 flex flex-col justify-between shrink-0 space-y-4 font-mono text-xs overflow-y-auto">
-          <div className="space-y-4">
-            <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/80 pb-2 flex items-center gap-1.5">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-violet-400" /> Audio Inspector
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[9.5px] text-slate-400 uppercase font-bold">Hardware Microphone</label>
-              <select
-                value={selectedMicDevice}
-                onChange={(e) => setSelectedMicDevice(e.target.value)}
-                className="w-full bg-[#0b0d14] border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none focus:border-violet-500 font-semibold"
-              >
-                <option value="Default Microphone">Default USB Microphone</option>
-                <option value="Realtek High Definition">Realtek Audio HD</option>
-                <option value="Virtual Audio Cable">Virtual Audio Cable</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[9.5px] text-slate-400 uppercase font-bold">Capture Source</label>
-              <div className="grid grid-cols-3 gap-1 p-1 bg-[#0b0d14] border border-slate-800 rounded">
-                {[
-                  { id: 'mic', label: 'Mic' },
-                  { id: 'system', label: 'Sys' },
-                  { id: 'both', label: 'Mix' }
-                ].map(src => (
-                  <button
-                    key={src.id}
-                    onClick={() => setCaptureSource(src.id as any)}
-                    className={`py-1 rounded text-[10px] font-bold transition-all ${
-                      captureSource === src.id ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {src.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-[9.5px] font-bold">
-                <span className="text-slate-400">GAIN</span>
-                <span className="text-sky-400">{inputGain > 0 ? `+${inputGain}` : inputGain} dB</span>
-              </div>
-              <input
-                type="range"
-                min="-12"
-                max="12"
-                value={inputGain}
-                onChange={(e) => setInputGain(Number(e.target.value))}
-                className="w-full accent-violet-500 cursor-pointer h-1 bg-[#0b0d14] rounded"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9.5px] text-slate-400 uppercase font-bold">Whisper AI STT</label>
-              <select
-                value={modelSize}
-                onChange={(e) => setModelSize(e.target.value)}
-                className="w-full bg-[#0b0d14] border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none focus:border-violet-500 font-semibold"
-              >
-                <option value="tiny">Tiny (39M)</option>
-                <option value="base">Base (74M)</option>
-                <option value="small">Small (244M)</option>
-                <option value="medium">Medium (769M)</option>
-                <option value="large-v3">Large-v3 (1.5B)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="p-2.5 bg-[#0b0d14] border border-slate-800/80 rounded space-y-1 text-[9.5px] text-slate-400 font-mono">
-            <div className="text-emerald-400 font-bold flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" /> HARDWARE LOCK
-            </div>
-            <div>CUDA VRAM: 3.4 GB</div>
-          </div>
-        </aside>
+        {/* ── 3. RECORDING AUDIO INSPECTOR (LEFT - 15% WIDTH) ────────────────────── */}
+        <AudioInspector
+          title={title}
+          setTitle={setTitle}
+          recordingState={recordingState}
+          inputGain={inputGain}
+          setInputGain={setInputGain}
+          captureSource={captureSource}
+          setCaptureSource={setCaptureSource}
+          modelSize={modelSize}
+          setModelSize={setModelSize}
+          vadEnabled={vadEnabled}
+          setVadEnabled={setVadEnabled}
+          selectedMicDevice={selectedMicDevice}
+          setSelectedMicDevice={setSelectedMicDevice}
+          duration={duration}
+        />
 
         {/* ── 4. PROFESSIONAL DAW WORKSPACE WITH FLOATING TOOLBAR (75-80%) ─────── */}
         <main className="flex-1 bg-[#010204]/90 flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">

@@ -15,6 +15,7 @@ import {
 } from './components/Skeletons';
 import { DashboardPage } from './pages/DashboardPage';
 import { DAWRecorderPage } from './pages/DAWRecorderPage';
+import { AudioInspector } from './components/AudioInspector';
 import { TranscriptPage } from './pages/TranscriptPage';
 import { SummaryPage } from './pages/SummaryPage';
 import { HistoryPage } from './pages/HistoryPage';
