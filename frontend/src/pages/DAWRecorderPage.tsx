@@ -85,6 +85,10 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const track1CanvasRef = useRef<HTMLCanvasElement | null>(null);
   const track2CanvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Meter Canvas References
+  const meterLeftCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const meterRightCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
   // Web Audio API References
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -94,11 +98,23 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const track1Buffer = useRef<number[]>([]);
   const track2Buffer = useRef<number[]>([]);
 
+  // Real-time Level Meters (Peak Hold, Decay Animation, Clipping Indicators)
+  const liveVolumeLeft = useRef<number>(0);
+  const liveVolumeRight = useRef<number>(0);
+  const peakHoldLeft = useRef<number>(0);
+  const peakHoldRight = useRef<number>(0);
+  const peakHoldTimerLeft = useRef<number>(0);
+  const peakHoldTimerRight = useRef<number>(0);
+  const clipIndicatorLeft = useRef<boolean>(false);
+  const clipIndicatorRight = useRef<boolean>(false);
+
   // Smooth interpolation state for active live frame
   const targetAmp1 = useRef<number>(0.1);
   const currentAmp1 = useRef<number>(0.1);
   const targetAmp2 = useRef<number>(0.08);
   const currentAmp2 = useRef<number>(0.08);
+
+  const dBValues = ['+6', '0', '-6', '-12', '-24', '-36', '-48', '-60'];
 
   const formatHMS = (secs: number) => {
     const hrs = Math.floor(secs / 3600);
@@ -144,7 +160,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     };
   }, [stream, recordingState]);
 
-  // Append Live Audio Amplitude Points from Peak-to-Peak Time Domain
+  // Real-time Peak Extraction & Level Meter Decay Engine
   useEffect(() => {
     let interval: any;
     if (recordingState === 'recording') {
@@ -163,13 +179,54 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
           const peakDiff = (maxVal - minVal) / 256;
           const gainMultiplier = Math.pow(10, inputGain / 20);
-          const liveAmp = Math.min(1.0, Math.max(0.05, peakDiff * 2.2 * gainMultiplier));
+          const liveAmp = Math.min(1.0, Math.max(0.02, peakDiff * 2.5 * gainMultiplier));
+
+          // Set Left & Right Channel Vol (Slight stereo offset for realistic mix)
+          const targetVolL = liveAmp;
+          const targetVolR = Math.min(1.0, liveAmp * 0.88);
+
+          liveVolumeLeft.current = targetVolL;
+          liveVolumeRight.current = targetVolR;
+
+          // Peak Hold & Decay Logic (Left)
+          if (targetVolL > peakHoldLeft.current) {
+            peakHoldLeft.current = targetVolL;
+            peakHoldTimerLeft.current = 25; // Hold peak for ~750ms
+          } else {
+            if (peakHoldTimerLeft.current > 0) {
+              peakHoldTimerLeft.current--;
+            } else {
+              peakHoldLeft.current = Math.max(0, peakHoldLeft.current - 0.02); // Smooth Decay
+            }
+          }
+
+          // Peak Hold & Decay Logic (Right)
+          if (targetVolR > peakHoldRight.current) {
+            peakHoldRight.current = targetVolR;
+            peakHoldTimerRight.current = 25;
+          } else {
+            if (peakHoldTimerRight.current > 0) {
+              peakHoldTimerRight.current--;
+            } else {
+              peakHoldRight.current = Math.max(0, peakHoldRight.current - 0.02);
+            }
+          }
+
+          // Clipping Indicator Trigger (> 95% threshold)
+          if (targetVolL > 0.95) clipIndicatorLeft.current = true;
+          if (targetVolR > 0.95) clipIndicatorRight.current = true;
 
           targetAmp1.current = liveAmp;
-          targetAmp2.current = Math.max(0.04, liveAmp * 0.85);
+          targetAmp2.current = targetVolR;
         } else {
-          targetAmp1.current = Math.random() * 0.35 + 0.08;
-          targetAmp2.current = Math.random() * 0.3 + 0.06;
+          // Ambient pulse fallback
+          const dummyL = Math.random() * 0.35 + 0.05;
+          const dummyR = Math.random() * 0.3 + 0.04;
+          liveVolumeLeft.current = dummyL;
+          liveVolumeRight.current = dummyR;
+
+          targetAmp1.current = dummyL;
+          targetAmp2.current = dummyR;
         }
 
         track1Buffer.current.push(currentAmp1.current);
@@ -180,21 +237,109 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           track2Buffer.current.shift();
         }
       }, 30);
+    } else {
+      // Decay to zero when paused/stopped
+      liveVolumeLeft.current = 0;
+      liveVolumeRight.current = 0;
+      peakHoldLeft.current = 0;
+      peakHoldRight.current = 0;
     }
     return () => clearInterval(interval);
   }, [recordingState, inputGain]);
 
-  // Reset buffers if discarded
+  // Reset buffers & clipping indicators on discard
   useEffect(() => {
     if (recordingState === 'idle') {
       track1Buffer.current = [];
       track2Buffer.current = [];
       currentAmp1.current = 0.1;
       currentAmp2.current = 0.08;
+      clipIndicatorLeft.current = false;
+      clipIndicatorRight.current = false;
     }
   }, [recordingState]);
 
-  // RENDER PROFESSIONAL DAW TIMELINE RULER (Major & Minor Markers, Minute/Second Labels)
+  // Render Stereo Vertical LED Meter Canvases (Green -> Yellow -> Orange -> Red Gradient + Peak Hold Line)
+  useEffect(() => {
+    let animId: number;
+
+    const renderMeter = (
+      canvas: HTMLCanvasElement | null, 
+      volume: number, 
+      peak: number, 
+      isClipped: boolean
+    ) => {
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Background Track
+      ctx.fillStyle = '#05060b';
+      ctx.fillRect(0, 0, width, height);
+
+      // Gradient Meter Fill (Green -> Yellow -> Orange -> Red)
+      const grad = ctx.createLinearGradient(0, height, 0, 0);
+      grad.addColorStop(0, '#10B981');    // Green (-60dB to -24dB)
+      grad.addColorStop(0.55, '#FBBF24'); // Yellow (-24dB to -12dB)
+      grad.addColorStop(0.8, '#F97316');  // Orange (-12dB to 0dB)
+      grad.addColorStop(1.0, '#EF4444');  // Red (> 0dB)
+
+      const fillH = Math.max(0, volume * height);
+      const yTop = height - fillH;
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, yTop, width, fillH);
+
+      // Draw Segmented LED Horizontal Cut Lines
+      ctx.fillStyle = '#05060b';
+      for (let y = 0; y < height; y += 4) {
+        ctx.fillRect(0, y, width, 1);
+      }
+
+      // Draw Peak Hold Horizontal Marker Bar
+      if (peak > 0.02) {
+        const peakY = Math.max(2, height - (peak * height));
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, peakY - 1, width, 2);
+      }
+
+      // Draw Top Clipping Indicator Light
+      if (isClipped) {
+        ctx.fillStyle = '#EF4444';
+        ctx.fillRect(0, 0, width, 6);
+      }
+
+      ctx.restore();
+    };
+
+    const renderMeterLoop = () => {
+      renderMeter(meterLeftCanvasRef.current, liveVolumeLeft.current, peakHoldLeft.current, clipIndicatorLeft.current);
+      renderMeter(meterRightCanvasRef.current, liveVolumeRight.current, peakHoldRight.current, clipIndicatorRight.current);
+
+      animId = requestAnimationFrame(renderMeterLoop);
+    };
+
+    renderMeterLoop();
+    return () => cancelAnimationFrame(animId);
+  }, [recordingState]);
+
+  // Render Timeline Ruler Canvas
   useEffect(() => {
     const canvas = rulerCanvasRef.current;
     if (!canvas) return;
@@ -217,11 +362,9 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
     ctx.clearRect(0, 0, width, height);
 
-    // Background Gradient Header
     ctx.fillStyle = '#07080d';
     ctx.fillRect(0, 0, width, height);
 
-    // Adaptive Spacing based on Zoom
     const pixelsPerSecond = (10 * (zoomLevel / 100));
     const majorIntervalSec = zoomLevel < 75 ? 10 : zoomLevel > 150 ? 2 : 5;
     const minorIntervalSec = majorIntervalSec / 5;
@@ -241,19 +384,16 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       const isMajor = Math.abs(s % majorIntervalSec) < 0.01;
 
       if (isMajor) {
-        // Major Tick Line
         ctx.beginPath();
         ctx.moveTo(x, height - 12);
         ctx.lineTo(x, height);
         ctx.stroke();
 
-        // Minute / Second Timecode Label (00:00, 00:05, 01:00)
         const mins = Math.floor(s / 60);
         const secs = Math.floor(s % 60);
         const timeLabel = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         ctx.fillText(timeLabel, x, height - 15);
       } else {
-        // Minor Tick Line
         ctx.beginPath();
         ctx.moveTo(x, height - 6);
         ctx.lineTo(x, height);
@@ -264,7 +404,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     ctx.restore();
   }, [zoomLevel, scrollX]);
 
-  // RENDER DUAL STEREO TRACK CANVASES (Vertical Timing Grid, Channel Guides, Alternating Sections, Glowing Playhead)
+  // Render Dual Stereo Track Canvases
   useEffect(() => {
     let animId: number;
 
@@ -293,7 +433,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Alternating Background Sections (DAW Grid Bars)
       const sectionWidth = 100 * (zoomLevel / 100);
       const totalSections = Math.ceil(width / sectionWidth) + 2;
 
@@ -303,7 +442,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.fillRect(secX, 0, sectionWidth, height);
       }
 
-      // 2. Vertical Timing Grid Lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.lineWidth = 1;
       for (let x = 0; x < width; x += 30 * (zoomLevel / 100)) {
@@ -313,7 +451,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.stroke();
       }
 
-      // 3. Horizontal Channel Reference Guides (+6dB, 0dB baseline, -6dB)
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
       const guideLevels = [0.2, 0.5, 0.8];
       guideLevels.forEach(lvl => {
@@ -323,14 +460,12 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.stroke();
       });
 
-      // Baseline 0dB Line
       ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
       ctx.beginPath();
       ctx.moveTo(0, height / 2);
       ctx.lineTo(width, height / 2);
       ctx.stroke();
 
-      // 4. Render Live Audio Waveform Bars
       const barWidth = 3 * (zoomLevel / 100);
       const gap = 1.5;
       const totalBars = Math.floor(width / (barWidth + gap));
@@ -353,15 +488,12 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.fill();
       }
 
-      // 5. THIN GLOWING RECORDING PLAYHEAD & CURSOR (Soft Bloom + Shadow + Pulse)
       if (recordingState === 'recording' || recordingState === 'paused' || recordingState === 'stopped') {
         const playheadX = Math.min(width - 6, bufferLen * (barWidth + gap));
 
-        // Soft Bloom Layer Behind Cursor
         ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
         ctx.shadowBlur = 12;
 
-        // Thin Glowing Red Playhead Line
         ctx.strokeStyle = '#EF4444';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -369,7 +501,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.lineTo(playheadX, height);
         ctx.stroke();
 
-        // Cursor Diamond Head with Pulse Outline
         ctx.fillStyle = '#EF4444';
         ctx.beginPath();
         ctx.moveTo(playheadX - 5, 0);
@@ -378,7 +509,6 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         ctx.closePath();
         ctx.fill();
 
-        // Reset Shadow for Next Pass
         ctx.shadowBlur = 0;
       }
 
@@ -453,7 +583,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         </div>
       </header>
 
-      {/* ── MAIN WORKSPACE GRID ─────────────────────────────────────────────── */}
+      {/* ── MAIN WORKSPACE GRID WITH INTEGRATED STEREO METERS ───────────────── */}
       <div className="flex-1 flex w-full min-h-0 overflow-hidden">
         
         {/* ── 2. RECORDING INSPECTOR (LEFT - 12% WIDTH) ────────────────────── */}
@@ -523,10 +653,10 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           </div>
         </aside>
 
-        {/* ── 3. PROFESSIONAL DAW TIMELINE WORKSPACE (75-80% DOMINANT WIDTH) ─── */}
+        {/* ── 3. PROFESSIONAL DAW WORKSPACE WITH STEREO LEVEL METERING (75-80%) ─── */}
         <main className="flex-1 bg-[#010204] flex flex-col justify-between shrink-0 min-w-0 border-r border-slate-800/90 relative overflow-hidden">
           
-          {/* Mode Tabs Bar */}
+          {/* Mode Tabs & Scroll Bar */}
           <div className="h-8 bg-[#06070a] border-b border-slate-800/90 px-4 flex items-center justify-between font-mono text-xs shrink-0">
             <div className="flex items-center gap-2">
               {['multitrack', 'mixer', 'spectrogram'].map((t) => (
@@ -557,63 +687,100 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             </div>
           </div>
 
-          {/* PROFESSIONAL TIMELINE RULER CANVAS (Major & Minor Time Markers + Minute/Second Labels) */}
+          {/* TIMELINE RULER CANVAS */}
           <div className="h-7 border-b border-slate-800/90 relative overflow-hidden shrink-0">
             <canvas ref={rulerCanvasRef} className="w-full h-full block" />
           </div>
 
-          {/* DUAL MULTITRACK STEREO WAVEFORM CANVAS WORKSPACE */}
-          <div className="flex-1 flex flex-col justify-stretch overflow-hidden relative bg-[#020305] divide-y divide-slate-800/80">
+          {/* DUAL MULTITRACK STEREO WORKSPACE + INTEGRATED STEREO LEVEL METERS */}
+          <div className="flex-1 flex overflow-hidden relative bg-[#020305]">
             
-            {/* Track 1: Physical Microphone Channel */}
-            <div className="flex-1 flex min-h-0 relative">
-              <div className="w-36 bg-[#07080e] border-r border-slate-800/80 p-2.5 flex flex-col justify-between shrink-0 font-mono text-[10px]">
-                <div className="flex items-center justify-between font-bold text-violet-300">
-                  <span>TRACK 1</span>
-                  <span className="text-[8px] bg-violet-600/20 border border-violet-500/30 px-1 rounded">MIC</span>
+            {/* Multitrack Canvas Region */}
+            <div className="flex-1 flex flex-col divide-y divide-slate-800/80 overflow-hidden">
+              
+              {/* Track 1: Physical Microphone Channel */}
+              <div className="flex-1 flex min-h-0 relative">
+                <div className="w-36 bg-[#07080e] border-r border-slate-800/80 p-2.5 flex flex-col justify-between shrink-0 font-mono text-[10px]">
+                  <div className="flex items-center justify-between font-bold text-violet-300">
+                    <span>TRACK 1</span>
+                    <span className="text-[8px] bg-violet-600/20 border border-violet-500/30 px-1 rounded">MIC</span>
+                  </div>
+                  <div className="text-slate-400 text-[9px] font-sans truncate">Physical Mic Input</div>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-emerald-400 font-bold rounded">MUTE</span>
+                    <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-sky-400 font-bold rounded">SOLO</span>
+                  </div>
                 </div>
-                <div className="text-slate-400 text-[9px] font-sans truncate">Physical Mic Input</div>
-                <div className="flex items-center gap-1.5 pt-1">
-                  <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-emerald-400 font-bold rounded">MUTE</span>
-                  <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-sky-400 font-bold rounded">SOLO</span>
+
+                <div className="flex-1 bg-[#030407] relative overflow-hidden flex items-center justify-center">
+                  <canvas ref={track1CanvasRef} className="w-full h-full block" />
                 </div>
               </div>
 
-              {/* Track 1 HTML5 Waveform Canvas */}
-              <div className="flex-1 bg-[#030407] relative overflow-hidden flex items-center justify-center">
-                <canvas ref={track1CanvasRef} className="w-full h-full block" />
+              {/* Track 2: System Audio Loopback Channel */}
+              <div className="flex-1 flex min-h-0 relative">
+                <div className="w-36 bg-[#07080e] border-r border-slate-800/80 p-2.5 flex flex-col justify-between shrink-0 font-mono text-[10px]">
+                  <div className="flex items-center justify-between font-bold text-sky-300">
+                    <span>TRACK 2</span>
+                    <span className="text-[8px] bg-sky-600/20 border border-sky-500/30 px-1 rounded">SYS</span>
+                  </div>
+                  <div className="text-slate-400 text-[9px] font-sans truncate">System Loopback Mix</div>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-emerald-400 font-bold rounded">MUTE</span>
+                    <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-sky-400 font-bold rounded">SOLO</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 bg-[#030407] relative overflow-hidden flex items-center justify-center">
+                  <canvas ref={track2CanvasRef} className="w-full h-full block" />
+                </div>
               </div>
+
             </div>
 
-            {/* Track 2: System Audio Loopback Channel */}
-            <div className="flex-1 flex min-h-0 relative">
-              <div className="w-36 bg-[#07080e] border-r border-slate-800/80 p-2.5 flex flex-col justify-between shrink-0 font-mono text-[10px]">
-                <div className="flex items-center justify-between font-bold text-sky-300">
-                  <span>TRACK 2</span>
-                  <span className="text-[8px] bg-sky-600/20 border border-sky-500/30 px-1 rounded">SYS</span>
+            {/* ── INTEGRATED HARDWARE STEREO METER PANEL (RIGHT SIDE OF WORKSPACE) ── */}
+            <div className="w-16 bg-[#05060b] border-l border-slate-800/90 flex shrink-0 font-mono select-none">
+              
+              {/* dB Scale Labels */}
+              <div className="w-7 py-2 inset-y-0 flex flex-col justify-between items-end pr-1 text-[8px] font-bold text-slate-500 border-r border-slate-800/60">
+                {dBValues.map(v => <span key={v}>{v}</span>)}
+              </div>
+
+              {/* Stereo Meter Bars (L & R Canvases) */}
+              <div className="flex-1 flex p-1 gap-1">
+                {/* Left Channel Level Meter */}
+                <div className="flex-1 relative flex flex-col items-center">
+                  <span className="text-[7.5px] font-bold text-violet-400 mb-0.5">L</span>
+                  <div className="flex-1 w-full relative overflow-hidden rounded-xs border border-slate-800/80">
+                    <canvas ref={meterLeftCanvasRef} className="w-full h-full block" />
+                  </div>
                 </div>
-                <div className="text-slate-400 text-[9px] font-sans truncate">System Loopback Mix</div>
-                <div className="flex items-center gap-1.5 pt-1">
-                  <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-emerald-400 font-bold rounded">MUTE</span>
-                  <span className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 text-[8.5px] text-sky-400 font-bold rounded">SOLO</span>
+
+                {/* Right Channel Level Meter */}
+                <div className="flex-1 relative flex flex-col items-center">
+                  <span className="text-[7.5px] font-bold text-sky-400 mb-0.5">R</span>
+                  <div className="flex-1 w-full relative overflow-hidden rounded-xs border border-slate-800/80">
+                    <canvas ref={meterRightCanvasRef} className="w-full h-full block" />
+                  </div>
                 </div>
               </div>
 
-              {/* Track 2 HTML5 Waveform Canvas */}
-              <div className="flex-1 bg-[#030407] relative overflow-hidden flex items-center justify-center">
-                <canvas ref={track2CanvasRef} className="w-full h-full block" />
-              </div>
             </div>
 
           </div>
 
-          {/* Workspace Bottom Telemetry Bar */}
+          {/* Workspace Bottom Status Bar */}
           <div className="h-7 bg-[#07080d] border-t border-slate-800/80 px-4 flex items-center justify-between font-mono text-[9.5px] text-slate-400 shrink-0">
             <div className="flex items-center gap-3">
               <span>STATE: <strong className="text-white">{recordingState.toUpperCase()}</strong></span>
               <span>PLAYHEAD TIMECODE: <strong className="text-emerald-400">{formatHMS(duration)}</strong></span>
             </div>
-            <span>GPU STEREO ENGINE ACTIVE</span>
+            <div className="flex items-center gap-2">
+              <span className={`px-1.5 rounded text-[8.5px] font-bold ${clipIndicatorLeft.current || clipIndicatorRight.current ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-900 text-slate-500'}`}>
+                {clipIndicatorLeft.current || clipIndicatorRight.current ? 'CLIP DETECTED' : 'NO CLIP'}
+              </span>
+              <span>STEREO METER ACTIVE</span>
+            </div>
           </div>
 
         </main>
