@@ -100,6 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'history', label: 'Meeting History', icon: History },
     { id: 'analytics', label: 'Analytics', icon: BarChart4 },
     { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'help', label: 'Help Center', icon: HelpCircle },
   ];
 
   const meetingItems = [

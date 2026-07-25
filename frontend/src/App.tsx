@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WebGLShader } from './components/ui/web-gl-shader';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { InteractiveProductTour } from './components/InteractiveProductTour';
+import { HelpLearningCenter } from './components/HelpLearningCenter';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -545,7 +546,7 @@ function App() {
 
           {activePage === 'settings' && (
             <motion.div
-              key="settings"
+              key="settings-page"
               initial="initial"
               animate="animate"
               exit="exit"
@@ -554,6 +555,20 @@ function App() {
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <SettingsPage />
+            </motion.div>
+          )}
+
+          {activePage === 'help' && (
+            <motion.div
+              key="help-page"
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
+            >
+              <HelpLearningCenter />
             </motion.div>
           )}
         </AnimatePresence>
