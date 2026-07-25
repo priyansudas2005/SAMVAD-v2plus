@@ -1086,32 +1086,90 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
       </div>
 
-      {/* ── 6. PROFESSIONAL TACTILE HARDWARE DAW TRANSPORT SYSTEM ────────────── */}
-      <div onContextMenu={(e) => handleContextMenu(e, 'transport')}>
-        <DAWTransportSystem
-          recordingState={recordingState}
-          duration={duration}
-          startRecording={startRecording}
-          pauseRecording={pauseRecording}
-          resumeRecording={resumeRecording}
-          stopRecording={stopRecording}
-          onAddMarker={addBookmark}
-          onBookmarkTime={addBookmark}
-          markersCount={bookmarks.length}
-          selectedMicDevice={selectedMicDevice}
-          onSelectMicDevice={setSelectedMicDevice}
-          inputGain={inputGain}
-          onChangeInputGain={setInputGain}
-          isMuteMonitoring={isMuteMonitoring}
-          onToggleMonitoring={() => setIsMuteMonitoring(prev => !prev)}
-          followRecording={followRecording}
-          onToggleFollowRecording={() => setFollowRecording(prev => !prev)}
-          onZoomIn={() => setZoomLevel(prev => Math.min(prev + 25, 400))}
-          onZoomOut={() => setZoomLevel(prev => Math.max(prev - 25, 50))}
-          onFitRecording={() => setZoomLevel(100)}
-          onJumpToBeginning={() => setScrollX(0)}
-        />
-      </div>
+      {/* ── 6. SLEEK & MINIMAL PROFESSIONAL TRANSPORT BAR (BOTTOM) ────────────── */}
+      <footer className="h-14 bg-[#06080e]/95 backdrop-blur-xl border-t border-white/[0.08] px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-20">
+        
+        {/* Left Quick Audio Controls */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsMuteMonitoring(prev => !prev)}
+            className={`px-3 py-1 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${
+              isMuteMonitoring 
+                ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' 
+                : 'bg-[#0b0d14] border-white/[0.08] text-slate-300 hover:text-white'
+            }`}
+            title="Toggle Audio Monitoring (Key M)"
+          >
+            {isMuteMonitoring ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-violet-400" />}
+            {isMuteMonitoring ? 'Muted' : 'Monitor'}
+          </button>
+
+          <button
+            onClick={addBookmark}
+            disabled={recordingState === 'idle'}
+            className="px-3 py-1 rounded-lg bg-[#0b0d14] hover:bg-white/[0.06] border border-white/[0.08] text-slate-300 hover:text-amber-300 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+            title="Add Timeline Bookmark (Key B)"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-amber-400" /> Marker ({bookmarks.length})
+          </button>
+        </div>
+
+        {/* Centered Primary Recording Controls */}
+        <div className="flex items-center gap-3">
+          {recordingState === 'idle' && (
+            <button
+              onClick={startRecording}
+              className="px-7 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-extrabold text-xs shadow-lg shadow-rose-600/30 border border-rose-400/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
+            >
+              <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
+              RECORD (Space)
+            </button>
+          )}
+
+          {recordingState === 'recording' && (
+            <>
+              <button
+                onClick={pauseRecording}
+                className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 font-bold text-xs transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95"
+              >
+                <Pause className="w-3.5 h-3.5" /> PAUSE (Space)
+              </button>
+              
+              <button
+                onClick={stopRecording}
+                className="px-5 py-2 rounded-xl bg-[#0b0d14] border border-white/[0.1] text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95"
+              >
+                <Square className="w-3.5 h-3.5 fill-slate-200" /> STOP (Esc)
+              </button>
+            </>
+          )}
+
+          {recordingState === 'paused' && (
+            <>
+              <button
+                onClick={resumeRecording}
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95"
+              >
+                <Play className="w-3.5 h-3.5 fill-white" /> RESUME (Space)
+              </button>
+
+              <button
+                onClick={stopRecording}
+                className="px-4 py-2 rounded-xl bg-[#0b0d14] border border-white/[0.1] text-slate-200 font-bold text-xs transition-all flex items-center gap-1.5"
+              >
+                <Square className="w-3.5 h-3.5 fill-slate-200" /> STOP (Esc)
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Right Playhead Clock */}
+        <div className="text-xs text-slate-400 font-mono flex items-center gap-2 bg-[#0b0d14] border border-white/[0.08] px-3 py-1 rounded-lg">
+          <span className="text-[10px] text-slate-500 font-bold">PLAYHEAD:</span>
+          <span className="text-emerald-400 font-black tracking-wider text-sm">{formatHMS(duration)}</span>
+        </div>
+
+      </footer>
 
       {/* ── 7. PROFESSIONAL DESKTOP CONTEXT MENU SYSTEM ───────────────────────── */}
       <DAWContextMenu
