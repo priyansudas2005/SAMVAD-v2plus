@@ -1086,14 +1086,32 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
       </div>
 
-      {/* ── 6. SLEEK & MINIMAL PROFESSIONAL TRANSPORT BAR (BOTTOM) ────────────── */}
+      {/* ── 6. SLEEK & ESSENTIAL STUDIO RECORDER TRANSPORT BAR (BOTTOM) ─────────── */}
       <footer className="h-14 bg-[#06080e]/95 backdrop-blur-xl border-t border-white/[0.08] px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-20">
         
-        {/* Left Quick Audio Controls */}
+        {/* Left: Input Source Selector & Monitoring */}
         <div className="flex items-center gap-2">
+          {/* Capture Source Badge */}
+          <div className="flex items-center gap-1 bg-[#0b0d14] border border-white/[0.08] p-1 rounded-lg text-xs">
+            {(['mic', 'system', 'both'] as const).map(src => (
+              <button
+                key={src}
+                onClick={() => setCaptureSource(src)}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-all ${
+                  captureSource === src 
+                    ? 'bg-[#8B5CF6] text-white shadow-md' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {src}
+              </button>
+            ))}
+          </div>
+
+          {/* Audio Monitor */}
           <button
             onClick={() => setIsMuteMonitoring(prev => !prev)}
-            className={`px-3 py-1 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${
               isMuteMonitoring 
                 ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' 
                 : 'bg-[#0b0d14] border-white/[0.08] text-slate-300 hover:text-white'
@@ -1101,20 +1119,21 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             title="Toggle Audio Monitoring (Key M)"
           >
             {isMuteMonitoring ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-violet-400" />}
-            {isMuteMonitoring ? 'Muted' : 'Monitor'}
+            <span className="hidden sm:inline">{isMuteMonitoring ? 'Muted' : 'Monitor'}</span>
           </button>
 
+          {/* Marker Counter */}
           <button
             onClick={addBookmark}
             disabled={recordingState === 'idle'}
-            className="px-3 py-1 rounded-lg bg-[#0b0d14] hover:bg-white/[0.06] border border-white/[0.08] text-slate-300 hover:text-amber-300 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+            className="px-2.5 py-1.5 rounded-lg bg-[#0b0d14] hover:bg-white/[0.06] border border-white/[0.08] text-slate-300 hover:text-amber-300 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
             title="Add Timeline Bookmark (Key B)"
           >
             <Bookmark className="w-3.5 h-3.5 text-amber-400" /> Marker ({bookmarks.length})
           </button>
         </div>
 
-        {/* Centered Primary Recording Controls */}
+        {/* Center: Master Transport Controls */}
         <div className="flex items-center gap-3">
           {recordingState === 'idle' && (
             <button
@@ -1163,10 +1182,17 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           )}
         </div>
 
-        {/* Right Playhead Clock */}
-        <div className="text-xs text-slate-400 font-mono flex items-center gap-2 bg-[#0b0d14] border border-white/[0.08] px-3 py-1 rounded-lg">
-          <span className="text-[10px] text-slate-500 font-bold">PLAYHEAD:</span>
-          <span className="text-emerald-400 font-black tracking-wider text-sm">{formatHMS(duration)}</span>
+        {/* Right: Master Playhead Clock & Audio Format Metadata */}
+        <div className="flex items-center gap-3">
+          <div className="text-right hidden md:block text-[9.5px] font-mono text-slate-400">
+            <div className="text-[#8B5CF6] font-bold">16.0 kHz &middot; WAV</div>
+            <div className="text-emerald-400 font-bold">32-Bit Float</div>
+          </div>
+
+          <div className="text-xs text-slate-400 font-mono flex items-center gap-2 bg-[#0b0d14] border border-white/[0.08] px-3 py-1.5 rounded-lg shadow-inner">
+            <span className="text-[10px] text-slate-500 font-bold hidden sm:inline">PLAYHEAD:</span>
+            <span className="text-emerald-400 font-black tracking-wider text-sm">{formatHMS(duration)}</span>
+          </div>
         </div>
 
       </footer>
