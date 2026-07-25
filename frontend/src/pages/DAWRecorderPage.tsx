@@ -1176,13 +1176,36 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         position={contextMenu}
         onClose={() => setContextMenu(null)}
         onAddMarker={addBookmark}
+        onRenameMarker={() => {
+          if (bookmarks.length > 0) {
+            const newName = prompt("Rename Marker:", bookmarks[bookmarks.length - 1].label);
+            if (newName) {
+              setBookmarks(prev => prev.map((b, i) => i === prev.length - 1 ? { ...b, label: newName } : b));
+            }
+          }
+        }}
+        onDeleteMarker={() => {
+          if (bookmarks.length > 0) {
+            setBookmarks(prev => prev.slice(0, -1));
+          }
+        }}
         onBookmarkTime={addBookmark}
+        onCopyTimestamp={() => {
+          navigator.clipboard.writeText(formatHMS(duration));
+        }}
+        onZoomToSelection={() => setZoomLevel(175)}
         onZoomIn={() => setZoomLevel(prev => Math.min(prev + 25, 400))}
         onZoomOut={() => setZoomLevel(prev => Math.max(prev - 25, 50))}
         onFitRecording={() => setZoomLevel(100)}
         onResetZoom={() => setZoomLevel(100)}
         onJumpToBeginning={() => setScrollX(0)}
         onJumpToPlayhead={() => setScrollX(0)}
+        onAskAiSegment={() => {
+          alert(`AI Segment Query triggered at ${formatHMS(duration)}`);
+        }}
+        onOpenTranscriptTimestamp={() => {
+          alert(`Navigating to transcript at ${formatHMS(duration)}`);
+        }}
         onStartRecording={startRecording}
         onPauseRecording={pauseRecording}
         onStopRecording={stopRecording}
