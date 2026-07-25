@@ -26,10 +26,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { SystemSettings } from '../types';
 import { ShortcutSettingsPanel } from '../components/KeyboardShortcuts';
-import { BrandIdentitySystem } from '../components/BrandIdentitySystem';
-import { MasterBrandSystemShowcase } from '../components/MasterBrandSystemShowcase';
 
-type SectionId = 'general' | 'appearance' | 'brand' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
+type SectionId = 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
 
 interface SectionConfig {
   id: SectionId;
@@ -397,7 +395,6 @@ export const SettingsPage: React.FC = () => {
   const sections: SectionConfig[] = [
     { id: 'general', label: 'General', icon: Sliders },
     { id: 'appearance', label: 'Appearance', icon: Palette },
-    { id: 'brand', label: 'Brand & Identity System', icon: Sparkles },
     { id: 'recording', label: 'Recording', icon: Mic },
     { id: 'ai_models', label: 'AI Models', icon: Cpu },
     { id: 'intelligence', label: 'Meeting Intelligence', icon: BrainCircuit },
@@ -1909,13 +1906,7 @@ export const SettingsPage: React.FC = () => {
             );
           })()}
 
-          {/* Brand & Identity System Section */}
-          {activeSection === 'brand' && (
-            <div className="space-y-8">
-              <MasterBrandSystemShowcase />
-              <BrandIdentitySystem />
-            </div>
-          )}
+
 
           {/* Shortcuts Section */}
           {activeSection === 'shortcuts' && (
