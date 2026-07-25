@@ -119,20 +119,20 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCo
         >
           
           {/* Header Bar with Progress Indicator */}
-          <div className="px-8 py-5 border-b border-slate-800/80 bg-[#10131c]/60 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <SamvadSignatureHelixLogo size={28} />
-              <span className="text-xs font-mono font-bold tracking-widest text-slate-300 uppercase">
+          <div className="px-7 py-4.5 border-b border-slate-800/80 bg-[#10131c]/80 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 shrink-0">
+              <SamvadSignatureHelixLogo size={26} />
+              <span className="text-[11px] font-mono font-bold tracking-widest text-slate-300 uppercase whitespace-nowrap">
                 SAMVAD Studio Setup
               </span>
             </div>
 
-            {/* Stepper Dots */}
-            <div className="flex items-center gap-6">
+            {/* Equal Grid Stepper Indicator */}
+            <div className="flex items-center gap-4 shrink-0">
               {stepsHeader.map((s) => (
                 <div key={s.num} className="flex items-center gap-2">
                   <div 
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-mono font-bold transition-all shrink-0 ${
                       step === s.num 
                         ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30 ring-2 ring-violet-400/40' 
                         : step > s.num 
@@ -142,7 +142,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCo
                   >
                     {step > s.num ? <CheckCircle2 className="w-3.5 h-3.5" /> : s.num}
                   </div>
-                  <span className={`text-[11px] font-medium hidden sm:inline ${step === s.num ? 'text-white font-bold' : 'text-slate-500'}`}>
+                  <span className={`text-[10.5px] font-medium whitespace-nowrap leading-none ${step === s.num ? 'text-white font-bold' : 'text-slate-500'}`}>
                     {s.title}
                   </span>
                 </div>
@@ -539,11 +539,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCo
                 <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl grid grid-cols-3 gap-3 text-left font-mono text-[10px]">
                   <div className="p-2.5 bg-[#0a0c12] rounded-xl border border-slate-800/80">
                     <div className="text-slate-500">AI ENGINE</div>
-                    <div className="text-emerald-400 font-bold mt-0.5">Whisper-v3 CUDA</div>
+                    <div className="text-emerald-400 font-bold mt-0.5 truncate">Whisper-v3 CUDA</div>
                   </div>
                   <div className="p-2.5 bg-[#0a0c12] rounded-xl border border-slate-800/80">
                     <div className="text-slate-500">AUDIO MIC</div>
-                    <div className="text-sky-400 font-bold mt-0.5 truncate">{selectedMic.split(' ')[0]}</div>
+                    <div className="text-sky-400 font-bold mt-0.5 truncate" title={selectedMic}>
+                      {selectedMic.includes('(') ? selectedMic.split('(')[0].trim() : selectedMic}
+                    </div>
                   </div>
                   <div className="p-2.5 bg-[#0a0c12] rounded-xl border border-slate-800/80">
                     <div className="text-slate-500">PRIVACY</div>
@@ -556,14 +558,14 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCo
                     onClick={() => onComplete('record')}
                     className="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs transition-all shadow-xl shadow-violet-600/30 flex items-center gap-2 group"
                   >
-                    Start First Recording <Play className="w-4 h-4 fill-white transition-transform group-hover:scale-110" />
+                    Start First Recording <Play className="w-3.5 h-3.5 fill-white transition-transform group-hover:scale-110" />
                   </button>
 
                   <button
                     onClick={() => onComplete('dashboard')}
-                    className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs transition-all flex items-center gap-2"
+                    className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs transition-all flex items-center gap-1.5 group"
                   >
-                    Open Dashboard <ChevronRight className="w-4 h-4 text-slate-400" />
+                    Open Dashboard <ChevronRight className="w-4 h-4 text-slate-400 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </div>
               </motion.div>
