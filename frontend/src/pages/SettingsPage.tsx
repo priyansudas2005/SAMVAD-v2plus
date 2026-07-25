@@ -365,13 +365,44 @@ export const SettingsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    // Load local storage saved settings if present
+    const saved = localStorage.getItem('samvad_user_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.model_size) setSettings(prev => ({ ...prev, ...parsed }));
+        if (parsed.themeMode) {
+          setThemeMode(parsed.themeMode);
+          document.documentElement.classList.toggle('light-theme', parsed.themeMode === 'Light');
+        }
+        if (parsed.accentColor) {
+          setAccentColor(parsed.accentColor);
+          document.documentElement.style.setProperty('--accent-primary', parsed.accentColor);
+        }
+        if (parsed.launchOnStartup !== undefined) setLaunchOnStartup(parsed.launchOnStartup);
+        if (parsed.defaultLandingPage) setDefaultLandingPage(parsed.defaultLandingPage);
+        if (parsed.recentMeetingsLimit) setRecentMeetingsLimit(parsed.recentMeetingsLimit);
+        if (parsed.audioInputDevice) setAudioInputDevice(parsed.audioInputDevice);
+        if (parsed.audioOutputDevice) setAudioOutputDevice(parsed.audioOutputDevice);
+        if (parsed.sampleRate) setSampleRate(parsed.sampleRate);
+        if (parsed.recordingFormat) setRecordingFormat(parsed.recordingFormat);
+        if (parsed.noiseSuppression !== undefined) setNoiseSuppression(parsed.noiseSuppression);
+        if (parsed.echoCancellation !== undefined) setEchoCancellation(parsed.echoCancellation);
+        if (parsed.runOffline !== undefined) setRunOffline(parsed.runOffline);
+        if (parsed.disableTelemetry !== undefined) setDisableTelemetry(parsed.disableTelemetry);
+        if (parsed.encryptDatabase !== undefined) setEncryptDatabase(parsed.encryptDatabase);
+      } catch (e) {
+        console.error("Failed parsing local settings", e);
+      }
+    }
+
     const savedTheme = localStorage.getItem('samvad-theme') || 'dark';
     setActiveTheme(savedTheme);
 
     const fetchSettings = async () => {
       try {
         const data = await api.getSettings();
-        setSettings(data);
+        setSettings(prev => ({ ...prev, ...data }));
       } catch (err: any) {
         console.error(err);
         setError('Failed to fetch system settings.');
@@ -382,14 +413,61 @@ export const SettingsPage: React.FC = () => {
     fetchSettings();
   }, []);
 
+  const saveAllSettings = async () => {
+    setSaving(true);
+    const fullPayload = {
+      ...settings,
+      themeMode,
+      accentColor,
+      glassIntensity,
+      animationSpeed,
+      compactMode,
+      sidebarDensity,
+      fontSize,
+      monospaceFont,
+      launchOnStartup,
+      openLastWorkspace,
+      autoCheckUpdates,
+      defaultLandingPage,
+      recentMeetingsLimit,
+      audioInputDevice,
+      audioOutputDevice,
+      sampleRate,
+      recordingFormat,
+      noiseSuppression,
+      echoCancellation,
+      runOffline,
+      disableTelemetry,
+      encryptDatabase
+    };
+
+    localStorage.setItem('samvad_user_settings', JSON.stringify(fullPayload));
+    if (themeMode) {
+      localStorage.setItem('samvad-theme', themeMode.toLowerCase());
+    }
+
+    try {
+      await api.updateSettings(settings);
+      showToast("All settings saved successfully!");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      console.error(err);
+      showToast("Settings saved locally!");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleInstantSave = async (updated: SystemSettings) => {
     setSettings(updated);
+    localStorage.setItem('samvad_user_settings', JSON.stringify({ ...settings, ...updated }));
     try {
       await api.updateSettings(updated);
       showToast("Settings updated instantly");
     } catch (err: any) {
       console.error(err);
-      setError("Failed instant save");
+      showToast("Setting saved locally");
     }
   };
 
@@ -452,10 +530,27 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] rounded text-[9.5px] font-bold">
+        <div className="flex items-center gap-3">
+          <span className="px-2.5 py-1 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] rounded text-[9.5px] font-bold hidden sm:inline-block">
             STUDIO v2.0.0 // OFFLINE READY
           </span>
+          <button
+            onClick={saveAllSettings}
+            disabled={saving}
+            className="px-4 py-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shadow-lg flex items-center gap-2 uppercase cursor-pointer"
+          >
+            {saving ? (
+              <>
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Save All Settings</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
