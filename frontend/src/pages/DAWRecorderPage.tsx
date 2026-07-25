@@ -40,6 +40,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudioInspector } from '../components/AudioInspector';
 import { RecordingMonitor } from '../components/RecordingMonitor';
+import { DAWTransportSystem } from '../components/DAWTransportSystem';
 
 export interface FlagshipDAWRecorderProps {
   stream: MediaStream | null;
@@ -1058,88 +1059,30 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
       </div>
 
-      {/* ── 6. PROFESSIONAL TACTILE DESKTOP TRANSPORT BAR (BOTTOM) ────────────── */}
-      <footer className="h-16 bg-[#05060a]/90 backdrop-blur-md border-t border-slate-800/90 px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-20">
-        
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsMuteMonitoring(prev => !prev)}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${
-              isMuteMonitoring 
-                ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' 
-                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white'
-            }`}
-            title="Toggle Mute Monitoring (Key M)"
-          >
-            {isMuteMonitoring ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5" />}
-            {isMuteMonitoring ? 'Muted' : 'Monitor'}
-          </button>
-
-          <button
-            onClick={addBookmark}
-            disabled={recordingState === 'idle'}
-            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-amber-300 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
-            title="Add Timeline Bookmark / Marker (Key B)"
-          >
-            <Bookmark className="w-3.5 h-3.5 text-amber-400" /> Marker ({bookmarks.length})
-          </button>
-        </div>
-
-        {/* Master Transport Controls */}
-        <div className="flex items-center gap-4">
-          {recordingState === 'idle' && (
-            <button
-              onClick={startRecording}
-              className="px-8 py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-extrabold text-sm shadow-xl shadow-rose-600/35 border border-rose-400/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2.5 group cursor-pointer"
-            >
-              <div className="w-3.5 h-3.5 rounded-full bg-white animate-pulse" />
-              RECORD (Space)
-            </button>
-          )}
-
-          {recordingState === 'recording' && (
-            <>
-              <button
-                onClick={pauseRecording}
-                className="px-5 py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 font-bold text-xs transition-all flex items-center gap-1.5 hover:scale-102 active:scale-98"
-              >
-                <Pause className="w-4 h-4" /> PAUSE (Space)
-              </button>
-              
-              <button
-                onClick={stopRecording}
-                className="px-6 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 hover:scale-102 active:scale-98"
-              >
-                <Square className="w-4 h-4 fill-slate-200" /> STOP (Esc)
-              </button>
-            </>
-          )}
-
-          {recordingState === 'paused' && (
-            <>
-              <button
-                onClick={resumeRecording}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95"
-              >
-                <Play className="w-4 h-4 fill-white" /> RESUME (Space)
-              </button>
-
-              <button
-                onClick={stopRecording}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 font-bold text-xs transition-all flex items-center gap-1.5"
-              >
-                <Square className="w-4 h-4 fill-slate-200" /> STOP (Esc)
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="text-xs text-slate-400 font-mono flex items-center gap-2">
-          <span>MASTER PLAYHEAD:</span>
-          <span className="text-emerald-400 font-extrabold">{formatHMS(duration)}</span>
-        </div>
-
-      </footer>
+      {/* ── 6. PROFESSIONAL TACTILE HARDWARE DAW TRANSPORT SYSTEM ────────────── */}
+      <DAWTransportSystem
+        recordingState={recordingState}
+        duration={duration}
+        startRecording={startRecording}
+        pauseRecording={pauseRecording}
+        resumeRecording={resumeRecording}
+        stopRecording={stopRecording}
+        onAddMarker={addBookmark}
+        onBookmarkTime={addBookmark}
+        markersCount={bookmarks.length}
+        selectedMicDevice={selectedMicDevice}
+        onSelectMicDevice={setSelectedMicDevice}
+        inputGain={inputGain}
+        onChangeInputGain={setInputGain}
+        isMuteMonitoring={isMuteMonitoring}
+        onToggleMonitoring={() => setIsMuteMonitoring(prev => !prev)}
+        followRecording={followRecording}
+        onToggleFollowRecording={() => setFollowRecording(prev => !prev)}
+        onZoomIn={() => setZoomLevel(prev => Math.min(prev + 25, 400))}
+        onZoomOut={() => setZoomLevel(prev => Math.max(prev - 25, 50))}
+        onFitRecording={() => setZoomLevel(100)}
+        onJumpToBeginning={() => setScrollX(0)}
+      />
 
     </div>
   );
