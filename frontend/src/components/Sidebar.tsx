@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   Power,
   Trash2,
-  Bell
+  Bell,
+  HelpCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
@@ -58,8 +59,8 @@ interface SidebarProps {
   captureSource: 'mic' | 'system' | 'both';
   setCaptureSource: (s: 'mic' | 'system' | 'both') => void;
 
-  // Notification Center Trigger
   onOpenNotifications?: () => void;
+  onStartTour?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -92,6 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   captureSource,
   setCaptureSource,
   onOpenNotifications,
+  onStartTour,
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -148,17 +150,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Bell Notification Center Launcher Button */}
-        {onOpenNotifications && (
-          <button
-            onClick={onOpenNotifications}
-            className="relative p-1.5 rounded-lg bg-slate-900/80 hover:bg-violet-600/20 border border-slate-800 hover:border-violet-500/40 text-slate-400 hover:text-violet-300 transition-all group shrink-0"
-            title="Open Notification Center"
-          >
-            <Bell className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse" />
-          </button>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Replay Product Tour Trigger */}
+          {onStartTour && (
+            <button
+              onClick={onStartTour}
+              className="p-1.5 rounded-lg bg-slate-900/80 hover:bg-sky-600/20 border border-slate-800 hover:border-sky-500/40 text-slate-400 hover:text-sky-300 transition-all group"
+              title="Help → Replay Product Tour"
+            >
+              <HelpCircle className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+            </button>
+          )}
+
+          {/* Bell Notification Center Launcher Button */}
+          {onOpenNotifications && (
+            <button
+              onClick={onOpenNotifications}
+              className="relative p-1.5 rounded-lg bg-slate-900/80 hover:bg-violet-600/20 border border-slate-800 hover:border-violet-500/40 text-slate-400 hover:text-violet-300 transition-all group"
+              title="Open Notification Center"
+            >
+              <Bell className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Navigation */}

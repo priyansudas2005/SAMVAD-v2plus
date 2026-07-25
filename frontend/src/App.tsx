@@ -24,6 +24,7 @@ import { api } from './services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WebGLShader } from './components/ui/web-gl-shader';
 import { OnboardingWizard } from './components/OnboardingWizard';
+import { InteractiveProductTour } from './components/InteractiveProductTour';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -58,6 +59,7 @@ function App() {
   const [appError, setAppError] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState<boolean>(false);
+  const [isProductTourOpen, setIsProductTourOpen] = useState<boolean>(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(() => {
     return !localStorage.getItem('samvad_onboarded');
   });
@@ -339,6 +341,7 @@ function App() {
         meetings={meetings}
         onSelectMeeting={handleSelectMeeting}
         onOpenNotifications={() => setIsNotificationCenterOpen(true)}
+        onStartTour={() => setIsProductTourOpen(true)}
         
         // Recording states
         recordingState={recordingState}
@@ -588,6 +591,13 @@ function App() {
             setActivePage('dashboard');
           }
         }}
+      />
+
+      {/* Interactive Feature Tour */}
+      <InteractiveProductTour
+        isOpen={isProductTourOpen}
+        onClose={() => setIsProductTourOpen(false)}
+        setActivePage={setActivePage}
       />
     </div>
   );
