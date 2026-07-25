@@ -54,10 +54,10 @@ export const SamvadSignatureHelixLogo: React.FC<{
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </linearGradient>
 
-        {/* Bevel highlight — key light top-left */}
+        {/* Bevel highlight — key light top-left (softened) */}
         <linearGradient id="bevelHL" x1="0" y1="0" x2="70" y2="70" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#FFFFFF" stopOpacity="1.0" />
-          <stop offset="35%"  stopColor="#E8F0F8" stopOpacity="0.75" />
+          <stop offset="0%"   stopColor="#FFFFFF" stopOpacity="0.55" />
+          <stop offset="35%"  stopColor="#E8F0F8" stopOpacity="0.30" />
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </linearGradient>
 
@@ -147,10 +147,10 @@ export const SamvadSignatureHelixLogo: React.FC<{
       {/* Iridescent chromatic fringe over ring surface */}
       <circle cx="50" cy="50" r="44" fill="url(#iridescent)" />
 
-      {/* Ring key-light bevel arc (top-left) */}
+      {/* Ring key-light bevel arc (top-left) — softened */}
       <path d="M 13 33 A 39 39 0 0 1 67 11"
-        stroke="url(#bevelHL)" strokeWidth="4" strokeLinecap="round"
-        fill="none" filter="url(#specBloom)" />
+        stroke="url(#bevelHL)" strokeWidth="2.5" strokeLinecap="round"
+        fill="none" opacity="0.65" filter="url(#specBloom)" />
 
       {/* Ring shadow bevel arc (bottom-right) — subtle only */}
       <path d="M 87 67 A 39 39 0 0 1 33 89"
@@ -267,15 +267,15 @@ export const SamvadSignatureHelixLogo: React.FC<{
         transform="rotate(-40 33 26)"
         filter="url(#softGlow)" />
 
-      {/* Key light: sharp glint line streak */}
+      {/* Key light: sharp glint line streak — softened */}
       <path d="M 17 27 Q 28 16 44 14"
-        stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round"
-        fill="none" opacity="0.65" filter="url(#specBloom)" />
+        stroke="#FFFFFF" strokeWidth="0.9" strokeLinecap="round"
+        fill="none" opacity="0.35" filter="url(#specBloom)" />
 
-      {/* Secondary specular micro-glint (sharp catch light) */}
+      {/* Secondary specular micro-glint */}
       <path d="M 20 31 Q 24 25 31 23"
-        stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round"
-        fill="none" opacity="0.45" />
+        stroke="#FFFFFF" strokeWidth="0.6" strokeLinecap="round"
+        fill="none" opacity="0.22" />
 
       {/* Fill light: bottom-right soft bounce (cool cyan) */}
       <ellipse cx="70" cy="74" rx="10" ry="5"
