@@ -422,6 +422,7 @@ function App() {
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <DAWRecorderPage 
+                stream={stream}
                 recordingState={recordingState}
                 duration={duration}
                 title={title}

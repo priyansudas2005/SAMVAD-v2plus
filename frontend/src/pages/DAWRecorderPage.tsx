@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export interface FlagshipDAWRecorderProps {
+  stream: MediaStream | null;
   recordingState: 'idle' | 'recording' | 'paused' | 'stopped';
   duration: number;
   recordingError: string | null;
@@ -52,6 +53,7 @@ export interface FlagshipDAWRecorderProps {
 }
 
 export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
+  stream,
   recordingState,
   duration,
   recordingError,
@@ -82,15 +84,20 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
   const track2CanvasRef = useRef<HTMLCanvasElement | null>(null);
   const trackContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Buffer points holding adaptive amplitudes (0.0 to 1.0)
+  // Web Audio API Analyser Nodes
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+
+  // Buffer points holding live audio amplitudes (0.0 to 1.0)
   const track1Buffer = useRef<number[]>([]);
   const track2Buffer = useRef<number[]>([]);
 
   // Smooth interpolation state for active live frame
-  const targetAmp1 = useRef<number>(0.2);
-  const currentAmp1 = useRef<number>(0.2);
-  const targetAmp2 = useRef<number>(0.15);
-  const currentAmp2 = useRef<number>(0.15);
+  const targetAmp1 = useRef<number>(0.1);
+  const currentAmp1 = useRef<number>(0.1);
+  const targetAmp2 = useRef<number>(0.08);
+  const currentAmp2 = useRef<number>(0.08);
 
   const formatHMS = (secs: number) => {
     const hrs = Math.floor(secs / 3600);
@@ -99,13 +106,66 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  // Continuous Audio Stream Sampling (Appends points while recording)
+  // Real-time Web Audio API Stream Sampling (Live Microphone Stream Analysis)
+  useEffect(() => {
+    if (stream && recordingState === 'recording') {
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioContextClass();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.8;
+
+        const source = ctx.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        audioCtxRef.current = ctx;
+        analyserRef.current = analyser;
+        sourceRef.current = source;
+      } catch (err) {
+        console.error('Web Audio API Initialization Error:', err);
+      }
+    } else {
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
+      }
+      audioCtxRef.current = null;
+      analyserRef.current = null;
+      sourceRef.current = null;
+    }
+
+    return () => {
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
+      }
+    };
+  }, [stream, recordingState]);
+
+  // Append Real-time Audio Amplitude Points from AnalyserNode
   useEffect(() => {
     let interval: any;
     if (recordingState === 'recording') {
+      const dataArray = new Uint8Array(256);
+
       interval = setInterval(() => {
-        targetAmp1.current = Math.random() * 0.75 + 0.15;
-        targetAmp2.current = Math.random() * 0.65 + 0.1;
+        if (analyserRef.current) {
+          analyserRef.current.getByteFrequencyData(dataArray);
+          
+          // Calculate RMS (Root Mean Square) average volume amplitude
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const avg = sum / dataArray.length;
+          const liveAmp = Math.min(1.0, (avg / 128) * Math.pow(10, inputGain / 20));
+
+          targetAmp1.current = Math.max(0.04, liveAmp);
+          targetAmp2.current = Math.max(0.03, liveAmp * 0.8);
+        } else {
+          // Fallback ambient pulse if microphone stream is buffering
+          targetAmp1.current = Math.random() * 0.3 + 0.05;
+          targetAmp2.current = Math.random() * 0.25 + 0.04;
+        }
 
         track1Buffer.current.push(currentAmp1.current);
         track2Buffer.current.push(currentAmp2.current);
@@ -115,10 +175,10 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           track1Buffer.current.shift();
           track2Buffer.current.shift();
         }
-      }, 40);
+      }, 35);
     }
     return () => clearInterval(interval);
-  }, [recordingState]);
+  }, [recordingState, inputGain]);
 
   // Reset buffers if discarded
   useEffect(() => {
