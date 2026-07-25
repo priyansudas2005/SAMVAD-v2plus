@@ -112,9 +112,14 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContextClass();
+        
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+
         const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
-        analyser.smoothingTimeConstant = 0.8;
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.3;
 
         const source = ctx.createMediaStreamSource(stream);
         source.connect(analyser);
@@ -141,30 +146,36 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
     };
   }, [stream, recordingState]);
 
-  // Append Real-time Audio Amplitude Points from AnalyserNode
+  // Append Real-time Audio Amplitude Points from Time Domain AnalyserNode
   useEffect(() => {
     let interval: any;
     if (recordingState === 'recording') {
-      const dataArray = new Uint8Array(256);
+      const dataArray = new Uint8Array(1024);
 
       interval = setInterval(() => {
         if (analyserRef.current) {
-          analyserRef.current.getByteFrequencyData(dataArray);
+          analyserRef.current.getByteTimeDomainData(dataArray);
           
-          // Calculate RMS (Root Mean Square) average volume amplitude
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          const avg = sum / dataArray.length;
-          const liveAmp = Math.min(1.0, (avg / 128) * Math.pow(10, inputGain / 20));
+          // Calculate true Peak-to-Peak amplitude from live waveform samples
+          let maxVal = 128;
+          let minVal = 128;
 
-          targetAmp1.current = Math.max(0.04, liveAmp);
-          targetAmp2.current = Math.max(0.03, liveAmp * 0.8);
+          for (let i = 0; i < dataArray.length; i++) {
+            if (dataArray[i] > maxVal) maxVal = dataArray[i];
+            if (dataArray[i] < minVal) minVal = dataArray[i];
+          }
+
+          // Peak difference from center 128 (0 to 1.0)
+          const peakDiff = (maxVal - minVal) / 256;
+          const gainMultiplier = Math.pow(10, inputGain / 20);
+          const liveAmp = Math.min(1.0, Math.max(0.05, peakDiff * 2.2 * gainMultiplier));
+
+          targetAmp1.current = liveAmp;
+          targetAmp2.current = Math.max(0.04, liveAmp * 0.85);
         } else {
-          // Fallback ambient pulse if microphone stream is buffering
-          targetAmp1.current = Math.random() * 0.3 + 0.05;
-          targetAmp2.current = Math.random() * 0.25 + 0.04;
+          // Fallback pulse if audio stream is initializing
+          targetAmp1.current = Math.random() * 0.35 + 0.08;
+          targetAmp2.current = Math.random() * 0.3 + 0.06;
         }
 
         track1Buffer.current.push(currentAmp1.current);
@@ -175,7 +186,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           track1Buffer.current.shift();
           track2Buffer.current.shift();
         }
-      }, 35);
+      }, 30);
     }
     return () => clearInterval(interval);
   }, [recordingState, inputGain]);
