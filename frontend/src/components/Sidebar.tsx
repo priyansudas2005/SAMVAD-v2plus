@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
-import { SamvadArtisticLogo, SamvadArtisticWordmark } from './SamvadArtisticLogo';
+import { Concept2InfinityLoop, SamvadBrandWordmarkCorrected } from './SamvadAlternativeLogos';
 
 interface SidebarProps {
   activePage: string;
@@ -152,8 +152,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
             />
 
-            {/* Artistic Modern Minimalist Logo */}
-            <SamvadArtisticLogo size={34} mode="dark" className="relative z-10" />
+            {/* Infinite Dialogue Loop Minimal Logo */}
+            <Concept2InfinityLoop size={34} />
           </div>
 
           {/* Recording live indicator */}
@@ -163,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div className="flex flex-col gap-0.5 flex-1">
           <div className="flex items-center gap-2">
-            <SamvadArtisticWordmark mode="dark" />
+            <SamvadBrandWordmarkCorrected mode="dark" />
             <span
               className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 font-sans tracking-wide shrink-0"
             >
