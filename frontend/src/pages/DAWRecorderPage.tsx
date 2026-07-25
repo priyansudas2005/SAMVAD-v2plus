@@ -1089,7 +1089,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       {/* ── 6. SLEEK & ESSENTIAL STUDIO RECORDER TRANSPORT BAR (BOTTOM) ─────────── */}
       <footer className="h-14 bg-[#06080e]/95 backdrop-blur-xl border-t border-white/[0.08] px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-20">
         
-        {/* Left: Input Source Selector & Monitoring */}
+        {/* Left: Input Source Selector, Mic Device & Monitoring */}
         <div className="flex items-center gap-2">
           {/* Capture Source Segmented Control */}
           <div className="flex items-center gap-0.5 bg-[#0b0d14] border border-white/[0.08] p-1 rounded-xl text-xs overflow-hidden">
@@ -1114,6 +1114,18 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
               );
             })}
           </div>
+
+          {/* Quick Microphone Input Selector */}
+          <select
+            value={selectedMicDevice}
+            onChange={(e) => setSelectedMicDevice(e.target.value)}
+            className="bg-[#0b0d14] border border-white/[0.08] hover:border-white/20 rounded-lg px-2 py-1 text-[10px] text-slate-300 font-mono font-semibold focus:outline-none focus:border-[#8B5CF6] hidden lg:block cursor-pointer"
+            title="Select Active Recording Microphone"
+          >
+            <option value="Default Microphone">Default Mic</option>
+            <option value="Realtek High Definition">Realtek HD</option>
+            <option value="Virtual Audio Cable">Virtual Cable</option>
+          </select>
 
           {/* Audio Monitor */}
           <button
