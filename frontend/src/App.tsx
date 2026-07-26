@@ -117,25 +117,37 @@ function App() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    
+    // Safety fallback: guaranteed unblock after 2.5s maximum
+    const timer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 2500);
+
     const initialize = async () => {
-      setLoading(true);
-      await fetchMeetingsList();
-      
-      // Load initial settings
       try {
+        await fetchMeetingsList();
         const settings = await api.getSettings();
-        if (settings) {
-          setModelSize(settings.model_size);
-          setLanguage(settings.default_language);
-          setVadEnabled(settings.vad_enabled);
+        if (settings && isMounted) {
+          setModelSize(settings.model_size || 'base');
+          setLanguage(settings.default_language || 'auto');
+          setVadEnabled(settings.vad_enabled || false);
         }
       } catch (e) {
         console.error("Failed to load initial settings:", e);
+      } finally {
+        if (isMounted) {
+          clearTimeout(timer);
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
     };
+
     initialize();
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   // Timer side-effect
