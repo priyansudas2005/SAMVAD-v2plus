@@ -720,14 +720,14 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                       </div>
                       
                       <span 
-                        className="px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider font-sans border"
+                        className="px-1.5 py-0.5 rounded text-[7.5px] font-bold uppercase tracking-wider font-sans border truncate max-w-[55px]"
                         style={{ 
                           backgroundColor: isActive ? `${spkColor}1f` : `${spkColor}08`, 
                           borderColor: `${spkColor}1f`,
                           color: spkColor 
                         }}
                       >
-                        {resolveSpeakerName(seg.speaker_label).substring(0, 6)}
+                        {resolveSpeakerName(seg.speaker_label || 'SPEAKER_00')}
                       </span>
                     </button>
                   );
@@ -1187,12 +1187,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                   </button>
                   {openSections.topics && (
                     <div className="p-3 bg-black/20 space-y-2">
-                      {(currentMeeting.memo?.key_points || ['Introduction and Overview', 'BBC learning parameters', 'AI offline models configuration']).map((topic, i) => (
-                        <div key={i} className="flex items-start gap-1.5 text-[9.5px] text-[#98A2B3]">
-                          <span className="text-[#8B5CF6] shrink-0 select-none">#</span>
-                          <span className="font-sans leading-normal">{topic}</span>
-                        </div>
-                      ))}
+                      {(currentMeeting.memo?.key_points || ['Introduction and Overview', 'AI offline models configuration']).map((topic, i) => {
+                        const cleanTopic = topic.replace(/^[#*\-\s]+/, '').trim();
+                        return (
+                          <div key={i} className="flex items-start gap-1.5 text-[9.5px] text-[#98A2B3]">
+                            <span className="text-[#8B5CF6] shrink-0 select-none">#</span>
+                            <span className="font-sans leading-normal">{cleanTopic}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
