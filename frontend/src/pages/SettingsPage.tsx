@@ -46,6 +46,7 @@ interface SettingsPageProps {
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettings }) => {
+  const { profile, initials, updateProfile, logout } = useProfile();
   const [settings, setSettings] = useState<SystemSettings>({
     model_size: 'base',
     default_language: 'auto',
@@ -615,10 +616,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
               <div className="p-6 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 border border-violet-400/30 flex items-center justify-center font-extrabold text-white text-lg shadow-xl shadow-violet-600/30 font-mono">
-                    {useProfile().initials}
+                    {initials || 'U'}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">{useProfile().profile?.name || 'Local User'}</h3>
+                    <h3 className="text-base font-bold text-white">{profile?.name || 'Local User'}</h3>
                     <p className="text-xs font-mono text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                       Local Profile &middot; Offline Storage
@@ -627,8 +628,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                 </div>
 
                 <div className="text-[11px] font-mono text-slate-400 space-y-1 sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-white/[0.06]">
-                  <div>Created: <span className="text-slate-200">{useProfile().profile?.created_at ? new Date(useProfile().profile!.created_at).toLocaleDateString() : 'N/A'}</span></div>
-                  <div>Last Login: <span className="text-slate-200">{useProfile().profile?.last_login ? new Date(useProfile().profile!.last_login).toLocaleTimeString() : 'Just now'}</span></div>
+                  <div>Created: <span className="text-slate-200">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}</span></div>
+                  <div>Last Login: <span className="text-slate-200">{profile?.last_login ? new Date(profile.last_login).toLocaleTimeString() : 'Just now'}</span></div>
                 </div>
               </div>
 
@@ -638,7 +639,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
-                    defaultValue={useProfile().profile?.name || ''}
+                    defaultValue={profile?.name || ''}
                     id="profile-name-input"
                     placeholder="Enter new display name..."
                     className="flex-1 px-4 py-2.5 rounded-xl bg-[#05060c] border border-white/[0.1] text-white text-xs font-semibold focus:outline-none focus:border-violet-500 font-mono"
@@ -647,7 +648,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                     onClick={() => {
                       const input = document.getElementById('profile-name-input') as HTMLInputElement;
                       if (input && input.value.trim()) {
-                        useProfile().updateProfile({ name: input.value.trim() });
+                        updateProfile({ name: input.value.trim() });
                         showToast('Profile name updated instantly!');
                       }
                     }}
@@ -670,7 +671,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                 <div className="pt-2 flex gap-3">
                   <button
                     onClick={() => {
-                      useProfile().logout();
+                      logout();
                     }}
                     className="px-4 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold text-xs transition-all cursor-pointer flex items-center gap-2"
                   >
