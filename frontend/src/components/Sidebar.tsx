@@ -529,7 +529,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {/* Actions: Theme Toggle, Settings, Logout */}
+          {/* Actions: Theme Toggle, Logout */}
           <div className="flex items-center gap-1 shrink-0">
             {onToggleTheme && (
               <button
@@ -540,17 +540,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Sun className="w-3.5 h-3.5" />
               </button>
             )}
-            <button
-              onClick={() => setActivePage('settings')}
-              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                activePage === 'settings'
-                  ? 'bg-violet-600/30 border-violet-500/50 text-violet-300'
-                  : 'bg-black/40 hover:bg-white/[0.08] border-white/[0.06] text-slate-400 hover:text-white'
-              }`}
-              title="Settings"
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </button>
             {onOpenLogout && (
               <button
                 onClick={onOpenLogout}
