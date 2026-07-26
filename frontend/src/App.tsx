@@ -27,6 +27,9 @@ import { WebGLShader } from './components/ui/web-gl-shader';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { InteractiveProductTour } from './components/InteractiveProductTour';
 import { HelpLearningCenter } from './components/HelpLearningCenter';
+import { useProfile } from './hooks/useProfile';
+import { OnboardingModal } from './components/OnboardingModal';
+import { LogoutConfirmModal } from './components/LogoutConfirmModal';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -59,6 +62,8 @@ function App() {
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [appError, setAppError] = useState<string | null>(null);
+  const { profile, initials, hasProfile, createProfile, logout } = useProfile();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState<boolean>(false);
   const [isProductTourOpen, setIsProductTourOpen] = useState<boolean>(false);
@@ -342,10 +347,6 @@ function App() {
         currentMeeting={currentMeeting}
         meetings={meetings}
         onSelectMeeting={handleSelectMeeting}
-        onOpenNotifications={() => setIsNotificationCenterOpen(true)}
-        onStartTour={() => setIsProductTourOpen(true)}
-        
-        // Recording states
         recordingState={recordingState}
         duration={duration}
         recordingError={recordingError}
@@ -370,8 +371,18 @@ function App() {
         // Loopback Mixer Capture Source
         captureSource={captureSource}
         setCaptureSource={setCaptureSource}
+        onOpenNotifications={() => setIsNotificationCenterOpen(true)}
+        onStartTour={() => setIsProductTourOpen(true)}
+        userProfile={profile ? { name: profile.name, initials } : null}
+        onOpenLogout={() => setIsLogoutModalOpen(true)}
+        onToggleTheme={() => {
+          const current = localStorage.getItem('samvad-theme') || 'dark';
+          const next = current === 'dark' ? 'light' : 'dark';
+          localStorage.setItem('samvad-theme', next);
+          document.documentElement.className = '';
+          if (next === 'light') document.documentElement.classList.add('theme-light');
+        }}
       />
-
       <main className="flex-1 flex flex-col min-w-0 relative">
         {loading && (
           <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-[99] flex items-center justify-center">
@@ -626,6 +637,25 @@ function App() {
         isOpen={isProductTourOpen}
         onClose={() => setIsProductTourOpen(false)}
         setActivePage={setActivePage}
+      />
+
+      {/* First Launch / Welcome Onboarding Screen */}
+      {!hasProfile && (
+        <OnboardingModal
+          onComplete={(userName) => {
+            createProfile(userName);
+          }}
+        />
+      )}
+
+      {/* Non-destructive Logout Session Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          logout();
+          setActivePage('dashboard');
+        }}
       />
     </div>
   );

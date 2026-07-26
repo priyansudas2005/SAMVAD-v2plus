@@ -19,7 +19,10 @@ import {
   Power,
   Trash2,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Moon,
+  Sun,
+  LogOut
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
@@ -61,6 +64,11 @@ interface SidebarProps {
 
   onOpenNotifications?: () => void;
   onStartTour?: () => void;
+
+  // Local User Profile Props
+  userProfile?: { name: string; initials: string } | null;
+  onOpenLogout?: () => void;
+  onToggleTheme?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -94,6 +102,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setCaptureSource,
   onOpenNotifications,
   onStartTour,
+  userProfile,
+  onOpenLogout,
+  onToggleTheme,
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -513,22 +524,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-white/[0.06] bg-[#06070d]/60 backdrop-blur-md flex flex-col gap-2 relative z-10">
-        {currentMeeting && (
-          <div className="p-3 rounded-xl flex flex-col gap-1 bg-white/[0.02] border border-white/[0.06]">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Loaded Meeting</span>
-            <span className="text-xs text-white font-medium truncate">{currentMeeting.title}</span>
-            <span className="text-[10px] text-slate-400 font-mono">
-              Duration: {currentMeeting.duration ? `${(currentMeeting.duration / 60).toFixed(1)}m` : '0.0m'}
-            </span>
+      {/* Footer User Profile & Actions */}
+      <div className="p-3.5 border-t border-white/[0.08] bg-[#06070d]/80 backdrop-blur-md flex flex-col gap-2 relative z-10">
+        <div className="p-2.5 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] flex items-center justify-between shadow-inner">
+          {/* Avatar & Display Name */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 border border-violet-400/30 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-violet-600/30 shrink-0 font-mono">
+              {userProfile?.initials || 'U'}
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-white truncate">{userProfile?.name || 'Local User'}</div>
+              <div className="text-[9.5px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Local Profile
+              </div>
+            </div>
           </div>
-        )}
-        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[10px] font-semibold text-slate-300 transition-all duration-300 bg-[#080a0f]/80 border border-white/[0.08] shadow-inner">
-          <span className="tracking-wide text-slate-400 font-mono">Engine Status</span>
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9.5px] font-bold">
-            <span className="relative w-2 h-2 rounded-full bg-emerald-400 status-ring-ready flex-shrink-0 animate-pulse" />
-            <span className="tracking-wider font-mono">ACTIVE</span>
+
+          {/* Actions: Theme Toggle, Settings, Logout */}
+          <div className="flex items-center gap-1 shrink-0">
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="p-1.5 rounded-lg bg-black/40 hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 hover:text-amber-300 transition-all cursor-pointer"
+                title="Toggle Theme"
+              >
+                <Sun className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              onClick={() => setActivePage('settings')}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                activePage === 'settings'
+                  ? 'bg-violet-600/30 border-violet-500/50 text-violet-300'
+                  : 'bg-black/40 hover:bg-white/[0.08] border-white/[0.06] text-slate-400 hover:text-white'
+              }`}
+              title="Settings"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+            {onOpenLogout && (
+              <button
+                onClick={onOpenLogout}
+                className="p-1.5 rounded-lg bg-black/40 hover:bg-rose-500/20 border border-white/[0.06] hover:border-rose-500/30 text-slate-400 hover:text-rose-300 transition-all cursor-pointer"
+                title="Logout Session"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

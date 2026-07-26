@@ -20,15 +20,20 @@ import {
   RotateCcw,
   ChevronUp,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  User,
+  Trash2,
+  RefreshCw,
+  LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { SystemSettings } from '../types';
 import { ShortcutSettingsPanel } from '../components/KeyboardShortcuts';
 import { SamvadSignatureHelixLogo } from '../components/SamvadSignatureHelixLogo';
+import { useProfile } from '../hooks/useProfile';
 
-type SectionId = 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
+type SectionId = 'profile' | 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
 
 interface SectionConfig {
   id: SectionId;
@@ -479,6 +484,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
   };
 
   const sections: SectionConfig[] = [
+    { id: 'profile', label: 'Local Profile', icon: User },
     { id: 'general', label: 'General', icon: Sliders },
     { id: 'appearance', label: 'Appearance', icon: Palette },
     { id: 'recording', label: 'Recording', icon: Mic },
@@ -592,6 +598,88 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
 
         {/* RIGHT CONTENT WORKSPACE (9 Columns) */}
         <div className="lg:col-span-9 p-6 overflow-y-auto space-y-5 bg-slate-950 font-sans">
+          
+          {/* PROFILE SECTION */}
+          {activeSection === 'profile' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <User className="w-5 h-5 text-violet-400" /> Local User Profile
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Manage your display identity, view creation metadata, or reset your local session.
+                </p>
+              </div>
+
+              {/* Profile Card Summary */}
+              <div className="p-6 rounded-2xl bg-[#090b14]/90 border border-white/[0.08] backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 border border-violet-400/30 flex items-center justify-center font-extrabold text-white text-lg shadow-xl shadow-violet-600/30 font-mono">
+                    {useProfile().initials}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">{useProfile().profile?.name || 'Local User'}</h3>
+                    <p className="text-xs font-mono text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      Local Profile &middot; Offline Storage
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[11px] font-mono text-slate-400 space-y-1 sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-white/[0.06]">
+                  <div>Created: <span className="text-slate-200">{useProfile().profile?.created_at ? new Date(useProfile().profile!.created_at).toLocaleDateString() : 'N/A'}</span></div>
+                  <div>Last Login: <span className="text-slate-200">{useProfile().profile?.last_login ? new Date(useProfile().profile!.last_login).toLocaleTimeString() : 'Just now'}</span></div>
+                </div>
+              </div>
+
+              {/* Name Editor */}
+              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-4">
+                <h3 className="text-sm font-bold text-white">Change Display Name</h3>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    defaultValue={useProfile().profile?.name || ''}
+                    id="profile-name-input"
+                    placeholder="Enter new display name..."
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#05060c] border border-white/[0.1] text-white text-xs font-semibold focus:outline-none focus:border-violet-500 font-mono"
+                  />
+                  <button
+                    onClick={() => {
+                      const input = document.getElementById('profile-name-input') as HTMLInputElement;
+                      if (input && input.value.trim()) {
+                        useProfile().updateProfile({ name: input.value.trim() });
+                        showToast('Profile name updated instantly!');
+                      }
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-4 h-4" /> Save Name
+                  </button>
+                </div>
+              </div>
+
+              {/* Danger Zone: Session Reset */}
+              <div className="p-6 rounded-2xl bg-rose-500/[0.03] border border-rose-500/20 space-y-3">
+                <h3 className="text-sm font-bold text-rose-400 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" /> Account & Session Reset
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Resetting or logging out of your session will return SAMVAD to the Welcome screen. Your meeting transcripts, audio files, and intelligence memos will remain completely safe on your device.
+                </p>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    onClick={() => {
+                      useProfile().logout();
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold text-xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" /> Logout Session
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* 1. GENERAL PREFERENCES WORKSPACE */}
           {activeSection === 'general' && (

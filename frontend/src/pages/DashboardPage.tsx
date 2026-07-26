@@ -17,6 +17,7 @@ import {
 import { Meeting } from '../types';
 import { api } from '../services/api';
 import { FirstRecordingWizard } from '../components/FirstRecordingWizard';
+import { useProfile } from '../hooks/useProfile';
 
 // Mouse-tracking spotlight and 3D parallax tilt bento card widget
 const BentoItem: React.FC<{ className?: string; children: React.ReactNode }> = ({ className = '', children }) => {
@@ -220,13 +221,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="absolute -top-8 left-8 w-60 h-24 bg-indigo-600/5 rounded-full blur-[70px] pointer-events-none z-0" />
         <div className="absolute top-0 -left-12 w-48 h-20 bg-sky-500/3 rounded-full blur-[60px] pointer-events-none z-0" />
         
-        <div className="relative z-10 flex flex-col gap-1">
-          <h1 className="text-2xl font-extrabold text-white tracking-tight font-sans">
-            Meeting Intelligence Studio
-          </h1>
-          <p className="text-slate-450 text-xs tracking-wide">
-            Secure local speech extraction &amp; semantic pipeline workspace.
-          </p>
+        <div className="relative z-10 flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 border border-violet-400/30 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-violet-600/30 font-mono shrink-0">
+            {useProfile().initials || 'PD'}
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-2xl font-extrabold text-white tracking-tight font-sans">
+              Welcome back, {useProfile().profile?.name || 'Local User'}
+            </h1>
+            <p className="text-slate-450 text-xs tracking-wide">
+              Secure local speech extraction &amp; semantic pipeline workspace.
+            </p>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2.5 relative z-10">
           {[
