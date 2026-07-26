@@ -77,9 +77,9 @@ database:
 
 diarization:
   enabled: true
-  min_speakers: 2
+  min_speakers: 1
   max_speakers: 8
-  clustering_threshold: 0.4
+  clustering_threshold: 0.45
   similarity_threshold: 0.7
   min_overlap_ratio: 0.2
   min_speech_duration_s: 0.5
