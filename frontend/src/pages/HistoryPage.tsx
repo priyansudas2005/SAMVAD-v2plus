@@ -568,7 +568,11 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
 
   const applyCollectionFilter = (list: Meeting[]): Meeting[] => {
     switch (activeCollection) {
-      case 'recent':         return list.filter(m => !archivedIds.has(m.meeting_id) && (nowMs - new Date(m.date).getTime()) < oneWeekMs);
+      case 'recent':         return list.filter(m => {
+        if (archivedIds.has(m.meeting_id)) return false;
+        const d = m.date ? new Date(m.date).getTime() : 0;
+        return d > 0 ? (nowMs - d) < oneWeekMs : true;
+      });
       case 'favorites':      return list.filter(m => favoriteIds.has(m.meeting_id));
       case 'bookmarked':     return list.filter(m => bookmarkedIds.has(m.meeting_id));
       case 'pinned':         return list.filter(m => pinnedIds.has(m.meeting_id));
@@ -576,7 +580,10 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       case 'with_actions':   return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.action_items?.length || 0), 0) || 0) > 0);
       case 'with_decisions': return list.filter(m => (m.transcript?.reduce((a, s) => a + (s.metadata?.decisions?.length || 0), 0) || 0) > 0);
       case 'long':           return list.filter(m => (m.duration || 0) > 3600);
-      case 'this_week':      return list.filter(m => (nowMs - new Date(m.date).getTime()) < oneWeekMs);
+      case 'this_week':      return list.filter(m => {
+        const d = m.date ? new Date(m.date).getTime() : 0;
+        return d > 0 ? (nowMs - d) < oneWeekMs : true;
+      });
       default:               return list.filter(m => !archivedIds.has(m.meeting_id));
     }
   };
