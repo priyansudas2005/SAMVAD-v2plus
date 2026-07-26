@@ -177,18 +177,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Sparkles className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
             </button>
           )}
-
-          {/* Open Notification Center */}
-          {onOpenNotifications && (
-            <button
-              onClick={onOpenNotifications}
-              className="relative p-1.5 rounded-lg bg-slate-900/80 hover:bg-violet-600/20 border border-slate-800 hover:border-violet-500/40 text-slate-400 hover:text-violet-300 transition-all group"
-              title="Open Notification Center"
-            >
-              <Bell className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse" />
-            </button>
-          )}
         </div>
       </div>
 
