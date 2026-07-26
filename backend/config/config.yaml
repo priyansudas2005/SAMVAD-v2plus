@@ -57,16 +57,16 @@ audio_enhancement:
       ratio: 4.0
 
 faster_whisper:
-  model_size: "medium" # tiny, base, small, medium, large
+  model_size: "base" # tiny, base, small, medium, large
   device: "auto" # auto, cuda, cpu
   compute_type: "auto" # auto, float16, int8
-  beam_size: 5
-  best_of: 5
-  temperature: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-  vad_filter: false
+  beam_size: 2
+  best_of: 1
+  temperature: 0.0
+  vad_filter: true
   vad_parameters:
-    min_silence_duration_ms: 500
-    speech_pad_ms: 400
+    min_silence_duration_ms: 300
+    speech_pad_ms: 200
     threshold: 0.5
     min_speech_duration_ms: 250
     max_speech_duration_s: 30
