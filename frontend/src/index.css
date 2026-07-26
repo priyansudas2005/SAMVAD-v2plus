@@ -2803,3 +2803,84 @@ input[type="range"].premium-slider::-webkit-slider-thumb:hover {
     transform: scale(1.25, 1);
   }
 }
+
+/* ── SAMVAD ELECTRIC VIOLET ANIMATED CHECKBOX ── */
+.samvad-checkbox-container {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  font-size: 1rem;
+  user-select: none;
+}
+
+.samvad-checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.samvad-checkmark {
+  --clr: #8B5CF6;
+  --clr-glow: rgba(139, 92, 246, 0.4);
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 1.25em;
+  width: 1.25em;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  transition: all 300ms ease;
+}
+
+.samvad-checkbox-container:hover input ~ .samvad-checkmark {
+  border-color: #8B5CF6;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
+}
+
+.samvad-checkbox-container input:checked ~ .samvad-checkmark {
+  background-color: var(--clr);
+  border-color: #A78BFA;
+  border-radius: 0.35rem;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+  animation: samvadPulse 500ms ease-in-out;
+}
+
+.samvad-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.samvad-checkbox-container input:checked ~ .samvad-checkmark:after {
+  display: block;
+}
+
+.samvad-checkbox-container .samvad-checkmark:after {
+  left: 0.4em;
+  top: 0.22em;
+  width: 0.25em;
+  height: 0.5em;
+  border: solid #FFFFFF;
+  border-width: 0 0.15em 0.15em 0;
+  transform: rotate(45deg);
+}
+
+@keyframes samvadPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(139, 92, 246, 0.8);
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(-20deg);
+  }
+  75% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(139, 92, 246, 0);
+    transform: rotate(0);
+  }
+}

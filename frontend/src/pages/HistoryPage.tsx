@@ -1453,13 +1453,14 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   <div className="flex items-center justify-between gap-1.5 pb-2 mb-2 border-b border-white/[0.02] min-w-0">
                     {/* Left: checkbox + status badge */}
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <input 
-                        type="checkbox" 
-                        checked={isCardSelected}
-                        onChange={() => {}}
-                        onClick={toggleSelect}
-                        className="w-3 h-3 rounded border-slate-800 text-purple-500 focus:ring-purple-500/30 bg-slate-900 cursor-pointer flex-shrink-0"
-                      />
+                      <label className="samvad-checkbox-container flex-shrink-0" onClick={toggleSelect}>
+                        <input 
+                          type="checkbox" 
+                          checked={isCardSelected}
+                          onChange={() => {}}
+                        />
+                        <span className="samvad-checkmark" />
+                      </label>
                       <span className={`px-1.5 py-0.5 rounded-full border font-semibold text-[8px] flex items-center gap-1 flex-shrink-0 ${statusBg}`}>
                         <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
                         {statusLabel}
