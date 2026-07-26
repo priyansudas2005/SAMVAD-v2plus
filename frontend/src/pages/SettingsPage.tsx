@@ -425,8 +425,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
 
   const saveAllSettings = async () => {
     setSaving(true);
-    const fullPayload = {
+    
+    // Map selected ASR model size if user changed AI models dropdown
+    const selectedModelSize = aiModelsState.speech_recognition?.currentModel?.toLowerCase().includes('large') ? 'large' :
+                              aiModelsState.speech_recognition?.currentModel?.toLowerCase().includes('medium') ? 'medium' :
+                              aiModelsState.speech_recognition?.currentModel?.toLowerCase().includes('small') ? 'small' :
+                              aiModelsState.speech_recognition?.currentModel?.toLowerCase().includes('tiny') ? 'tiny' : 'base';
+
+    const updatedSystemSettings: SystemSettings = {
       ...settings,
+      model_size: selectedModelSize
+    };
+
+    setSettings(updatedSystemSettings);
+
+    const fullPayload = {
+      ...updatedSystemSettings,
       themeMode,
       accentColor,
       glassIntensity,
@@ -448,16 +462,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
       echoCancellation,
       runOffline,
       disableTelemetry,
-      encryptDatabase
+      encryptDatabase,
+      aiModelsState
     };
 
     localStorage.setItem('samvad_user_settings', JSON.stringify(fullPayload));
+
+    // Propagate theme mode to DOM & root theme classes
     if (themeMode) {
-      localStorage.setItem('samvad-theme', themeMode.toLowerCase());
+      const modeKey = themeMode.toLowerCase();
+      localStorage.setItem('samvad-theme', modeKey);
+      document.documentElement.className = '';
+      if (modeKey === 'light') {
+        document.documentElement.classList.add('theme-light');
+      }
+    }
+
+    // Propagate primary accent color to CSS variables
+    if (accentColor) {
+      document.documentElement.style.setProperty('--accent-primary', accentColor);
+    }
+
+    // Sync global state with parent App.tsx
+    if (onUpdateGlobalSettings) {
+      onUpdateGlobalSettings(updatedSystemSettings.model_size, updatedSystemSettings.default_language, updatedSystemSettings.vad_enabled);
     }
 
     try {
-      await api.updateSettings(settings);
+      await api.updateSettings(updatedSystemSettings);
       showToast("All settings saved successfully!");
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -1242,7 +1274,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                         key={mode}
                         onClick={() => {
                           setThemeMode(mode);
-                          document.documentElement.classList.toggle('light-theme', mode === 'Light');
+                          const modeKey = mode.toLowerCase();
+                          localStorage.setItem('samvad-theme', modeKey);
+                          document.documentElement.className = '';
+                          if (modeKey === 'light') {
+                            document.documentElement.classList.add('theme-light');
+                          }
                           showToast(`Theme mode: ${mode}`);
                         }}
                         className={`py-1.5 rounded-md font-bold text-xs transition-all uppercase ${
