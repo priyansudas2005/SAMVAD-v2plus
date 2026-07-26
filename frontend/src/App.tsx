@@ -397,8 +397,11 @@ function App() {
       />
       <main className="flex-1 flex flex-col min-w-0 relative">
         {loading && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-[99] flex items-center justify-center">
-            <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 bg-[#040404]/80 backdrop-blur-md z-[99] flex flex-col items-center justify-center gap-6">
+            <div className="samvad-loader" />
+            <div className="text-xs font-bold text-[#F5F7FA] uppercase tracking-widest font-mono text-center">
+              SAMVAD Engine Initializing...
+            </div>
           </div>
         )}
 
