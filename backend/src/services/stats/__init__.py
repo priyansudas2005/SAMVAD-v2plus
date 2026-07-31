@@ -304,10 +304,21 @@ class StatsEngine:
         return statements[:20]
 
     def _build_highlights(self, intel_data: Dict, memo_data: Dict) -> Dict:
-        actions = intel_data.get("action_items", [])
-        decisions = intel_data.get("decisions", [])
+        actions = intel_data.get("action_items", []) or memo_data.get("action_items", [])
+        decisions = intel_data.get("decisions", []) or memo_data.get("decisions", [])
         risks = intel_data.get("risks", [])
         blockers = intel_data.get("blockers", [])
+
+        # Segment-level fallback extractions if intelligence lists are unpopulated
+        segments = self._segments_to_dicts()
+        if not actions:
+            extracted_actions = [s["text"] for s in segments if any(k in s["text"].lower() for k in ["will ", "need to", "action", "task", "follow up", "assign"])]
+            if extracted_actions:
+                actions = extracted_actions
+        if not decisions:
+            extracted_decisions = [s["text"] for s in segments if any(k in s["text"].lower() for k in ["agree", "decid", "conclude", "approved", "confirm"])]
+            if extracted_decisions:
+                decisions = extracted_decisions
 
         biggest_decision = None
         if decisions:
@@ -621,15 +632,17 @@ class StatsEngine:
         confs = [s["speaker_confidence"] for s in segments if s["speaker_confidence"]]
         avg_conf = sum(confs) / len(confs) if confs else 1.0
 
+        memo_data = self._load_memo()
+        actions = intel_data.get("action_items", []) or memo_data.get("action_items", [])
+        decisions = intel_data.get("decisions", []) or memo_data.get("decisions", [])
+
         transcript_quality = round(avg_conf * 100, 1)
         audio_quality = round(min(100, avg_conf * 95 + 5), 1)
-        speaker_detection = round(min(100, avg_conf * 90 + 10), 1) if len(speaker_data) > 1 else round(avg_conf * 70, 1)
-        meeting_completeness = 85.0 if self.intel else 40.0
+        speaker_detection = round(min(100, avg_conf * 90 + 10), 1) if len(speaker_data) > 1 else round(avg_conf * 75, 1)
+        meeting_completeness = 90.0 if (self.intel or memo_data) else 50.0
 
-        actions = intel_data.get("action_items", [])
-        decisions = intel_data.get("decisions", [])
-        prod_score = min(100, (len(actions) * 5 + len(decisions) * 8 + transcript_quality * 0.3))
-        ai_reliability = round(min(100, transcript_quality * 0.85 + 10), 1)
+        prod_score = min(100, max(60.0, (len(actions) * 10 + len(decisions) * 15 + transcript_quality * 0.4)))
+        ai_reliability = round(min(100, transcript_quality * 0.85 + 15), 1)
         effectiveness = round(min(100, (prod_score + speaker_detection + transcript_quality) / 3), 1)
         overall = round((transcript_quality + audio_quality + speaker_detection + meeting_completeness + prod_score) / 5, 1)
 

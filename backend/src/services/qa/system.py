@@ -81,7 +81,7 @@ class QuestionAnswering:
         import urllib.request
         import urllib.error
         url = f"{self.config.ollama_url.rstrip('/')}/api/generate"
-        prompt = f"Context from meeting transcript:\n{context}\n\nQuestion: {question}\n\nAnswer the question concisely using the context provided. If the answer cannot be found in the context, say 'I couldn't find evidence for that'."
+        prompt = f"Context from meeting transcript:\n{context}\n\nQuestion: {question}\n\nAnswer the question strictly using ONLY the provided meeting context. Do not use outside knowledge or answer general knowledge questions. If the question cannot be answered directly from the meeting context, reply with: 'I could not find information about that in this meeting transcript.'"
         payload = {
             "model": self.config.ollama_model,
             "prompt": prompt,

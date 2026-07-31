@@ -169,7 +169,7 @@ class SemanticRetriever:
                 best_score = overlap
                 best_sentence = s_clean
                 
-        if best_sentence:
+        if best_sentence and best_score >= 1:
             return {
                 "answer": best_sentence,
                 "confidence": 0.50,

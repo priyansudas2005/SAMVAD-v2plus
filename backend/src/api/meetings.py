@@ -79,10 +79,40 @@ def serialize_meeting(m: DBMeeting) -> dict:
         "qa_history": qa_history
     }
 
+def serialize_meeting_list(m: DBMeeting) -> dict:
+    """Lightweight serializer for the meetings list - omits transcript segments and word timings
+    so GET /api/meetings returns quickly even with many meetings."""
+    memo_data = None
+    if m.memo:
+        memo_data = {
+            "meeting_id": m.memo.meeting_id,
+            "summary": m.memo.summary or "",
+            "action_items": json.loads(m.memo.action_items_json) if m.memo.action_items_json else [],
+            "decisions": json.loads(m.memo.decisions_json) if m.memo.decisions_json else [],
+            "key_points": json.loads(m.memo.key_points_json) if m.memo.key_points_json else [],
+            "discussion_points": json.loads(m.memo.discussion_points_json) if hasattr(m.memo, 'discussion_points_json') and m.memo.discussion_points_json else [],
+            "generated_at": m.memo.generated_at or "",
+            "confidence": m.memo.confidence or 1.0
+        }
+
+    return {
+        "meeting_id": m.meeting_id,
+        "title": m.title,
+        "date": m.date,
+        "duration": m.duration,
+        "audio_path": m.audio_path,
+        "metadata": json.loads(m.metadata_json) if m.metadata_json else {},
+        "transcript": [],  # Omitted for speed — load on-demand via GET /meetings/{id}
+        "memo": memo_data,
+        "qa_history": []   # Omitted for speed — load on-demand via GET /meetings/{id}
+    }
+
 @router.get("", response_model=List[MeetingResponse])
 def get_meetings(db: Session = Depends(get_db)):
+    # Use lightweight serializer — no transcript segments loaded, so this is fast
     meetings = db.query(DBMeeting).all()
-    return [serialize_meeting(m) for m in meetings]
+    return [serialize_meeting_list(m) for m in meetings]
+
 
 @router.get("/{meeting_id}", response_model=MeetingResponse)
 def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
@@ -90,6 +120,42 @@ def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
     if not m:
         raise HTTPException(status_code=404, detail="Meeting not found")
     return serialize_meeting(m)
+
+@router.get("/{meeting_id}/audio")
+def get_meeting_audio(meeting_id: str, db: Session = Depends(get_db)):
+    m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+    if not m or not m.audio_path:
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    
+    # Try resolving path absolute, relative to CWD, or relative to project root
+    path = m.audio_path
+    if os.path.exists(path):
+        return FileResponse(path)
+        
+    # If backend is running inside 'backend' folder, the path might be relative to the parent
+    parent_path = os.path.join("..", path)
+    if os.path.exists(parent_path):
+        return FileResponse(parent_path)
+        
+    # If the database stored it as 'backend/data/...', but we are running in the backend directory
+    if path.startswith("backend/"):
+        sub_path = path[8:]
+        if os.path.exists(sub_path):
+            return FileResponse(sub_path)
+            
+    # Try search inside the standard recordings directory
+    filename = os.path.basename(path)
+    rec_path = os.path.join(RECORDINGS_DIR, filename)
+    if os.path.exists(rec_path):
+        return FileResponse(rec_path)
+        
+    parent_rec_path = os.path.join("..", RECORDINGS_DIR, filename)
+    if os.path.exists(parent_rec_path):
+        return FileResponse(parent_rec_path)
+
+    raise HTTPException(status_code=404, detail=f"Audio file not found at {path}")
+
+
 
 @router.delete("/{meeting_id}")
 def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):

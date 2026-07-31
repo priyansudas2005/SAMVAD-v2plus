@@ -1,7 +1,21 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Sidebar } from './components/Sidebar';
+import { CommandPalette } from './components/CommandPalette';
+import { NotificationCenter } from './components/NotificationCenter';
+import { KeyboardProvider } from './components/KeyboardShortcuts';
+import { 
+  DashboardSkeleton, 
+  RecorderSkeleton, 
+  HistorySkeleton, 
+  TranscriptSkeleton, 
+  SummarySkeleton, 
+  AnalyticsSkeleton, 
+  QASkeleton, 
+  SettingsSkeleton 
+} from './components/Skeletons';
 import { DashboardPage } from './pages/DashboardPage';
-import { RecorderPage } from './pages/RecorderPage';
+import { DAWRecorderPage } from './pages/DAWRecorderPage';
+import { AudioInspector } from './components/AudioInspector';
 import { TranscriptPage } from './pages/TranscriptPage';
 import { SummaryPage } from './pages/SummaryPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -9,6 +23,15 @@ import { SettingsPage } from './pages/SettingsPage';
 import { Meeting } from './types';
 import { api } from './services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CosmicDustBackground } from './components/CosmicDustBackground';
+import { OnboardingWizard } from './components/OnboardingWizard';
+import { InteractiveProductTour } from './components/InteractiveProductTour';
+import { HelpLearningCenter } from './components/HelpLearningCenter';
+import { useProfile } from './hooks/useProfile';
+import { OnboardingModal } from './components/OnboardingModal';
+import { LogoutConfirmModal } from './components/LogoutConfirmModal';
+
+import { SettingsProvider } from './context/SettingsContext';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -23,9 +46,11 @@ const TabSkeleton = () => (
 );
 
 // Initial theme check before first render to prevent flashing (Fix 2C/3)
-const initialTheme = localStorage.getItem('samvad-theme') || 'cosmic';
+const initialTheme = localStorage.getItem('samvad-theme') || 'dark';
 document.documentElement.className = '';
-document.documentElement.classList.add(`theme-${initialTheme}`);
+if (initialTheme === 'light') {
+  document.documentElement.classList.add('theme-light');
+}
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -36,9 +61,30 @@ const pageVariants = {
 function App() {
   const [activePage, setActivePage] = useState<string>('dashboard');
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetingsReady, setMeetingsReady] = useState<boolean>(false);
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [appError, setAppError] = useState<string | null>(null);
+  const { profile, initials, hasProfile, createProfile, logout } = useProfile();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState<boolean>(false);
+  const [isProductTourOpen, setIsProductTourOpen] = useState<boolean>(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(() => {
+    return !localStorage.getItem('samvad_onboarded');
+  });
+
+  // Global Ctrl+K / Cmd+K Command Palette Trigger
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // Global Recording States
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'paused' | 'stopped'>('idle');
@@ -62,6 +108,7 @@ function App() {
       const data = await api.getMeetings();
       const sorted = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setMeetings(sorted);
+      setMeetingsReady(true);
       
       if (currentMeeting) {
         const found = sorted.find(m => m.meeting_id === currentMeeting.meeting_id);
@@ -69,30 +116,38 @@ function App() {
       }
     } catch (err) {
       console.error(err);
-      setAppError('Could not sync with local database server.');
+      setMeetingsReady(true); // Still mark ready so UI isn't stuck
     }
   };
 
   useEffect(() => {
-    const initialize = async () => {
-      setLoading(true);
-      await fetchMeetingsList();
-      
-      // Load initial settings
+    let isMounted = true;
+
+    // Show the UI immediately — don't block on data fetch
+    setLoading(false);
+
+    // Fetch meetings in background (doesn't block UI render)
+    const fetchData = async () => {
+      try {
+        await fetchMeetingsList();
+      } catch (e) {
+        console.error('Failed to load meetings:', e);
+      }
+      // Fetch settings separately — non-blocking, best effort
       try {
         const settings = await api.getSettings();
-        if (settings) {
-          setModelSize(settings.model_size);
-          setLanguage(settings.default_language);
-          setVadEnabled(settings.vad_enabled);
+        if (settings && isMounted) {
+          setModelSize(settings.model_size || 'base');
+          setLanguage(settings.default_language || 'auto');
+          setVadEnabled(settings.vad_enabled || false);
         }
       } catch (e) {
-        console.error("Failed to load initial settings:", e);
+        console.error('Failed to load settings:', e);
       }
-      
-      setLoading(false);
     };
-    initialize();
+
+    fetchData();
+    return () => { isMounted = false; };
   }, []);
 
   // Timer side-effect
@@ -275,10 +330,29 @@ function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#020617] text-slate-100 relative z-10">
-      {/* Background ambient glow circles */}
-      <div className="fixed -top-40 -left-40 w-[450px] h-[450px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed -bottom-40 -right-40 w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="fixed top-1/2 left-1/3 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
+      {/* ── Cosmic Dust Particle Background ──────────────────────────────── */}
+      <CosmicDustBackground />
+
+      
+      {/* ── Layered Atmospheric Environment ─────────────────── */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Deep radial ambient lighting vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#030408_100%)] opacity-85 z-10" />
+        
+        {/* Volumetric mesh gradients (violet bloom, indigo center, cyan lower-right) */}
+        <div 
+          className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-violet-600/12 to-transparent blur-[130px] opacity-90"
+          style={{ animation: 'orb-slow-drift 45s infinite alternate ease-in-out' }}
+        />
+        <div 
+          className="absolute top-[20%] left-[20%] w-[55%] h-[55%] rounded-full bg-gradient-to-tr from-indigo-600/10 to-transparent blur-[140px] opacity-80"
+          style={{ animation: 'orb-slow-drift-rev 55s infinite alternate ease-in-out' }}
+        />
+        <div 
+          className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-sky-500/8 to-transparent blur-[120px] opacity-85"
+          style={{ animation: 'orb-slow-drift 60s infinite alternate ease-in-out' }}
+        />
+      </div>
 
       <Sidebar 
         activePage={activePage}
@@ -286,8 +360,6 @@ function App() {
         currentMeeting={currentMeeting}
         meetings={meetings}
         onSelectMeeting={handleSelectMeeting}
-        
-        // Recording states
         recordingState={recordingState}
         duration={duration}
         recordingError={recordingError}
@@ -312,12 +384,25 @@ function App() {
         // Loopback Mixer Capture Source
         captureSource={captureSource}
         setCaptureSource={setCaptureSource}
+        onOpenNotifications={() => setIsNotificationCenterOpen(true)}
+        onStartTour={() => setIsProductTourOpen(true)}
+        userProfile={profile ? { name: profile.name, initials } : null}
+        onOpenLogout={() => setIsLogoutModalOpen(true)}
+        onToggleTheme={() => {
+          const current = localStorage.getItem('samvad-theme') || 'dark';
+          const next = current === 'dark' ? 'light' : 'dark';
+          localStorage.setItem('samvad-theme', next);
+          document.documentElement.className = '';
+          if (next === 'light') document.documentElement.classList.add('theme-light');
+        }}
       />
-
       <main className="flex-1 flex flex-col min-w-0 relative">
         {loading && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-[99] flex items-center justify-center">
-            <div className="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 bg-[#040404]/80 backdrop-blur-md z-[99] flex flex-col items-center justify-center gap-6">
+            <div className="samvad-loader" />
+            <div className="text-xs font-bold text-[#F5F7FA] uppercase tracking-widest font-mono text-center">
+              SAMVAD Engine Initializing...
+            </div>
           </div>
         )}
 
@@ -343,10 +428,11 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <DashboardPage 
                 meetings={meetings}
+                meetingsReady={meetingsReady}
                 onSelectMeeting={handleSelectMeeting}
                 setActivePage={setActivePage}
                 refreshMeetings={fetchMeetingsList}
@@ -362,9 +448,9 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <RecorderPage 
+              <DAWRecorderPage 
                 stream={stream}
                 recordingState={recordingState}
                 duration={duration}
@@ -378,6 +464,14 @@ function App() {
                 stopRecording={stopRecording}
                 discardRecording={discardRecording}
                 saveRecording={saveRecording}
+                modelSize={modelSize}
+                setModelSize={setModelSize}
+                language={language}
+                setLanguage={setLanguage}
+                vadEnabled={vadEnabled}
+                setVadEnabled={setVadEnabled}
+                captureSource={captureSource}
+                setCaptureSource={setCaptureSource}
               />
             </motion.div>
           )}
@@ -390,7 +484,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <HistoryPage 
                 meetings={meetings}
@@ -409,7 +503,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <TranscriptPage 
                 currentMeeting={currentMeeting}
@@ -426,7 +520,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <SummaryPage 
                 currentMeeting={currentMeeting}
@@ -442,7 +536,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
               <Suspense fallback={<TabSkeleton />}>
                 <StatsPage currentMeeting={currentMeeting} onUpdateMeeting={handleUpdateCurrentMeeting} />
@@ -458,9 +552,9 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <Suspense fallback={<TabSkeleton />}>
+              <Suspense fallback={<QASkeleton />}>
                 <QAPage 
                   currentMeeting={currentMeeting}
                   onUpdateMeeting={handleUpdateCurrentMeeting}
@@ -477,9 +571,9 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <Suspense fallback={<TabSkeleton />}>
+              <Suspense fallback={<AnalyticsSkeleton />}>
                 <AnalyticsPage currentMeeting={currentMeeting} />
               </Suspense>
             </motion.div>
@@ -487,21 +581,109 @@ function App() {
 
           {activePage === 'settings' && (
             <motion.div
-              key="settings"
+              key="settings-page"
               initial="initial"
               animate="animate"
               exit="exit"
               variants={pageVariants}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col min-h-0"
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <SettingsPage />
+              <SettingsPage 
+                onUpdateGlobalSettings={(newModel, newLang, newVad) => {
+                  if (newModel) setModelSize(newModel);
+                  if (newLang) setLanguage(newLang);
+                  if (newVad !== undefined) setVadEnabled(newVad);
+                }}
+              />
+            </motion.div>
+          )}
+
+          {activePage === 'help' && (
+            <motion.div
+              key="help-page"
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
+            >
+              <HelpLearningCenter />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
+
+      {/* Universal Command Palette Launcher Overlay */}
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        setActivePage={setActivePage}
+        meetings={meetings}
+        currentMeeting={currentMeeting}
+        onSelectMeeting={handleSelectMeeting}
+        startRecording={startRecording}
+        stopRecording={stopRecording}
+        recordingState={recordingState}
+      />
+
+      {/* Desktop Notification Center Drawer */}
+      <NotificationCenter
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
+        onNavigate={setActivePage}
+      />
+
+      {/* First-Run Onboarding Wizard */}
+      <OnboardingWizard
+        isOpen={isOnboardingOpen}
+        onComplete={(action) => {
+          localStorage.setItem('samvad_onboarded', 'true');
+          setIsOnboardingOpen(false);
+          if (action === 'record') {
+            setActivePage('recorder');
+          } else {
+            setActivePage('dashboard');
+          }
+        }}
+      />
+
+      {/* Interactive Feature Tour */}
+      <InteractiveProductTour
+        isOpen={isProductTourOpen}
+        onClose={() => setIsProductTourOpen(false)}
+        setActivePage={setActivePage}
+      />
+
+      {/* First Launch / Welcome Onboarding Screen */}
+      {!hasProfile && (
+        <OnboardingModal
+          onComplete={(userName) => {
+            createProfile(userName);
+          }}
+        />
+      )}
+
+      {/* Non-destructive Logout Session Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          logout();
+          setActivePage('dashboard');
+        }}
+      />
     </div>
   );
 }
 
-export default App;
+export default function WrappedApp() {
+  return (
+    <SettingsProvider>
+      <KeyboardProvider>
+        <App />
+      </KeyboardProvider>
+    </SettingsProvider>
+  );
+}

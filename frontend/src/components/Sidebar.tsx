@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   LayoutDashboard, 
   Mic, 
@@ -15,10 +14,20 @@ import {
   RefreshCw,
   FolderSync,
   Volume2,
-  Activity
+  Activity,
+  CheckCircle2,
+  Power,
+  Trash2,
+  Bell,
+  HelpCircle,
+  Moon,
+  Sun,
+  LogOut
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
+import { SamvadSignatureHelixLogo } from './SamvadSignatureHelixLogo';
+import { SamvadBrandWordmarkCorrected } from './SamvadAlternativeLogos';
 
 interface SidebarProps {
   activePage: string;
@@ -52,6 +61,14 @@ interface SidebarProps {
   // Loopback Mixer Capture Source
   captureSource: 'mic' | 'system' | 'both';
   setCaptureSource: (s: 'mic' | 'system' | 'both') => void;
+
+  onOpenNotifications?: () => void;
+  onStartTour?: () => void;
+
+  // Local User Profile Props
+  userProfile?: { name: string; initials: string } | null;
+  onOpenLogout?: () => void;
+  onToggleTheme?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -83,13 +100,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   captureSource,
   setCaptureSource,
+  onOpenNotifications,
+  onStartTour,
+  userProfile,
+  onOpenLogout,
+  onToggleTheme,
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'recorder', label: 'Recorder', icon: Mic },
+    { id: 'recorder', label: 'Studio Recorder', icon: Mic },
     { id: 'history', label: 'Meeting History', icon: History },
     { id: 'analytics', label: 'Analytics', icon: BarChart4 },
     { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'help', label: 'Help Center', icon: HelpCircle },
   ];
 
   const meetingItems = [
@@ -106,46 +129,80 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10">
+    <aside className="w-80 sidebar-glass flex flex-col h-screen select-none z-10 relative overflow-hidden bg-[#040508]/80 backdrop-blur-3xl border-r border-white/[0.08] shadow-[10px_0_40px_rgba(0,0,0,0.6)]">
+      {/* Apple VisionOS Progressive Blur Layering */}
+      <div className="sidebar-progressive-blur">
+        <div className="sidebar-blur-layer sidebar-blur-layer--8" />
+        <div className="sidebar-blur-layer sidebar-blur-layer--16" />
+        <div className="sidebar-blur-layer sidebar-blur-layer--32" />
+      </div>
+      
+      {/* Specular highlight border overlay */}
+      <div className="sidebar-specular-highlight" />
+
+      {/* Ambient Radial Mesh Backdrop Light */}
+      <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-violet-600/10 blur-[90px] pointer-events-none" />
+
       {/* Brand Section */}
-      <div className="p-6 border-b border-slate-900/40 flex items-center gap-3">
-        <div className="relative flex items-center justify-center">
-          {/* Pulsing ambient glow backplane */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-sky-400 to-indigo-500 rounded-xl blur-md opacity-45 animate-pulse pointer-events-none" />
-          {/* Premium Logo Box Container */}
-          <div className="relative w-11 h-11 bg-slate-950/60 border border-slate-800/40 rounded-xl flex items-center justify-center shadow-2xl overflow-hidden group">
-            {/* Top corner gradient shine */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-70" />
-            {/* Bottom accent glow strip */}
-            <div className="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-sky-400 to-indigo-500" />
-            
-            {/* Stylish Audio/Speaker Waves Icon */}
-            <Volume2 className="w-5.5 h-5.5 text-sky-400 group-hover:scale-108 transition-transform duration-300" />
+      <div className="px-5 py-4 border-b border-white/[0.06] bg-[#07080f]/50 backdrop-blur-md flex items-center justify-between gap-2.5 relative z-10">
+        <div
+          className="relative flex items-center gap-3 cursor-pointer shrink-0 min-w-0"
+          onClick={() => {}}
+        >
+          {/* Quantum Sonic Helix Signature Logo Mark (Standalone, No Box) */}
+          <SamvadSignatureHelixLogo size={38} />
+
+          <div className="flex items-center gap-1.5 min-w-0">
+            <SamvadBrandWordmarkCorrected mode="dark" />
+            <div className="badge-v2 shrink-0">
+              v2.0
+              <span />
+            </div>
           </div>
+
+          {/* Recording live indicator */}
           {recordingState === 'recording' && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full status-ring-error z-20" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 border border-slate-950 rounded-full z-20 animate-ping" />
           )}
         </div>
-        <div>
-          <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
-            SAMVAD
-            <span className="text-[9px] bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded-full border border-sky-500/30 font-semibold uppercase tracking-wider">
-              V2.0
-            </span>
-          </h1>
-          <p className="text-[10.5px] text-slate-400 font-medium font-sans">Offline Meeting Intelligence</p>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Replay Product Tour Trigger */}
+          {onStartTour && (
+            <button
+              onClick={onStartTour}
+              className="p-1.5 rounded-lg bg-slate-900/80 hover:bg-sky-600/20 border border-slate-800 hover:border-sky-500/40 text-slate-400 hover:text-sky-300 transition-all group"
+              title="Replay Product Tour"
+            >
+              <Sparkles className="w-3.5 h-3.5 transition-transform group-hover:rotate-12" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5 relative z-10 scrollbar-none">
         
         {/* Live Audio Capture Module in Sidebar */}
-        <div className="glass-panel p-4 rounded-xl border border-slate-800/60 flex flex-col gap-3 shadow-inner">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Audio Capture</h2>
+        <div className="p-4 rounded-2xl flex flex-col gap-3 transition-all duration-300 bg-gradient-to-b from-white/[0.03] to-white/[0.005] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+          <div
+            className={`flex items-center justify-between ${activePage !== 'recorder' ? 'cursor-pointer group' : ''}`}
+            onClick={() => activePage !== 'recorder' && setActivePage('recorder')}
+            title={activePage !== 'recorder' ? 'Go to Recorder' : undefined}
+          >
+            <h2 className={`text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400/90 transition-colors duration-200 ${
+              activePage !== 'recorder' ? 'group-hover:text-violet-400' : ''
+            }`}>
+              Audio Capture
+              {activePage !== 'recorder' && (
+                <span className="ml-1.5 text-[8.5px] text-slate-550 group-hover:text-violet-500 normal-case tracking-normal font-normal transition-colors duration-200">
+                  ↗ open
+                </span>
+              )}
+            </h2>
             {recordingState !== 'idle' && (
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${
+              <span className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md font-mono ${
                 recordingState === 'recording' ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-400'
               }`}>
                 {formatTime(duration)}
@@ -156,117 +213,127 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Recording Controls */}
           {recordingState === 'idle' && (
             <div className="space-y-3">
-              {/* Capture Source Tabs */}
-              <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 border border-slate-900 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setCaptureSource('mic')}
-                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
-                    captureSource === 'mic' 
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
-                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
-                  }`}
-                >
+              {/* Capture Source Tabs (Speakr Style Glider) */}
+              <div className="glass-radio-group">
+                <input
+                  type="radio"
+                  id="glass-silver"
+                  name="audioSource"
+                  checked={captureSource === 'mic'}
+                  onChange={() => setCaptureSource('mic')}
+                />
+                <label htmlFor="glass-silver" className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
                   Mic
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCaptureSource('system')}
-                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
-                    captureSource === 'system' 
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
-                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
-                  }`}
-                >
+                </label>
+
+                <input
+                  type="radio"
+                  id="glass-gold"
+                  name="audioSource"
+                  checked={captureSource === 'system'}
+                  onChange={() => setCaptureSource('system')}
+                />
+                <label htmlFor="glass-gold" className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                   System
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCaptureSource('both')}
-                  className={`py-1 text-[9px] font-bold rounded-md transition-colors ${
-                    captureSource === 'both' 
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/25' 
-                      : 'text-slate-500 hover:text-slate-350 border border-transparent'
-                  }`}
-                >
+                </label>
+
+                <input
+                  type="radio"
+                  id="glass-platinum"
+                  name="audioSource"
+                  checked={captureSource === 'both'}
+                  onChange={() => setCaptureSource('both')}
+                />
+                <label htmlFor="glass-platinum" className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4"/><path d="M17.7 6.3a8 8 0 0 1 0 11.4"/><path d="M3.5 3.5a14 14 0 0 0 0 17"/><path d="M20.5 3.5a14 14 0 0 1 0 17"/></svg>
                   Mix
-                </button>
+                </label>
+
+                <div
+                  className="glass-glider"
+                  style={{
+                    transform: `translateX(${captureSource === 'mic' ? 0 : captureSource === 'system' ? 100 : 200}%)`,
+                    background: 'linear-gradient(135deg, rgba(139,92,246,0.35), rgba(139,92,246,0.7))',
+                    boxShadow: '0 0 14px rgba(139,92,246,0.5), inset 0 0 8px rgba(139,92,246,0.3)'
+                  }}
+                />
               </div>
 
-              <motion.button 
-                onClick={startRecording}
-                whileTap={{ scale: 0.97 }}
-                className="w-full py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/10 hover:scale-[1.01]"
-              >
-                <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                Start Recording
-              </motion.button>
+              <div className="btn-wrapper w-full flex justify-center mt-1">
+                <button onClick={startRecording} className="btn w-full flex items-center justify-center">
+                  <Play className="btn-svg text-sky-400 fill-sky-400" style={{ width: '12px', height: '12px', marginRight: '0.35rem' }} />
+                  <span className="txt-wrapper text-[10px] uppercase tracking-wider font-bold relative flex items-center">
+                    <span className="flex gap-[1px]">
+                      <span className="btn-letter">R</span>
+                      <span className="btn-letter">E</span>
+                      <span className="btn-letter">C</span>
+                      <span className="btn-letter">O</span>
+                      <span className="btn-letter">R</span>
+                      <span className="btn-letter">D</span>
+                    </span>
+                  </span>
+                </button>
+              </div>
             </div>
           )}
 
           {recordingState === 'recording' && (
-            <div className="flex gap-2">
-              <motion.button 
+            <div className="flex gap-2.5">
+              <button 
                 onClick={pauseRecording}
-                whileTap={{ scale: 0.97 }}
-                className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1"
-              >
-                <Pause className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                Pause
-              </motion.button>
-              <motion.button 
-                onClick={stopRecording}
-                whileTap={{ scale: 0.97 }}
-                animate={{ boxShadow: [
-                  "0 0 0 0px rgba(239,68,68,0.4)",
-                  "0 0 0 12px rgba(239,68,68,0)",
-                ]}}
-                transition={{ duration: 1.2, repeat: Infinity }}
-                className="flex-1 py-2 bg-rose-500 hover:bg-rose-455 text-white font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1 focus:outline-none"
+                className="btn-premium-glass-neo-amber flex-1 focus:outline-none"
               >
                 <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-1"
+                  animate={{ scale: [1, 1.12, 0.95, 1.05, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
                 >
-                  <Square className="w-3.5 h-3.5 fill-white" />
-                  <span>Stop</span>
+                  <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                 </motion.div>
-              </motion.button>
+                <span>Pause</span>
+              </button>
+              <button 
+                onClick={stopRecording}
+                className="btn-premium-glass-neo-red flex-1 focus:outline-none"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Power className="w-3.5 h-3.5 text-rose-300" />
+                </motion.div>
+                <span>Stop</span>
+              </button>
             </div>
           )}
 
           {recordingState === 'paused' && (
-            <div className="flex gap-2">
-              <motion.button 
+            <div className="flex gap-2.5">
+              <button 
                 onClick={resumeRecording}
-                whileTap={{ scale: 0.97 }}
-                className="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1"
-              >
-                <Play className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                Resume
-              </motion.button>
-              <motion.button 
-                onClick={stopRecording}
-                whileTap={{ scale: 0.97 }}
-                animate={{ boxShadow: [
-                  "0 0 0 0px rgba(239,68,68,0.4)",
-                  "0 0 0 12px rgba(239,68,68,0)",
-                ]}}
-                transition={{ duration: 1.2, repeat: Infinity }}
-                className="flex-1 py-2 bg-rose-500 hover:bg-rose-455 text-white font-bold rounded-lg text-xs btn-interactive flex items-center justify-center gap-1 focus:outline-none"
+                className="btn-premium-glass-neo flex-1 focus:outline-none"
               >
                 <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-1"
+                  animate={{ scale: [1, 1.2, 0.85, 1.1, 1] }}
+                  transition={{ duration: 1, repeat: Infinity, repeatDelay: 2.5 }}
                 >
-                  <Square className="w-3.5 h-3.5 fill-white" />
-                  <span>Stop</span>
+                  <Play className="w-3.5 h-3.5 fill-current text-sky-400" />
                 </motion.div>
-              </motion.button>
+                <span>Resume</span>
+              </button>
+              <button 
+                onClick={stopRecording}
+                className="btn-premium-glass-neo-red flex-1 focus:outline-none"
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Power className="w-3.5 h-3.5 text-rose-300" />
+                </motion.div>
+                <span>Stop</span>
+              </button>
             </div>
           )}
 
@@ -277,32 +344,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Meeting name..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-sky-400 font-semibold"
+                className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-semibold transition-all duration-300"
               />
-              <div className="flex gap-2">
-                <motion.button 
+              <div className="flex gap-2.5 items-center w-full">
+                <button 
                   onClick={discardRecording}
-                  whileTap={{ scale: 0.97 }}
                   disabled={uploading}
-                  className="flex-1 py-1.5 bg-slate-900 border border-slate-800 text-slate-400 text-[10.5px] font-bold rounded-lg btn-interactive"
+                  className="btn-discard-round focus:outline-none flex-shrink-0"
                 >
-                  Discard
-                </motion.button>
-                <motion.button 
+                  <Trash2 className="svgIcon-discard text-slate-400 group-hover:text-rose-455" />
+                </button>
+                <button 
                   onClick={saveRecording}
-                  whileTap={{ scale: 0.97 }}
                   disabled={uploading}
-                  className="flex-1 py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 text-[10.5px] font-bold rounded-lg flex items-center justify-center gap-1 btn-interactive"
+                  className="btn-premium-glass-neo flex-1 focus:outline-none disabled:opacity-50"
                 >
-                  {uploading ? 'Saving...' : 'Save'}
-                </motion.button>
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 0.9, 1.1, 1] }}
+                    transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                  </motion.div>
+                  <span>{uploading ? 'Saving...' : 'Save'}</span>
+                </button>
               </div>
             </div>
           )}
 
           {/* Glowing Timebar Sweep */}
           {recordingState === 'recording' && (
-            <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden relative">
+            <div className="w-full h-1 bg-slate-950/60 rounded-full overflow-hidden relative border border-slate-900/40">
               <div className="absolute top-0 bottom-0 left-0 bg-rose-500 rounded-full w-full animate-pulse" style={{ width: `${(duration % 60) * 100 / 60}%` }} />
             </div>
           )}
@@ -314,24 +385,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Core Navigation Links */}
         <div>
-          <h2 className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Workspace</h2>
-          <nav className="space-y-1">
+          <h2 className="px-3 text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em] mb-2.5">Workspace</h2>
+          <nav className="grid grid-cols-2 gap-2 px-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.id;
               return (
                 <motion.button
-                  key={item.id}
+                  key={`workspace-nav-${item.id}-${isActive}`}
                   onClick={() => setActivePage(item.id)}
-                  whileTap={{ scale: 0.97 }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive ${
+                  whileHover={{ y: -1.5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-[11px] font-semibold transition-all duration-[200ms] ease-out border focus:outline-none ${
                     isActive
-                      ? 'hero-gradient-btn text-sky-400 pl-2.5 font-bold shadow-elevation-md'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                      ? 'btn-nav-liquid-active text-white'
+                      : 'btn-nav-liquid-inactive text-slate-350 hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
-                  {item.label}
+                  <motion.div
+                    animate={isActive ? { 
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 8, -8, 0],
+                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 12px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
+                    } : {}}
+                    transition={{ duration: 0.65, ease: "easeInOut" }}
+                  >
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#8B5CF6]' : 'text-slate-400 hover:text-[#8B5CF6]'}`} />
+                  </motion.div>
+                  <span style={isActive ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' } : undefined}>
+                    {item.label}
+                  </span>
                 </motion.button>
               );
             })}
@@ -340,34 +423,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Active Loaded Meeting Routing */}
         <div>
-          <div className="flex items-center justify-between px-3 mb-2">
-            <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Analysis</h2>
+          <div className="flex items-center justify-between px-3 mb-2.5">
+            <h2 className="text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em]">Active Analysis</h2>
             {currentMeeting && (
               <span className="text-[9px] font-bold text-slate-400 truncate max-w-[120px]">
                 {currentMeeting.title}
               </span>
             )}
           </div>
-          <nav className="space-y-1">
+          <nav className="grid grid-cols-2 gap-2 px-1">
             {meetingItems.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.id;
               return (
                 <motion.button
-                  key={item.id}
+                  key={`meeting-nav-${item.id}-${isActive}`}
                   disabled={item.disabled}
                   onClick={() => setActivePage(item.id)}
-                  whileTap={item.disabled ? undefined : { scale: 0.97 }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium btn-interactive ${
+                  whileHover={item.disabled ? {} : { y: -1.5 }}
+                  whileTap={item.disabled ? undefined : { scale: 0.98 }}
+                  className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl text-[11px] font-semibold transition-all duration-[200ms] ease-out border focus:outline-none ${
                     item.disabled
-                      ? 'text-slate-600 cursor-not-allowed opacity-50'
+                      ? 'text-slate-500/70 cursor-not-allowed border-white/[0.03] bg-black/40 opacity-50'
                       : isActive
-                      ? 'hero-gradient-btn text-sky-400 pl-2.5 font-bold shadow-elevation-md'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                      ? 'btn-nav-liquid-active text-white'
+                      : 'btn-nav-liquid-inactive text-slate-300 hover:text-white'
                   }`}
+                  style={{
+                    borderColor: item.disabled ? 'rgba(255, 255, 255, 0.03)' : undefined
+                  }}
                 >
-                  <Icon className={`w-4 h-4 ${isActive && !item.disabled ? 'text-sky-400' : 'text-slate-500'}`} />
-                  {item.label}
+                  <motion.div
+                    animate={isActive && !item.disabled ? { 
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 8, -8, 0],
+                      filter: ['drop-shadow(0 0 0px var(--accent-glow))', 'drop-shadow(0 0 12px #8B5CF6)', 'drop-shadow(0 0 0px var(--accent-glow))']
+                    } : {}}
+                    transition={{ duration: 0.65, ease: "easeInOut" }}
+                  >
+                    <Icon className={`w-4 h-4 transition-colors ${isActive && !item.disabled ? 'text-[#8B5CF6]' : item.disabled ? 'text-slate-600' : 'text-slate-400'}`} />
+                  </motion.div>
+                  <span className={item.disabled ? 'text-slate-500/80 font-medium' : ''} style={isActive && !item.disabled ? { textShadow: '0 0 10px rgba(139, 92, 246, 0.6)' } : undefined}>
+                    {item.label}
+                  </span>
                 </motion.button>
               );
             })}
@@ -375,16 +473,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Model parameters selectors inside sidebar */}
-        <div className="glass-panel p-4 rounded-xl border border-slate-900 space-y-3.5">
-          <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI parameters</h2>
+        <div className="p-4 rounded-2xl space-y-3.5 bg-white/[0.02] border border-white/[0.06] shadow-lg backdrop-blur-md">
+          <h2 className="text-[9px] font-semibold text-slate-400/90 uppercase tracking-[0.14em]">AI Parameters</h2>
           
           <div className="space-y-2">
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Whisper Model</label>
+              <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Whisper Model</label>
               <select 
                 value={modelSize}
                 onChange={e => setModelSize(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-900 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-sky-400 font-semibold"
+                className="w-full bg-[#080a0f] border border-white/[0.08] hover:border-white/20 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-mono font-semibold"
               >
                 <option value="tiny">Tiny (39M params)</option>
                 <option value="base">Base (74M params)</option>
@@ -395,11 +493,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Language</label>
+              <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Language</label>
               <select 
                 value={language}
                 onChange={e => setLanguage(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-900 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-sky-400 font-semibold"
+                className="w-full bg-[#080a0f] border border-white/[0.08] hover:border-white/20 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-[#8B5CF6] font-mono font-semibold"
               >
                 <option value="auto">Auto-Detect</option>
                 <option value="en">English</option>
@@ -414,20 +512,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-slate-900/40 bg-transparent flex flex-col gap-2">
-        {currentMeeting && (
-          <div className="p-3 bg-slate-950/40 backdrop-blur-md rounded-lg border border-slate-850/40 flex flex-col gap-1">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider font-semibold">Loaded Meeting</span>
-            <span className="text-xs text-white font-medium truncate">{currentMeeting.title}</span>
-            <span className="text-[10px] text-slate-400">
-              Duration: {currentMeeting.duration ? `${(currentMeeting.duration / 60).toFixed(1)}m` : '0.0m'}
-            </span>
+      {/* Footer User Profile & Actions */}
+      <div className="p-3.5 border-t border-white/[0.08] bg-[#06070d]/80 backdrop-blur-md flex flex-col gap-2 relative z-10">
+        <div className="p-2.5 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] flex items-center justify-between shadow-inner">
+          {/* Avatar & Display Name */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 border border-violet-400/30 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-violet-600/30 shrink-0 font-mono">
+              {userProfile?.initials || 'U'}
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-white truncate">{userProfile?.name || 'Local User'}</div>
+              <div className="text-[9.5px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Local Profile
+              </div>
+            </div>
           </div>
-        )}
-        <div className="flex items-center gap-2 px-2 text-[10.5px] text-slate-500 font-medium">
-          <span className="relative w-2 h-2 rounded-full bg-emerald-500 status-ring-ready flex-shrink-0" />
-          <span>Local Engine Active</span>
+
+          {/* Actions: Theme Toggle, Logout */}
+          <div className="flex items-center gap-1 shrink-0">
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="p-1.5 rounded-lg bg-black/40 hover:bg-white/[0.08] border border-white/[0.06] text-slate-400 hover:text-amber-300 transition-all cursor-pointer"
+                title="Toggle Theme"
+              >
+                <Sun className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {onOpenLogout && (
+              <button
+                onClick={onOpenLogout}
+                className="p-1.5 rounded-lg bg-black/40 hover:bg-rose-500/20 border border-white/[0.06] hover:border-rose-500/30 text-slate-400 hover:text-rose-300 transition-all cursor-pointer"
+                title="Logout Session"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </aside>

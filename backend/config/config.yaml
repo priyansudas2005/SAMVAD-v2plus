@@ -57,16 +57,16 @@ audio_enhancement:
       ratio: 4.0
 
 faster_whisper:
-  model_size: "medium" # tiny, base, small, medium, large
+  model_size: "base" # tiny, base, small, medium, large
   device: "auto" # auto, cuda, cpu
   compute_type: "auto" # auto, float16, int8
-  beam_size: 5
-  best_of: 5
-  temperature: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-  vad_filter: false
+  beam_size: 1
+  best_of: 1
+  temperature: 0.0
+  vad_filter: true
   vad_parameters:
     min_silence_duration_ms: 500
-    speech_pad_ms: 400
+    speech_pad_ms: 200
     threshold: 0.5
     min_speech_duration_ms: 250
     max_speech_duration_s: 30
@@ -77,12 +77,12 @@ database:
 
 diarization:
   enabled: true
-  min_speakers: 2
+  min_speakers: 1
   max_speakers: 8
-  clustering_threshold: 0.4
+  clustering_threshold: 0.35
   similarity_threshold: 0.7
   min_overlap_ratio: 0.2
-  min_speech_duration_s: 0.5
+  min_speech_duration_s: 0.4
   max_segment_duration_s: 4.0
   embedding_model: "speechbrain"
 

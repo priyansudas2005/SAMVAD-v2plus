@@ -30,7 +30,7 @@ class TranscriptSegmenter:
     @staticmethod
     def merge_fragmented_segments(segments: List[Dict[str, Any]], max_gap_s: float = 1.0) -> List[Dict[str, Any]]:
         """
-        Merges adjacent segments if the time gap between them is small.
+        Merges adjacent segments if the time gap between them is small AND they belong to the same speaker.
         """
         if not segments:
             return []
@@ -39,8 +39,11 @@ class TranscriptSegmenter:
         current = segments[0].copy()
         
         for next_seg in segments[1:]:
-            # Check gap
-            if next_seg["start"] - current["end"] <= max_gap_s:
+            same_speaker = current.get("speaker_label") == next_seg.get("speaker_label")
+            within_gap = (next_seg["start"] - current["end"]) <= max_gap_s
+            
+            # Merge ONLY if same speaker and small gap
+            if same_speaker and within_gap:
                 current["end"] = next_seg["end"]
                 current["text"] = f"{current['text']} {next_seg['text']}".strip()
                 

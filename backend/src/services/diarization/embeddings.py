@@ -50,30 +50,47 @@ class SpeakerEmbeddingExtractor:
 
     def _extract_mel_spectral_fallback(self, chunk: np.ndarray, sample_rate: int) -> np.ndarray:
         """
-        Pure-NumPy Mel-Spectral feature extraction.
-        Builds a robust 256-dimensional representation based on power spectrum energy distribution.
+        Pure-NumPy Spectral & Pitch Feature Extractor.
+        Computes power spectrum envelope, spectral centroid, zero-crossing rate, and fundamental pitch.
         """
-        # Ensure minimum length
         if len(chunk) < 512:
             chunk = np.pad(chunk, (0, 512 - len(chunk)))
-            
-        # Compute spectrogram
+
+        # 1. Compute STFT / Spectrogram (128 frequency bins)
         nperseg = min(len(chunk), 512)
         freqs, _, spec = signal.spectrogram(chunk, fs=sample_rate, nperseg=nperseg)
-        
-        # Mean frequency magnitude response
         mean_spec = np.mean(spec, axis=1)
-        
-        # Rescale/Interpolate to match target 256-dimensional space
+
+        # 2. Rescale spectrum to 128 dimensions
         xp = np.linspace(0, 1, len(mean_spec))
-        x_target = np.linspace(0, 1, 256)
-        embedding = np.interp(x_target, xp, mean_spec)
-        
-        # L2 Normalization
+        x_spec = np.linspace(0, 1, 128)
+        spec_feat = np.interp(x_spec, xp, mean_spec)
+
+        # 3. Spectral Centroid & Roll-off
+        total_power = np.sum(spec_feat) + 1e-9
+        centroid = np.sum(spec_feat * np.arange(128)) / total_power
+        cumsum = np.cumsum(spec_feat)
+        rolloff = np.searchsorted(cumsum, 0.85 * total_power)
+
+        # 4. Zero Crossing Rate & Pitch (Autocorrelation estimate)
+        zcr = np.mean(np.abs(np.diff(np.sign(chunk))))
+        corr = np.correlate(chunk, chunk, mode='full')
+        corr = corr[len(corr)//2:]
+        min_lag = int(sample_rate / 300) # 300 Hz max pitch
+        max_lag = int(sample_rate / 60)  # 60 Hz min pitch
+        pitch_lag = np.argmax(corr[min_lag:max_lag]) + min_lag if len(corr) > max_lag else 0
+        pitch = sample_rate / pitch_lag if pitch_lag > 0 else 0
+
+        # 5. Concatenate into 256-dim feature vector
+        extra_feats = np.array([centroid, float(rolloff), zcr, pitch], dtype=np.float32)
+        extra_interp = np.interp(np.linspace(0, 1, 128), np.linspace(0, 1, 4), extra_feats)
+        embedding = np.concatenate([spec_feat, extra_interp])
+
+        # 6. L2 Normalization
         norm = np.linalg.norm(embedding)
         if norm > 0:
             embedding = embedding / norm
-            
+
         return embedding.astype(np.float32)
 
     def _extract_neural(self, chunk: np.ndarray, sample_rate: int) -> np.ndarray:
