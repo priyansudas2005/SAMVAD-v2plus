@@ -68,6 +68,15 @@ class ExportEngine:
         return content
 
     @staticmethod
+    def get_actual_format(fmt: str) -> str:
+        """Get the actual format that will be produced (handles fallbacks like pdf->html)."""
+        fmt_clean = fmt.lower().strip().replace(".", "")
+        exporter = ExportEngine.get_exporter(fmt_clean)
+        if hasattr(exporter, 'get_actual_format'):
+            return exporter.get_actual_format()
+        return fmt_clean
+
+    @staticmethod
     def batch_export(meetings: List[Tuple[str, str, str, list, dict, dict, Optional[str]]],
                      fmt: str,
                      single_zip: bool = True) -> bytes:

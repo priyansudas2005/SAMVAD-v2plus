@@ -45,8 +45,8 @@ audio_enhancement:
       method: "silero"          # silero, energy
       threshold: 0.5
     silence_trimming:
-      enabled: true
-      keep_silence_ms: 300      # preserve window size
+      enabled: false            # Disabled: removing gaps between speakers breaks diarization speaker separation
+      keep_silence_ms: 300
       threshold: 0.5
     speech_enhancement:
       enabled: true
@@ -63,7 +63,7 @@ faster_whisper:
   beam_size: 5
   best_of: 5
   temperature: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-  vad_filter: true
+  vad_filter: false
   vad_parameters:
     min_silence_duration_ms: 500
     speech_pad_ms: 400
@@ -87,10 +87,11 @@ diarization:
   embedding_model: "speechbrain"
 
 memo:
-  summary_max_length: 150
-  summary_min_length: 50
-  max_action_items: 5
-  max_key_points: 5
+  summary_max_length: 200
+  summary_min_length: 80
+  max_action_items: 10
+  max_key_points: 8
+  max_discussion_points: 10
 
 qa:
   model: "deepset/roberta-base-squad2"

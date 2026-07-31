@@ -35,7 +35,7 @@ def test_markdown_exporter(mock_data):
     segments, memo, intelligence = mock_data
     res = ExportEngine.export("md", "Title", "2026-07-01", segments, memo, intelligence)
     text = res.decode("utf-8")
-    assert "# 🎙️ Meeting Memo: Title" in text
+    assert "# Meeting Memo: Title" in text
     assert "**Task:** Review document" in text
 
 def test_json_exporter(mock_data):
@@ -64,15 +64,13 @@ def test_vtt_exporter(mock_data):
 def test_pdf_exporter(mock_data):
     segments, memo, intelligence = mock_data
     res = ExportEngine.export("pdf", "Title", "2026-07-01", segments, memo, intelligence)
-    text = res.decode("utf-8")
-    assert "<!DOCTYPE html>" in text
-    assert "pdf" in text or "Title" in text
+    # Should be PDF bytes (starts with %PDF) or HTML fallback
+    assert res[:4] == b"%PDF" or b"<!DOCTYPE html>" in res[:100]
 
 def test_docx_exporter(mock_data):
     segments, memo, intelligence = mock_data
     res = ExportEngine.export("docx", "Title", "2026-07-01", segments, memo, intelligence)
-    text = res.decode("utf-8")
-    assert "xmlns:w='urn:schemas-microsoft-com:office:word'" in text
+    assert res[:2] == b"PK"
 
 def test_invalid_format(mock_data):
     segments, memo, intelligence = mock_data

@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from typing import Generator
-from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey, Text
+from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey, Text, text
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 # Determine SQLite path
@@ -90,6 +90,7 @@ class DBMemo(Base):
     action_items_json = Column("action_items", Text, nullable=True, default="[]")
     decisions_json = Column("decisions", Text, nullable=True, default="[]")
     key_points_json = Column("key_points", Text, nullable=True, default="[]")
+    discussion_points_json = Column("discussion_points", Text, nullable=True, default="[]")
     generated_at = Column(String, nullable=True)
     confidence = Column(Float, nullable=True, default=1.0)
 
@@ -121,50 +122,28 @@ def init_db():
     
     # SQLite migrations for older installations
     db = SessionLocal()
-    try:
-        db.execute("ALTER TABLE qa_history ADD COLUMN confidence FLOAT")
-        db.commit()
-    except Exception:
-        pass
-    try:
-        db.execute("ALTER TABLE qa_history ADD COLUMN was_helpful INTEGER")
-        db.commit()
-    except Exception:
-        pass
-    try:
-        db.execute("ALTER TABLE qa_history ADD COLUMN source_snippet TEXT")
-        db.commit()
-    except Exception:
-        pass
-    
-    # Transcripts migrations for speaker diarization fields
-    try:
-        db.execute("ALTER TABLE transcripts ADD COLUMN speaker_label TEXT DEFAULT 'UNKNOWN'")
-        db.commit()
-    except Exception:
-        pass
-    try:
-        db.execute("ALTER TABLE transcripts ADD COLUMN speaker_confidence FLOAT DEFAULT 1.0")
-        db.commit()
-    except Exception:
-        pass
-    try:
-        db.execute("ALTER TABLE transcripts ADD COLUMN searchable_text TEXT")
-        db.commit()
-    except Exception:
-        pass
-    try:
-        db.execute("ALTER TABLE transcripts ADD COLUMN metadata TEXT DEFAULT '{}'")
-        db.commit()
-    except Exception:
-        pass
+    for migration in [
+        "ALTER TABLE qa_history ADD COLUMN confidence FLOAT",
+        "ALTER TABLE qa_history ADD COLUMN was_helpful INTEGER",
+        "ALTER TABLE qa_history ADD COLUMN source_snippet TEXT",
+        "ALTER TABLE memos ADD COLUMN discussion_points TEXT",
+        "ALTER TABLE transcripts ADD COLUMN speaker_label TEXT DEFAULT 'UNKNOWN'",
+        "ALTER TABLE transcripts ADD COLUMN speaker_confidence FLOAT DEFAULT 1.0",
+        "ALTER TABLE transcripts ADD COLUMN searchable_text TEXT",
+        "ALTER TABLE transcripts ADD COLUMN metadata TEXT DEFAULT '{}'",
+    ]:
+        try:
+            db.execute(text(migration))
+            db.commit()
+        except Exception:
+            pass
     
     # Set default settings if not exists
     try:
         default_settings = {
             "model_size": "base",
             "default_language": "auto",
-            "vad_enabled": "true",
+            "vad_enabled": "false",
             "ollama_url": "http://localhost:11434"
         }
         for k, v in default_settings.items():

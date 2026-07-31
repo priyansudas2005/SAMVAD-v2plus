@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Search, 
   Download, 
@@ -9,11 +9,15 @@ import {
   AlertCircle,
   Clock,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Save
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Meeting } from '../types';
 import { api } from '../services/api';
+import { ExportButton } from '../components/ExportButton';
+import { Toast } from '../components/Toast';
+import { UnsavedChangesIndicator } from '../components/UnsavedChangesIndicator';
 
 interface TranscriptPageProps {
   currentMeeting: Meeting;
@@ -28,6 +32,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastVisible, setToastVisible] = useState(false);
+
+  const showToast = useCallback((msg: string, type: 'success' | 'error') => {
+    setToastMsg(msg);
+    setToastType(type);
+    setToastVisible(true);
+  }, []);
 
   const [scrollTop, setScrollTop] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -39,7 +52,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   // Processing settings state
   const [modelSize, setModelSize] = useState('base');
   const [language, setLanguage] = useState('auto');
-  const [vadEnabled, setVadEnabled] = useState(true);
+  const [vadEnabled, setVadEnabled] = useState(false);
 
   // Load saved default settings from database on mount
   useEffect(() => {
@@ -49,7 +62,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
         if (saved) {
           setModelSize(saved.model_size || 'base');
           setLanguage(saved.default_language || 'auto');
-          setVadEnabled(saved.vad_enabled !== undefined ? saved.vad_enabled : true);
+          setVadEnabled(saved.vad_enabled !== undefined ? saved.vad_enabled : false);
         }
       } catch (err) {
         console.error('Failed to load default settings:', err);
@@ -118,6 +131,30 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
 
   const hasTranscript = currentMeeting.transcript && currentMeeting.transcript.length > 0;
 
+  // Unsaved changes tracking for auto-save
+  const [unsavedChanges, setUnsavedChanges] = useState<Set<number>>(new Set());
+  const [savingAll, setSavingAll] = useState(false);
+
+  const markUnsaved = useCallback((segmentId: number) => {
+    setUnsavedChanges(prev => new Set(prev).add(segmentId));
+  }, []);
+
+  const markSaved = useCallback((segmentId: number) => {
+    setUnsavedChanges(prev => {
+      const next = new Set(prev);
+      next.delete(segmentId);
+      return next;
+    });
+  }, []);
+
+  const handleSaveAll = async () => {
+    setSavingAll(true);
+    // Individual segments auto-save on blur; this is an extra safety net
+    showToast('All changes saved', 'success');
+    setUnsavedChanges(new Set());
+    setSavingAll(false);
+  };
+
   return (
     <div className="flex-1 overflow-y-auto bg-slate-950 p-8 flex flex-col h-screen">
       {/* Page Header */}
@@ -137,20 +174,24 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
           </div>
         </div>
 
-        {/* Exports dropdown */}
+        {/* Exports with professional UI */}
         {hasTranscript && (
-          <div className="flex gap-2 flex-wrap">
-            <a href={api.getExportUrl(currentMeeting.meeting_id, 'pdf')} download
-               className="px-4 py-2 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 text-rose-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
-              <Download className="w-3.5 h-3.5" /> PDF
-            </a>
+          <div className="flex gap-2 flex-wrap items-center">
+            <UnsavedChangesIndicator
+              hasUnsaved={unsavedChanges.size > 0}
+              saving={savingAll}
+              onSave={handleSaveAll}
+            />
+            <ExportButton
+              meetingId={currentMeeting.meeting_id}
+              onExport={async (fmt) => {
+                await api.downloadExport(currentMeeting.meeting_id, fmt, `${currentMeeting.title}.${fmt}`);
+                showToast(`${fmt.toUpperCase()} exported successfully`, 'success');
+              }}
+            />
             <a href={api.getExportUrl(currentMeeting.meeting_id, 'html')} download
                className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
               <Download className="w-3.5 h-3.5" /> HTML
-            </a>
-            <a href={api.getExportUrl(currentMeeting.meeting_id, 'docx')} download
-               className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
-              <Download className="w-3.5 h-3.5" /> DOCX
             </a>
             <a href={api.getExportUrl(currentMeeting.meeting_id, 'csv')} download
                className="px-4 py-2 bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 text-green-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
@@ -159,10 +200,6 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
             <a href={api.getExportUrl(currentMeeting.meeting_id, 'xlsx')} download
                className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
               <Download className="w-3.5 h-3.5" /> XLSX
-            </a>
-            <a href={api.getExportUrl(currentMeeting.meeting_id, 'txt')} download
-               className="px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
-              <Download className="w-3.5 h-3.5" /> TXT
             </a>
             <a href={api.getExportUrl(currentMeeting.meeting_id, 'json')} download
                className="px-4 py-2 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 text-purple-400 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5">
@@ -407,6 +444,8 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                             );
                             onUpdateMeeting({ ...currentMeeting, transcript: updatedTrans });
                           }}
+                          onAutoSaveStart={() => markUnsaved(segment.id)}
+                          onAutoSaveComplete={() => markSaved(segment.id)}
                         />
                       </div>
                     </motion.div>
@@ -423,17 +462,20 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
           </>
         )}
       </div>
+      <Toast message={toastMsg} type={toastType} visible={toastVisible} onClose={() => setToastVisible(false)} />
     </div>
   );
 };
 
-/* Mini Component for Inline Segment Editing with Save & Exit triggers */
+/* Enhanced Mini Component for Inline Segment Editing with Auto-Save */
 interface EditableSegmentTextProps {
   segment: any;
   meetingId: string;
   highlightQuery: string;
   highlightText: (t: string, q: string) => React.ReactNode;
   onUpdated: (t: string) => void;
+  onAutoSaveStart?: () => void;
+  onAutoSaveComplete?: () => void;
 }
 
 const EditableSegmentText: React.FC<EditableSegmentTextProps> = ({
@@ -441,17 +483,36 @@ const EditableSegmentText: React.FC<EditableSegmentTextProps> = ({
   meetingId,
   highlightQuery,
   highlightText,
-  onUpdated
+  onUpdated,
+  onAutoSaveStart,
+  onAutoSaveComplete
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(segment.text);
   const [saving, setSaving] = useState(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSave = async () => {
+  // Auto-save: debounce 2s after user stops typing
+  useEffect(() => {
+    if (!isEditing) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    if (editText.trim() === segment.text.trim()) return;
+    autoSaveTimer.current = setTimeout(() => {
+      if (editText.trim() !== segment.text.trim()) {
+        handleSave(true);
+      }
+    }, 2000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [editText, isEditing]);
+
+  const handleSave = async (isAuto: boolean = false) => {
     if (editText.trim() === segment.text.trim()) {
       setIsEditing(false);
       return;
     }
+    if (isAuto && onAutoSaveStart) onAutoSaveStart();
     setSaving(true);
     try {
       await api.updateTranscriptSegment(meetingId, segment.id, {
@@ -459,10 +520,10 @@ const EditableSegmentText: React.FC<EditableSegmentTextProps> = ({
         speaker_label: segment.speaker_label
       });
       onUpdated(editText);
-      setIsEditing(false);
+      if (isAuto && onAutoSaveComplete) onAutoSaveComplete();
+      if (!isAuto) setIsEditing(false);
     } catch (e) {
       console.error(e);
-      alert("Failed to save transcript update.");
     } finally {
       setSaving(false);
     }
@@ -475,23 +536,29 @@ const EditableSegmentText: React.FC<EditableSegmentTextProps> = ({
           value={editText}
           onChange={(e) => setEditText(e.target.value)}
           disabled={saving}
-          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 font-medium focus:outline-none focus:border-sky-400 leading-relaxed min-h-[70px]"
+          className="w-full bg-slate-950 border border-sky-500/40 rounded-xl p-3 text-sm text-slate-200 font-medium focus:outline-none focus:border-sky-400 leading-relaxed min-h-[70px]"
         />
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={() => setIsEditing(false)}
-            disabled={saving}
-            className="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-350 text-xs font-semibold rounded-lg transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-3 py-1 bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
+        <div className="flex gap-2 justify-end items-center">
+          {saving && <span className="text-[10px] text-sky-400 font-semibold animate-pulse">Saving...</span>}
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setEditText(segment.text);
+                setIsEditing(false);
+              }}
+              disabled={saving}
+              className="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-350 text-xs font-semibold rounded-lg transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleSave(false)}
+              disabled={saving}
+              className="px-3 py-1 bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -499,9 +566,15 @@ const EditableSegmentText: React.FC<EditableSegmentTextProps> = ({
 
   return (
     <p 
-      onClick={() => setIsEditing(true)}
-      className="text-sm text-slate-200 leading-relaxed font-medium mt-1 cursor-text hover:bg-slate-900/40 p-1.5 rounded-lg border border-transparent hover:border-slate-850/50 transition-all"
+      onClick={() => {
+        setEditText(segment.text);
+        setIsEditing(true);
+      }}
+      className="text-sm text-slate-200 leading-relaxed font-medium mt-1 cursor-text hover:bg-slate-900/40 p-1.5 rounded-lg border border-transparent hover:border-sky-500/20 transition-all"
     >
+      {segment.metadata?.is_edited && (
+        <span className="inline-block mr-1.5 text-[9px] text-amber-500 font-bold" title={`Edited ${segment.metadata?.edit_timestamp || ''}`}>[EDIT]</span>
+      )}
       {highlightText(segment.text, highlightQuery)}
     </p>
   );

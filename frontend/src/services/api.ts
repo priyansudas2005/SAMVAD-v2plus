@@ -1,4 +1,4 @@
-import { Meeting, SystemSettings, AnalyticsSummary, QAEntry } from '../types';
+import { Meeting, SystemSettings, AnalyticsSummary, QAEntry, MeetingStats } from '../types';
 
 const API_BASE = '/api';
 
@@ -109,6 +109,23 @@ export const api = {
     return `${API_BASE}/meetings/${id}/export/${format}`;
   },
 
+  async downloadExport(id: string, format: string, filename?: string): Promise<void> {
+    const res = await fetch(this.getExportUrl(id, format));
+    if (!res.ok) throw new Error(`Failed to export ${format}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    // Use server-provided filename from Content-Disposition when available
+    const disposition = res.headers.get('content-disposition');
+    const serverFilename = disposition?.match(/filename=["']?([^"'\n]+)["']?/)?.[1];
+    a.download = serverFilename || filename || `${id}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+
   async updateTranscriptSegment(meetingId: string, segmentId: number, payload: { text: string; speaker_label?: string }): Promise<Meeting> {
     const res = await fetch(`${API_BASE}/meetings/${meetingId}/transcript/${segmentId}`, {
       method: 'PATCH',
@@ -117,5 +134,45 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to update segment');
     return res.json();
+  },
+
+  async regenerateIntelligence(meetingId: string): Promise<Meeting> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/regenerate`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to regenerate intelligence');
+    return res.json();
+  },
+
+  async getSpeakerAnalytics(meetingId: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/analytics/speakers`);
+    if (!res.ok) throw new Error('Failed to fetch speaker analytics');
+    return res.json();
+  },
+
+  async getMeetingStats(id: string): Promise<MeetingStats> {
+    const res = await fetch(`${API_BASE}/meetings/${id}/stats`);
+    if (!res.ok) throw new Error('Failed to fetch meeting stats');
+    return res.json();
+  },
+
+  getStatsExportUrl(id: string, format: string): string {
+    return `${API_BASE}/meetings/${id}/stats/export/${format}`;
+  },
+
+  async downloadStatsExport(meetingId: string, format: string): Promise<void> {
+    const res = await fetch(`${API_BASE}/meetings/${meetingId}/export/stats/${format}`);
+    if (!res.ok) throw new Error(`Failed to export statistics as ${format}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const disposition = res.headers.get('content-disposition');
+    const serverFilename = disposition?.match(/filename=["']?([^"'\n]+)["']?/)?.[1];
+    a.download = serverFilename || `statistics_${meetingId}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 };

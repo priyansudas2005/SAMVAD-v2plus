@@ -18,7 +18,7 @@ def get_system_settings(db: Session = Depends(get_db)):
     return {
         "model_size": model_size.value if model_size else "base",
         "default_language": lang.value if lang else "auto",
-        "vad_enabled": (vad.value.lower() == "true") if vad else True,
+        "vad_enabled": (vad.value.lower() == "true") if vad else False,
         "ollama_url": ollama.value if ollama else "http://localhost:11434",
         "db_path": db_path.value if db_path else "",
         "native_audio_available": SOUNDDEVICE_AVAILABLE

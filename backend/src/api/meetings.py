@@ -26,6 +26,7 @@ os.makedirs(RECORDINGS_DIR, exist_ok=True)
 def serialize_meeting(m: DBMeeting) -> dict:
     segments = []
     for s in m.transcript:
+        seg_meta = json.loads(s.metadata_json) if s.metadata_json else {}
         segments.append({
             "id": s.id,
             "meeting_id": s.meeting_id,
@@ -36,7 +37,8 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "text": s.text,
             "words": json.loads(s.words_json) if s.words_json else [],
             "speaker_label": s.speaker_label,
-            "speaker_confidence": s.speaker_confidence
+            "speaker_confidence": s.speaker_confidence,
+            "metadata": seg_meta
         })
         
     memo_data = None
@@ -47,6 +49,7 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "action_items": json.loads(m.memo.action_items_json) if m.memo.action_items_json else [],
             "decisions": json.loads(m.memo.decisions_json) if m.memo.decisions_json else [],
             "key_points": json.loads(m.memo.key_points_json) if m.memo.key_points_json else [],
+            "discussion_points": json.loads(m.memo.discussion_points_json) if hasattr(m.memo, 'discussion_points_json') and m.memo.discussion_points_json else [],
             "generated_at": m.memo.generated_at or "",
             "confidence": m.memo.confidence or 1.0
         }
@@ -187,10 +190,12 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         
         # 2. Transcribe speech-to-text
         whisper_model_size = request.modelSize or "base"
-        vad_filter = request.vadEnabled if request.vadEnabled is not None else True
+        vad_filter = request.vadEnabled if request.vadEnabled is not None else None
         stt_lang = request.language
         
         stt_engine = FasterWhisperSTT(model_size=whisper_model_size)
+        # Log actual vad_filter value being sent to engine
+        logger.info(f"Transcription request: model_size={whisper_model_size}, vad_filter={vad_filter}, lang={stt_lang}")
         transcribe_result = stt_engine.transcribe(
             audio_path=active_audio_path,
             language=stt_lang,
@@ -198,18 +203,20 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         )
         
         raw_segments = transcribe_result[0] if transcribe_result else []
-        segments = TimestampGenerator.add_timestamps(raw_segments)
         
-        # 3. Speaker Diarization execution
+        # 3. Speaker Diarization execution (uses float timestamps)
         try:
             from src.services.diarization import DiarizationEngine
             diar_engine = DiarizationEngine()
-            segments = diar_engine.diarize(active_audio_path, segments)
-            logger.info("Speaker diarization completed successfully for meeting.")
+            logger.info(f"Diarization config: min_speakers={diar_engine.config.min_speakers}, max_speakers={diar_engine.config.max_speakers}, threshold={diar_engine.config.clustering_threshold}")
+            segments = diar_engine.diarize(active_audio_path, raw_segments)
+            unique_speakers = set(s.get("speaker_label", "NONE") for s in segments)
+            logger.info(f"Speaker diarization completed. Speakers found: {unique_speakers}")
         except Exception as diar_err:
             logger.warning(f"Speaker diarization failed: {diar_err}. Continuing with fallback labels.")
+            segments = raw_segments
             
-        # 4. Intelligent Transcript Processing execution
+        # 4. Intelligent Transcript Processing execution (uses float timestamps)
         try:
             from src.services.transcript import TranscriptProcessorPipeline
             pipeline = TranscriptProcessorPipeline()
@@ -218,6 +225,9 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         except Exception as proc_err:
             logger.warning(f"Intelligent transcript processing failed: {proc_err}. Skipping enhancements.")
             meta = {}
+            
+        # 5. Convert to string timestamps for storage and API response
+        segments = TimestampGenerator.add_timestamps(segments)
             
         # 5. Store transcript segments
         # Clear existing
@@ -295,6 +305,7 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
             action_items_json=json.dumps(intel_report.get("action_items", memo_result.get("action_items", []))),
             decisions_json=json.dumps(intel_report.get("decisions", memo_result.get("decisions", []))),
             key_points_json=json.dumps(memo_result.get("key_points", [])),
+            discussion_points_json=json.dumps(memo_result.get("discussion_points", [])),
             generated_at=memo_result.get("generated_at"),
             confidence=memo_result.get("confidence", 1.0)
         )
@@ -378,10 +389,14 @@ def export_meeting(meeting_id: str, format_type: str, db: Session = Depends(get_
             "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         }
         
+        actual_format = ExportEngine.get_actual_format(fmt)
+        ext = fmt if actual_format == fmt else actual_format
+        media_type = media_types.get(actual_format, media_types.get(fmt, "application/octet-stream"))
+        
         return Response(
             content=content,
-            media_type=media_types.get(fmt, "application/octet-stream"),
-            headers={"Content-Disposition": f"attachment; filename={meeting_id}.{fmt}"}
+            media_type=media_type,
+            headers={"Content-Disposition": f"attachment; filename={meeting_id}.{ext}"}
         )
     except Exception as exp_err:
         logger.error(f"Export failure: {exp_err}")
@@ -486,6 +501,223 @@ async def update_transcript_segment(
     
     db.refresh(m)
     return serialize_meeting(m)
+
+@router.get("/{meeting_id}/analytics/speakers")
+def get_speaker_analytics(meeting_id: str, db: Session = Depends(get_db)):
+    from src.services.database.db import DBMeetingIntelligence
+    m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+    if not m:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    segments = []
+    for s in m.transcript:
+        seg_meta = json.loads(s.metadata_json or "{}")
+        segments.append({
+            "start": s.start,
+            "end": s.end,
+            "start_seconds": s.start_seconds,
+            "end_seconds": s.end_seconds,
+            "text": s.text,
+            "speaker_label": s.speaker_label or "UNKNOWN",
+            "speaker_confidence": s.speaker_confidence or 1.0,
+            "words": json.loads(s.words_json) if s.words_json else [],
+            "entities": seg_meta.get("entities", []),
+            "action_items": seg_meta.get("action_items", []),
+            "decisions": seg_meta.get("decisions", []),
+            "questions": seg_meta.get("questions", []),
+            "keywords": seg_meta.get("keywords", [])
+        })
+    
+    # Compute per-speaker analytics
+    speaker_data = {}
+    total_duration = 0.0
+    
+    for seg in segments:
+        spk = seg["speaker_label"]
+        dur = (seg["end_seconds"] or 0) - (seg["start_seconds"] or 0)
+        wc = len(seg["text"].split()) if seg["text"] else 0
+        
+        if spk not in speaker_data:
+            speaker_data[spk] = {
+                "speaker": spk,
+                "total_speaking_time": 0.0,
+                "speaking_turns": 0,
+                "word_count": 0,
+                "confidences": [],
+                "longest_speech": 0.0,
+                "statements": [],
+                "entities": [],
+                "action_items_assigned": [],
+                "decisions_contributed": [],
+                "questions_asked": [],
+                "topics_discussed": [],
+                "keywords": [],
+                "timeline_segments": []
+            }
+        
+        speaker_data[spk]["total_speaking_time"] += dur
+        speaker_data[spk]["speaking_turns"] += 1
+        speaker_data[spk]["word_count"] += wc
+        if seg["speaker_confidence"]:
+            speaker_data[spk]["confidences"].append(seg["speaker_confidence"])
+        speaker_data[spk]["longest_speech"] = max(speaker_data[spk]["longest_speech"], dur)
+        speaker_data[spk]["timeline_segments"].append({"start": seg["start"], "end": seg["end"], "duration": dur})
+        
+        if wc > 12 and len(speaker_data[spk]["statements"]) < 5:
+            speaker_data[spk]["statements"].append(seg["text"])
+        
+        speaker_data[spk]["entities"].extend(seg.get("entities", []))
+        speaker_data[spk]["action_items_assigned"].extend(seg.get("action_items", []))
+        speaker_data[spk]["decisions_contributed"].extend(seg.get("decisions", []))
+        speaker_data[spk]["questions_asked"].extend(seg.get("questions", []))
+        speaker_data[spk]["keywords"].extend(seg.get("keywords", []))
+        
+        total_duration += dur
+    
+    # Incorporate intelligence data if available
+    intel_data = {}
+    db_intel = db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).first()
+    if db_intel:
+        try:
+            intel_data = {
+                "action_items": json.loads(db_intel.action_items_json or "[]"),
+                "decisions": json.loads(db_intel.decisions_json or "[]"),
+                "followups": json.loads(db_intel.followups_json or "[]"),
+                "questions": json.loads(db_intel.questions_json or "[]"),
+                "entities": json.loads(db_intel.entities_json or "{}"),
+                "topics": json.loads(db_intel.topics_json or "[]"),
+                "analytics": json.loads(db_intel.analytics_json or "{}"),
+            }
+        except Exception:
+            pass
+    
+    result = []
+    colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#ec4899"]
+    for idx, (spk, data) in enumerate(sorted(speaker_data.items())):
+        avg_conf = sum(data["confidences"]) / len(data["confidences"]) if data["confidences"] else 1.0
+        wpm = round(data["word_count"] / max(data["total_speaking_time"] / 60, 0.01))
+        share = (data["total_speaking_time"] / max(total_duration, 0.001)) * 100
+        
+        # Deduplicate
+        data["entities"] = list(set(data["entities"]))
+        data["keywords"] = list(set(data["keywords"]))
+        
+        result.append({
+            "speaker": spk,
+            "color": colors[idx % len(colors)],
+            "total_speaking_time": round(data["total_speaking_time"], 2),
+            "speaking_share": round(share, 1),
+            "speaking_turns": data["speaking_turns"],
+            "word_count": data["word_count"],
+            "avg_confidence": round(avg_conf, 4),
+            "longest_speech": round(data["longest_speech"], 2),
+            "speaking_speed_wpm": wpm,
+            "important_statements": data["statements"],
+            "timeline": data["timeline_segments"],
+            "entities": data["entities"],
+            "action_items": data["action_items_assigned"],
+            "decisions": data["decisions_contributed"],
+            "questions": data["questions_asked"],
+            "keywords": data["keywords"]
+        })
+    
+    return {
+        "meeting_id": meeting_id,
+        "meeting_title": m.title,
+        "total_duration": round(total_duration, 2),
+        "speakers": result,
+        "intelligence": intel_data
+    }
+
+@router.get("/{meeting_id}/export/stats/{format_type}")
+def export_meeting_statistics(meeting_id: str, format_type: str, db: Session = Depends(get_db)):
+    m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+    if not m:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Get speaker analytics
+    from src.services.database.db import DBMeetingIntelligence
+    segments = []
+    for s in m.transcript:
+        seg_meta = json.loads(s.metadata_json or "{}")
+        segments.append({
+            "start": s.start,
+            "end": s.end,
+            "start_seconds": s.start_seconds,
+            "end_seconds": s.end_seconds,
+            "text": s.text,
+            "speaker_label": s.speaker_label or "UNKNOWN",
+            "speaker_confidence": s.speaker_confidence or 1.0,
+        })
+    
+    # Build stats content
+    lines = []
+    lines.append(f"=== MEETING STATISTICS: {m.title} ===")
+    lines.append(f"Date: {m.date}")
+    lines.append(f"Duration: {round(m.duration or 0, 1)}s")
+    lines.append(f"Total Segments: {len(segments)}")
+    lines.append("")
+    
+    # Speaker statistics
+    speaker_stats = {}
+    for seg in segments:
+        spk = seg["speaker_label"]
+        dur = (seg["end_seconds"] or 0) - (seg["start_seconds"] or 0)
+        wc = len(seg["text"].split())
+        if spk not in speaker_stats:
+            speaker_stats[spk] = {"time": 0.0, "words": 0, "turns": 0}
+        speaker_stats[spk]["time"] += dur
+        speaker_stats[spk]["words"] += wc
+        speaker_stats[spk]["turns"] += 1
+    
+    lines.append("--- SPEAKER ANALYTICS ---")
+    for spk, st in sorted(speaker_stats.items()):
+        wpm = round(st["words"] / max(st["time"] / 60, 0.01))
+        lines.append(f"{spk}: {st['turns']} turns, {round(st['time'], 1)}s, {st['words']} words, {wpm} WPM")
+    lines.append("")
+    
+    # Intelligence data
+    db_intel = db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).first()
+    if db_intel:
+        try:
+            actions = json.loads(db_intel.action_items_json or "[]")
+            decisions = json.loads(db_intel.decisions_json or "[]")
+            topics = json.loads(db_intel.topics_json or "[]")
+            
+            if actions:
+                lines.append("--- ACTION ITEMS ---")
+                for a in actions:
+                    lines.append(f"- {a.get('task', a)} (Owner: {a.get('owner', 'N/A')}, Priority: {a.get('priority', 'MEDIUM')})")
+                lines.append("")
+            
+            if decisions:
+                lines.append("--- DECISIONS ---")
+                for d in decisions:
+                    lines.append(f"- {d.get('text', d)}")
+                lines.append("")
+            
+            if topics:
+                lines.append("--- TOPICS ---")
+                for t in topics:
+                    lines.append(f"- {t.get('topic', t)} (confidence: {t.get('confidence', 'N/A')})")
+                lines.append("")
+        except Exception:
+            pass
+    
+    fmt = format_type.lower().strip()
+    content = "\n".join(lines).encode("utf-8")
+    
+    media_types = {
+        "txt": "text/plain",
+        "pdf": "application/pdf",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    }
+    
+    return Response(
+        content=content,
+        media_type=media_types.get(fmt, "text/plain"),
+        headers={"Content-Disposition": f"attachment; filename=statistics_{meeting_id}.{fmt}"}
+    )
 
 @router.post("/{meeting_id}/regenerate", response_model=MeetingResponse)
 async def force_regenerate_intelligence(meeting_id: str, db: Session = Depends(get_db)):

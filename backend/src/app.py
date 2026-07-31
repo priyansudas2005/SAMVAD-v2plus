@@ -24,7 +24,7 @@ project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 from src.services.database.db import init_db
-from src.api import meetings, qa, settings, analytics
+from src.api import meetings, qa, settings, analytics, stats
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -52,6 +52,7 @@ app.include_router(meetings.router, prefix="/api")
 app.include_router(qa.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
 
 # Optional recording API (WebSocket + SSE + REST device listing)
 # Registered with try/except so a missing sounddevice does not crash startup

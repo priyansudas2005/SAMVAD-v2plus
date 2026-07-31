@@ -32,7 +32,7 @@ class FasterWhisperTranscriber:
         """
         prompt = self.vocab_mgr.get_initial_prompt(custom_vocabulary)
         
-        logger.info(f"Starting raw Whisper transcription on {audio_path}")
+        logger.info(f"Starting raw Whisper transcription on {audio_path} with vad_filter={self.config.vad_filter}")
         
         segments, info = self.model.transcribe(
             audio_path,
@@ -44,6 +44,7 @@ class FasterWhisperTranscriber:
             condition_on_previous_text=self.config.condition_on_previous_text,
             initial_prompt=prompt,
             vad_filter=self.config.vad_filter,
+            vad_parameters=self.config.vad_parameters,
             repetition_penalty=self.config.repetition_penalty,
             no_speech_threshold=self.config.no_speech_threshold,
             log_prob_threshold=self.config.log_prob_threshold

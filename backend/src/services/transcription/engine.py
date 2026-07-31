@@ -103,8 +103,8 @@ class TranscriptionEngine:
                 processed_segments.append(processed_seg)
                 full_text_list.append(clean_text)
 
-            # Merge fragmented speech intervals
-            merged_segments = TranscriptSegmenter.merge_fragmented_segments(processed_segments)
+            # Merge fragmented speech intervals (conservative: only merge very short gaps <= 0.3s)
+            merged_segments = TranscriptSegmenter.merge_fragmented_segments(processed_segments, max_gap_s=0.3)
             full_text = " ".join(full_text_list)
             
             # Meeting level confidence
