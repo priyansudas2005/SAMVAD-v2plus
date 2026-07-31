@@ -107,6 +107,7 @@ const PIPELINE_STEPS = [
 
 interface DashboardPageProps {
   meetings: Meeting[];
+  meetingsReady: boolean;
   onSelectMeeting: (meeting: Meeting) => void;
   setActivePage: (page: string) => void;
   refreshMeetings: () => Promise<void>;
@@ -114,6 +115,7 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   meetings,
+  meetingsReady,
   onSelectMeeting,
   setActivePage,
   refreshMeetings,
@@ -304,8 +306,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </BentoItem>
       </div>
 
-      {/* ── First Recording Onboarding Workflow Banner (Shows when no meetings exist) ── */}
-      {meetings.length === 0 && (
+      {/* ── First Recording Onboarding Workflow Banner (Shows only after data loaded and no meetings) ── */}
+      {meetingsReady && meetings.length === 0 && (
         <div className="relative z-10">
           <FirstRecordingWizard
             onStartRecording={() => setActivePage('recorder')}

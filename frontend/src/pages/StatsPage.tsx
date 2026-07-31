@@ -443,6 +443,18 @@ export const StatsPage: React.FC<StatsPageProps> = ({ currentMeeting, onUpdateMe
                     <div className="text-[#C4C9D4] font-sans">{highlights.biggest_risk}</div>
                   </div>
                 )}
+                {highlights.meeting_outcome && (
+                  <div className="p-2.5 bg-[#030305] border border-white/[0.05] rounded-lg">
+                    <div className="text-[9px] text-[#8B5CF6] font-bold uppercase mb-0.5">Meeting Summary & Outcome</div>
+                    <div className="text-[#C4C9D4] font-sans leading-relaxed">{highlights.meeting_outcome}</div>
+                  </div>
+                )}
+                {!highlights.biggest_decision && !highlights.most_important_action_item && !highlights.biggest_risk && !highlights.meeting_outcome && (
+                  <div className="p-4 bg-[#030305] border border-white/[0.05] rounded-lg text-center font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto mb-1 opacity-70" />
+                    <div className="text-[10px] text-[#98A2B3]">Run "Process Transcript" on Transcript page to extract executive highlights.</div>
+                  </div>
+                )}
               </div>
             </div>
 

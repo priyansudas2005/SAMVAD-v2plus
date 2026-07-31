@@ -48,9 +48,11 @@ class TranscriptAligner:
                     w_center = (w_start + w_end) / 2.0
 
                     # Find matching speaker at word midpoint
-                    w_speaker = "SPEAKER_00"
+                    w_speaker = None
                     w_conf = 1.0
                     max_overlap = 0.0
+                    min_dist = float('inf')
+                    nearest_speaker = "SPEAKER_00"
 
                     for s_seg in speaker_timeline:
                         overlap_start = max(w_start, s_seg["start"])
@@ -64,6 +66,15 @@ class TranscriptAligner:
                         elif max_overlap == 0.0 and s_seg["start"] <= w_center <= s_seg["end"]:
                             w_speaker = s_seg.get("speaker_label", "SPEAKER_00")
                             w_conf = s_seg.get("confidence", 1.0)
+
+                        # Track nearest speaker region as fallback
+                        dist = min(abs(w_center - s_seg["start"]), abs(w_center - s_seg["end"]))
+                        if dist < min_dist:
+                            min_dist = dist
+                            nearest_speaker = s_seg.get("speaker_label", "SPEAKER_00")
+
+                    if w_speaker is None:
+                        w_speaker = nearest_speaker
 
                     if current_speaker is None:
                         current_speaker = w_speaker

@@ -23,13 +23,15 @@ import { SettingsPage } from './pages/SettingsPage';
 import { Meeting } from './types';
 import { api } from './services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WebGLShader } from './components/ui/web-gl-shader';
+import { CosmicDustBackground } from './components/CosmicDustBackground';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { InteractiveProductTour } from './components/InteractiveProductTour';
 import { HelpLearningCenter } from './components/HelpLearningCenter';
 import { useProfile } from './hooks/useProfile';
 import { OnboardingModal } from './components/OnboardingModal';
 import { LogoutConfirmModal } from './components/LogoutConfirmModal';
+
+import { SettingsProvider } from './context/SettingsContext';
 
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
@@ -59,6 +61,7 @@ const pageVariants = {
 function App() {
   const [activePage, setActivePage] = useState<string>('dashboard');
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetingsReady, setMeetingsReady] = useState<boolean>(false);
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [appError, setAppError] = useState<string | null>(null);
@@ -105,6 +108,7 @@ function App() {
       const data = await api.getMeetings();
       const sorted = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setMeetings(sorted);
+      setMeetingsReady(true);
       
       if (currentMeeting) {
         const found = sorted.find(m => m.meeting_id === currentMeeting.meeting_id);
@@ -112,21 +116,25 @@ function App() {
       }
     } catch (err) {
       console.error(err);
-      setAppError('Could not sync with local database server.');
+      setMeetingsReady(true); // Still mark ready so UI isn't stuck
     }
   };
 
   useEffect(() => {
     let isMounted = true;
-    
-    // Safety fallback: guaranteed unblock after 2.5s maximum
-    const timer = setTimeout(() => {
-      if (isMounted) setLoading(false);
-    }, 2500);
 
-    const initialize = async () => {
+    // Show the UI immediately — don't block on data fetch
+    setLoading(false);
+
+    // Fetch meetings in background (doesn't block UI render)
+    const fetchData = async () => {
       try {
         await fetchMeetingsList();
+      } catch (e) {
+        console.error('Failed to load meetings:', e);
+      }
+      // Fetch settings separately — non-blocking, best effort
+      try {
         const settings = await api.getSettings();
         if (settings && isMounted) {
           setModelSize(settings.model_size || 'base');
@@ -134,20 +142,12 @@ function App() {
           setVadEnabled(settings.vad_enabled || false);
         }
       } catch (e) {
-        console.error("Failed to load initial settings:", e);
-      } finally {
-        if (isMounted) {
-          clearTimeout(timer);
-          setLoading(false);
-        }
+        console.error('Failed to load settings:', e);
       }
     };
 
-    initialize();
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
+    fetchData();
+    return () => { isMounted = false; };
   }, []);
 
   // Timer side-effect
@@ -330,8 +330,9 @@ function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#020617] text-slate-100 relative z-10">
-      {/* ── WebGL Shader Background ────────────────────────── */}
-      <WebGLShader />
+      {/* ── Cosmic Dust Particle Background ──────────────────────────────── */}
+      <CosmicDustBackground />
+
       
       {/* ── Layered Atmospheric Environment ─────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -431,6 +432,7 @@ function App() {
             >
               <DashboardPage 
                 meetings={meetings}
+                meetingsReady={meetingsReady}
                 onSelectMeeting={handleSelectMeeting}
                 setActivePage={setActivePage}
                 refreshMeetings={fetchMeetingsList}
@@ -678,8 +680,10 @@ function App() {
 
 export default function WrappedApp() {
   return (
-    <KeyboardProvider>
-      <App />
-    </KeyboardProvider>
+    <SettingsProvider>
+      <KeyboardProvider>
+        <App />
+      </KeyboardProvider>
+    </SettingsProvider>
   );
 }

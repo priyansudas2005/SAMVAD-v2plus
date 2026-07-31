@@ -103,51 +103,51 @@ export const AudioInspector: React.FC<AudioInspectorProps> = ({
   const calculateRemainingMins = (secs: number) => Math.max(0, 1420 - Math.floor(secs / 60));
 
   return (
-    <aside className="w-64 bg-[#050609]/95 backdrop-blur-xl border-r border-slate-800/90 flex flex-col h-full shrink-0 font-mono text-xs overflow-y-auto select-none">
+    <aside className="w-64 bg-[#06080e]/95 backdrop-blur-2xl border-r border-white/[0.08] flex flex-col h-full shrink-0 font-mono text-xs overflow-y-auto select-none shadow-2xl">
       
       {/* Inspector Panel Title */}
-      <div className="p-3 border-b border-slate-800/90 bg-[#08090f]/80 flex items-center justify-between shrink-0">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5">
+      <div className="p-3.5 border-b border-white/[0.08] bg-[#090b14]/90 flex items-center justify-between shrink-0 shadow-sm">
+        <span className="text-[10.5px] font-extrabold uppercase tracking-widest text-violet-400 flex items-center gap-2">
           <Sliders className="w-3.5 h-3.5" /> AUDIO INSPECTOR
         </span>
-        <span className="text-[8.5px] px-1.5 py-0.5 rounded bg-violet-600/10 border border-violet-500/20 text-violet-300 font-bold">
+        <span className="text-[8.5px] px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 font-extrabold tracking-wider shadow-[0_0_10px_rgba(139,92,246,0.2)]">
           LIVE CONTROL
         </span>
       </div>
 
-      <div className="flex-1 divide-y divide-slate-800/80">
+      <div className="flex-1 divide-y divide-white/[0.06]">
         
         {/* ── 1. RECORDING SESSION SECTION ─────────────────────────────────── */}
         <div>
           <button
             onClick={() => toggleSection('session')}
-            className="w-full p-2.5 bg-[#07080e]/60 hover:bg-[#0a0c14] flex items-center justify-between text-[10px] font-bold text-slate-300 transition-all"
+            className="w-full p-3 bg-[#080a12]/80 hover:bg-[#0d101d] flex items-center justify-between text-[10.5px] font-extrabold text-slate-200 transition-all tracking-wider"
           >
-            <span className="flex items-center gap-1.5 text-violet-400">
-              <Folder className="w-3 h-3" /> RECORDING SESSION
+            <span className="flex items-center gap-2 text-violet-400">
+              <Folder className="w-3.5 h-3.5" /> RECORDING SESSION
             </span>
-            {openSections.session ? <ChevronDown className="w-3.5 h-3.5 text-slate-500" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-500" />}
+            {openSections.session ? <ChevronDown className="w-3.5 h-3.5 text-violet-400" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-500" />}
           </button>
 
           {openSections.session && (
-            <div className="p-3 space-y-2.5 bg-[#030407]/60">
+            <div className="p-3.5 space-y-3 bg-[#030408]/80">
               <div className="space-y-1">
-                <label className="text-[9px] text-slate-400 uppercase font-bold">Meeting Title</label>
+                <label className="text-[9px] text-slate-400 uppercase font-extrabold tracking-wider">Meeting Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[#090b10] border border-slate-800 rounded px-2 py-1 text-[10.5px] text-white font-sans focus:outline-none focus:border-violet-500"
+                  className="w-full bg-[#0b0e17] border border-white/[0.08] hover:border-white/20 focus:border-violet-500 rounded-lg px-2.5 py-1 text-[11px] text-white font-sans focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all font-semibold"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-400 uppercase font-bold">Category</label>
+                  <label className="text-[9px] text-slate-400 uppercase font-extrabold tracking-wider">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-[#090b10] border border-slate-800 rounded p-1 text-[10px] text-slate-200"
+                    className="w-full bg-[#0b0e17] border border-white/[0.08] hover:border-white/20 rounded-lg p-1.5 text-[10px] text-slate-200 font-bold focus:outline-none focus:border-violet-500"
                   >
                     <option value="Executive Briefing">Executive</option>
                     <option value="Sprint Review">Sprint Review</option>
@@ -156,28 +156,28 @@ export const AudioInspector: React.FC<AudioInspectorProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-400 uppercase font-bold">Project</label>
+                  <label className="text-[9px] text-slate-400 uppercase font-extrabold tracking-wider">Project</label>
                   <input
                     type="text"
                     value={project}
                     onChange={(e) => setProject(e.target.value)}
-                    className="w-full bg-[#090b10] border border-slate-800 rounded p-1 text-[10px] text-slate-200"
+                    className="w-full bg-[#0b0e17] border border-white/[0.08] hover:border-white/20 rounded-lg p-1.5 text-[10px] text-slate-200 font-bold focus:outline-none focus:border-violet-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] text-slate-400 uppercase font-bold">Tags</label>
+                <label className="text-[9px] text-slate-400 uppercase font-extrabold tracking-wider">Tags</label>
                 <input
                   type="text"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  className="w-full bg-[#090b10] border border-slate-800 rounded p-1 text-[10px] text-slate-300"
+                  className="w-full bg-[#0b0e17] border border-white/[0.08] hover:border-white/20 rounded-lg p-1.5 text-[10px] text-slate-300 font-medium focus:outline-none focus:border-violet-500"
                 />
               </div>
 
-              <div className="flex justify-between items-center pt-1 border-t border-slate-800/60 text-[9.5px]">
-                <span className="text-slate-400">Status:</span>
+              <div className="flex justify-between items-center pt-2 border-t border-white/[0.06] text-[9.5px]">
+                <span className="text-slate-400 font-bold">Status:</span>
                 <span className={`font-bold uppercase ${recordingState === 'recording' ? 'text-rose-400 animate-pulse' : 'text-emerald-400'}`}>
                   {recordingState}
                 </span>

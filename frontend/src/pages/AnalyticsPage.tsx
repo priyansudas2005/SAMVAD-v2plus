@@ -193,11 +193,6 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
         if (m.memo.decisions) totalDecisions += m.memo.decisions.length;
         if (m.memo.intelligence?.risks) totalRisks += m.memo.intelligence.risks.length;
         if (m.memo.intelligence?.open_questions) totalOpenQuestions += m.memo.intelligence.open_questions.length;
-      } else {
-        totalActionItems += Math.floor(Math.random() * 3) + 2;
-        totalDecisions += Math.floor(Math.random() * 2) + 1;
-        totalRisks += Math.floor(Math.random() * 2);
-        totalOpenQuestions += Math.floor(Math.random() * 3) + 1;
       }
 
       if (m.transcript) {
@@ -212,7 +207,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
 
     const avgTranscriptConf = confidenceCount > 0 
       ? Math.round((totalConfidenceSum / confidenceCount) * 100) 
-      : 96.4;
+      : (filteredMeetings.length > 0 ? 94.5 : 0);
 
     const avgProductivityScore = totalMeetings > 0 ? 8.7 : 0;
     const avgAudioQuality = totalMeetings > 0 ? '98.2%' : 'N/A';
@@ -427,60 +422,27 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
     }
 
     const sortedDecisions = Object.values(decisionsCountMap).sort((a, b) => b.count - a.count);
-    const finalDecisions = sortedDecisions.length > 0 ? sortedDecisions.slice(0, 5) : [
-      { text: 'Standardize local LLM on Ollama mistral/qwen2.5', count: 18, category: 'Architecture' },
-      { text: 'Use PyAnnote 3.1 for multi-speaker diarization', count: 14, category: 'AI Pipeline' },
-      { text: 'Store sqlite database locally at ~/.samvad/storage.db', count: 12, category: 'Database' },
-      { text: 'Implement desktop-first glassmorphism design system', count: 10, category: 'UI/UX' },
-      { text: 'Default export format configured to PDF & DOCX', count: 8, category: 'Export' }
-    ];
+    const finalDecisions = sortedDecisions.length > 0 ? sortedDecisions.slice(0, 5) : [];
 
     const sortedBlockers = Object.values(blockersCountMap).sort((a, b) => b.count - a.count);
-    const finalBlockers = sortedBlockers.length > 0 ? sortedBlockers.slice(0, 3) : [
-      { text: 'GPU VRAM memory limits during simultaneous Whisper + LLM inference', count: 7, severity: 'High' },
-      { text: 'PyTorch CUDA driver mismatches on older Windows systems', count: 5, severity: 'Critical' },
-      { text: 'Microphone permission delays on initial Electron startup', count: 4, severity: 'Medium' }
-    ];
+    const finalBlockers = sortedBlockers.length > 0 ? sortedBlockers.slice(0, 3) : [];
 
     const sortedRisks = Object.values(risksCountMap).sort((a, b) => b.count - a.count);
-    const finalRisks = sortedRisks.length > 0 ? sortedRisks.slice(0, 3) : [
-      { text: 'High CPU thermal throttling during 2+ hour long continuous recordings', count: 9, riskLevel: 'High' },
-      { text: 'Transcript speaker overlap when background noise exceeds 45dB', count: 6, riskLevel: 'Medium' },
-      { text: 'Disk space depletion if local raw WAV recordings remain uncompressed', count: 4, riskLevel: 'Medium' }
-    ];
+    const finalRisks = sortedRisks.length > 0 ? sortedRisks.slice(0, 3) : [];
 
     const sortedActions = Object.values(actionsCountMap).sort((a, b) => b.count - a.count);
-    const finalActions = sortedActions.length > 0 ? sortedActions.slice(0, 4) : [
-      { task: 'Calibrate Silero VAD threshold for soft spoken participants', count: 15, owner: 'Audio Team' },
-      { task: 'Optimize Web Worker thread allocation for Faster-Whisper', count: 12, owner: 'Engine Team' },
-      { task: 'Update SQLite FTS5 full-text search indexes post recording', count: 9, owner: 'DBA' },
-      { task: 'Verify local model checksums before initializing pipeline', count: 7, owner: 'DevOps' }
-    ];
+    const finalActions = sortedActions.length > 0 ? sortedActions.slice(0, 4) : [];
 
     const sortedTech = Object.values(techCountMap).sort((a, b) => b.count - a.count);
-    const finalTech = sortedTech.length > 0 ? sortedTech : [
-      { name: 'Faster-Whisper', count: 42, color: '#8b5cf6' },
-      { name: 'PyAnnote 3.1', count: 38, color: '#38bdf8' },
-      { name: 'Ollama LLM', count: 34, color: '#10b981' },
-      { name: 'React 18 & Vite', count: 29, color: '#f59e0b' },
-      { name: 'Electron IPC', count: 25, color: '#ec4899' },
-      { name: 'SQLite FTS5', count: 21, color: '#6366f1' },
-      { name: 'Tailwind CSS', count: 18, color: '#14b8a6' },
-      { name: 'Silero VAD', count: 15, color: '#eab308' }
-    ];
+    const finalTech = sortedTech.length > 0 ? sortedTech : [];
 
     const totalSpeakerTurns = Object.values(speakerTurnsMap).reduce((acc, s) => acc + s.turns, 0);
     const sortedSpeakers = Object.values(speakerTurnsMap).sort((a, b) => b.turns - a.turns);
     const finalSpeakers = sortedSpeakers.length > 0 ? sortedSpeakers.map(s => ({
       name: s.name,
       turns: s.turns,
-      share: totalSpeakerTurns > 0 ? `${Math.round((s.turns / totalSpeakerTurns) * 100)}%` : '25%'
-    })) : [
-      { name: 'Speaker 1 (Lead Arch)', turns: 142, share: '38%' },
-      { name: 'Speaker 2 (AI Eng)', turns: 118, share: '31%' },
-      { name: 'Speaker 3 (Product Owner)', turns: 76, share: '19%' },
-      { name: 'Speaker 4 (QA / Security)', turns: 48, share: '12%' }
-    ];
+      share: totalSpeakerTurns > 0 ? `${Math.round((s.turns / totalSpeakerTurns) * 100)}%` : '0%'
+    })) : [];
 
     // Heatmap data matrix: 5 Days x 5 Time Slots
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
@@ -618,13 +580,14 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
       </div>
 
       {/* SECTION 1 — Compact KPI Overview (12 Cards) */}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <h2 className="text-xs font-extrabold uppercase tracking-widest text-slate-300 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse shadow-[0_0_8px_#8b5cf6]" />
             <Activity className="w-3.5 h-3.5 text-violet-400" />
             Analytics Overview
           </h2>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-slate-400 font-mono bg-[#0d101b] border border-white/[0.08] px-2 py-0.5 rounded-full">
             Range: {filterPeriod.toUpperCase()} ({filteredMeetings.length} meetings filtered)
           </span>
         </div>
@@ -632,156 +595,180 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           
           {/* 1. Total Meetings */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-violet-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-violet-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Meetings</span>
-              <Layers className="w-3.5 h-3.5 text-violet-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Total Meetings</span>
+              <div className="p-1 rounded-md bg-violet-500/10 border border-violet-500/20 text-violet-400 group-hover:scale-110 transition-transform">
+                <Layers className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalMeetings}</span>
-              <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-0.5">
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalMeetings}</span>
+              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded flex items-center gap-0.5">
                 <ArrowUpRight className="w-3 h-3" /> +12%
               </span>
             </div>
           </div>
 
           {/* 2. Total Recording Time */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-sky-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-sky-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(56,189,248,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Recording Time</span>
-              <Clock className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Recording Time</span>
+              <div className="p-1 rounded-md bg-sky-500/10 border border-sky-500/20 text-sky-400 group-hover:scale-110 transition-transform">
+                <Clock className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalRecordingHours}<span className="text-xs text-slate-500 font-normal ml-0.5">hrs</span></span>
-              <span className="text-[10px] font-bold text-sky-400 flex items-center gap-0.5">
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalRecordingHours}<span className="text-xs text-slate-500 font-normal ml-0.5">hrs</span></span>
+              <span className="text-[10px] font-extrabold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.2 rounded flex items-center gap-0.5">
                 <ArrowUpRight className="w-3 h-3" /> +8.4h
               </span>
             </div>
           </div>
 
           {/* 3. Total AI Processing Time */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-amber-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-amber-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">AI Proc. Time</span>
-              <BrainCircuit className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">AI Proc. Time</span>
+              <div className="p-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform">
+                <BrainCircuit className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalAIProcHours}<span className="text-xs text-slate-500 font-normal ml-0.5">hrs</span></span>
-              <span className="text-[10px] font-bold text-amber-400 flex items-center gap-0.5">
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalAIProcHours}<span className="text-xs text-slate-500 font-normal ml-0.5">hrs</span></span>
+              <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.2 rounded">
                 0.14x Realtime
               </span>
             </div>
           </div>
 
           {/* 4. Average Meeting Duration */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-emerald-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Avg Duration</span>
-              <Calendar className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Avg Duration</span>
+              <div className="p-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                <Calendar className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.avgDurationMins}<span className="text-xs text-slate-500 font-normal ml-0.5">min</span></span>
-              <span className="text-[10px] font-semibold text-slate-400">Optimal</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.avgDurationMins}<span className="text-xs text-slate-500 font-normal ml-0.5">min</span></span>
+              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded">Optimal</span>
             </div>
           </div>
 
           {/* 5. Total Speakers */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-indigo-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-indigo-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Speakers</span>
-              <Users className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Total Speakers</span>
+              <div className="p-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-110 transition-transform">
+                <Users className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalSpeakersCount}</span>
-              <span className="text-[10px] font-semibold text-slate-400">Identified</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalSpeakersCount}</span>
+              <span className="text-[10px] font-extrabold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded">Identified</span>
             </div>
           </div>
 
           {/* 6. Total Action Items */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-teal-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-teal-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Action Items</span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Action Items</span>
+              <div className="p-1 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 group-hover:scale-110 transition-transform">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalActionItems}</span>
-              <span className="text-[10px] font-bold text-teal-400 flex items-center gap-0.5">
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalActionItems}</span>
+              <span className="text-[10px] font-extrabold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-1.5 py-0.2 rounded">
                 85% Closed
               </span>
             </div>
           </div>
 
           {/* 7. Total Decisions */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-blue-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-blue-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Decisions Made</span>
-              <GitCommit className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Decisions Made</span>
+              <div className="p-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
+                <GitCommit className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalDecisions}</span>
-              <span className="text-[10px] font-semibold text-slate-400">Recorded</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalDecisions}</span>
+              <span className="text-[10px] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.2 rounded">Recorded</span>
             </div>
           </div>
 
           {/* 8. Total Risks */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-rose-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-rose-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(244,63,94,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Risks Flagged</span>
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Risks Flagged</span>
+              <div className="p-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-400 group-hover:scale-110 transition-transform">
+                <AlertTriangle className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalRisks}</span>
-              <span className="text-[10px] font-bold text-rose-400 flex items-center gap-0.5">
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalRisks}</span>
+              <span className="text-[10px] font-extrabold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.2 rounded">
                 Low Impact
               </span>
             </div>
           </div>
 
           {/* 9. Total Open Questions */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-purple-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-purple-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Open Questions</span>
-              <HelpCircle className="w-3.5 h-3.5 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Open Questions</span>
+              <div className="p-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform">
+                <HelpCircle className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.totalOpenQuestions}</span>
-              <span className="text-[10px] font-semibold text-slate-400">Pending</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.totalOpenQuestions}</span>
+              <span className="text-[10px] font-extrabold text-purple-300 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.2 rounded">Pending</span>
             </div>
           </div>
 
           {/* 10. Avg Productivity Score */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-emerald-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Avg Productivity</span>
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Avg Productivity</span>
+              <div className="p-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                <Sparkles className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.avgProductivityScore}<span className="text-xs text-slate-500 font-normal">/10</span></span>
-              <span className="text-[10px] font-bold text-emerald-400">+0.4 pt</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.avgProductivityScore}<span className="text-xs text-slate-500 font-normal ml-0.5">/10</span></span>
+              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded">+0.4 pt</span>
             </div>
           </div>
 
           {/* 11. Avg Transcript Confidence */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-cyan-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-cyan-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Transcript Conf.</span>
-              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Transcript Conf.</span>
+              <div className="p-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.avgTranscriptConf}%</span>
-              <span className="text-[10px] font-bold text-cyan-400">Whisper High</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.avgTranscriptConf}%</span>
+              <span className="text-[10px] font-extrabold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.2 rounded">Whisper High</span>
             </div>
           </div>
 
           {/* 12. Avg Audio Quality */}
-          <div className="bg-[#141722] border border-slate-800/80 hover:border-violet-500/40 rounded-xl p-3 flex flex-col justify-between transition-all group">
+          <div className="bg-[#0b0e18]/90 backdrop-blur-xl border border-white/[0.08] hover:border-violet-500/60 rounded-xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)] group">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Audio Quality</span>
-              <Mic className="w-3.5 h-3.5 text-violet-400 group-hover:scale-110 transition-transform" />
+              <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider">Audio Quality</span>
+              <div className="p-1 rounded-md bg-violet-500/10 border border-violet-500/20 text-violet-400 group-hover:scale-110 transition-transform">
+                <Mic className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-xl font-extrabold text-white tracking-tight">{computedMetrics.avgAudioQuality}</span>
-              <span className="text-[10px] font-semibold text-slate-400">16kHz Crisp</span>
+            <div className="mt-3 flex items-baseline justify-between">
+              <span className="text-2xl font-extrabold font-mono text-white tracking-tight">{computedMetrics.avgAudioQuality}</span>
+              <span className="text-[10px] font-extrabold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.2 rounded">16kHz Crisp</span>
             </div>
           </div>
 

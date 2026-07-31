@@ -700,40 +700,44 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      // Alternating Background Glass Sections
+      // Tactical Matte Dark Sections (Teenage Engineering Studio Palette)
       const sectionWidth = 100 * (zoomLevel / 100);
       const totalSections = Math.ceil(width / sectionWidth) + 2;
 
       for (let i = 0; i < totalSections; i++) {
         const secX = i * sectionWidth - (scrollX % sectionWidth);
-        ctx.fillStyle = i % 2 === 0 ? 'rgba(3, 4, 7, 0.95)' : 'rgba(5, 6, 11, 0.95)';
+        ctx.fillStyle = i % 2 === 0 ? '#06070a' : '#080a0f';
         ctx.fillRect(secX, 0, sectionWidth, height);
       }
 
-      // Vertical Grid Lines
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      // Crisp Technical Mechanical Grid Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
-      for (let x = 0; x < width; x += 30 * (zoomLevel / 100)) {
+      for (let x = 0; x < width; x += 20 * (zoomLevel / 100)) {
         ctx.beginPath();
+        ctx.setLineDash([2, 2]);
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
         ctx.stroke();
+        ctx.setLineDash([]);
       }
 
-      // 0dB Baseline
-      ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
+      // Tactical Amber Reference Line (0dB Center)
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(0, height / 2);
       ctx.lineTo(width, height / 2);
       ctx.stroke();
 
-      // Render Rounded Peak Waveform Bars
+      // Render Sharp High-Contrast Hardware Waveform Bars
       const barWidth = 3 * (zoomLevel / 100);
       const gap = 1.5;
       const totalBars = Math.floor(width / (barWidth + gap));
       const bufferLen = buffer.length;
 
-      ctx.fillStyle = colorHex;
+      // Color mapping: Track 1 Amber/Gold (#f59e0b), Track 2 High-Contrast Cyan (#06b6d4)
+      ctx.fillStyle = colorHex.includes('38BDF8') ? '#06b6d4' : '#f59e0b';
 
       for (let i = 0; i < totalBars; i++) {
         const bufIdx = bufferLen - totalBars + i;
@@ -743,43 +747,33 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
         const barH = Math.max(3, amp * (height * 0.85));
         const x = i * (barWidth + gap);
         const y = (height - barH) / 2;
-        const radius = Math.min(barWidth / 2, barH / 2);
 
-        ctx.beginPath();
-        ctx.roundRect(x, y, barWidth, barH, radius);
-        ctx.fill();
+        ctx.fillRect(x, y, barWidth, barH);
       }
 
-      // GLOWING CURSOR WITH CURSOR INERTIA LERP PHYSICS
+      // Crisp Tactical Red Playhead Line
       if (recordingState === 'recording' || recordingState === 'paused' || recordingState === 'stopped') {
         const targetX = Math.min(width - 6, bufferLen * (barWidth + gap));
         
-        // Smooth Cursor Inertia Lag
         cursorInertiaX.current += (targetX - cursorInertiaX.current) * 0.2;
         const playheadX = cursorInertiaX.current;
 
-        // Soft Bloom Layer
-        ctx.shadowColor = 'rgba(239, 68, 68, 0.85)';
-        ctx.shadowBlur = 14;
-
-        // Thin Glowing Red Playhead Line
-        ctx.strokeStyle = '#EF4444';
+        // Solid Tactical Red Line
+        ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(playheadX, 0);
         ctx.lineTo(playheadX, height);
         ctx.stroke();
 
-        // Cursor Diamond Head with Bloom
-        ctx.fillStyle = '#EF4444';
+        // Top Mechanical Arrow Marker
+        ctx.fillStyle = '#ef4444';
         ctx.beginPath();
-        ctx.moveTo(playheadX - 5, 0);
-        ctx.lineTo(playheadX + 5, 0);
-        ctx.lineTo(playheadX, 8);
+        ctx.moveTo(playheadX - 4, 0);
+        ctx.lineTo(playheadX + 4, 0);
+        ctx.lineTo(playheadX, 6);
         ctx.closePath();
         ctx.fill();
-
-        ctx.shadowBlur = 0;
       }
 
       ctx.restore();
@@ -827,20 +821,22 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       )}
 
       {/* ── 1. COMPACT TOP TOOLBAR ─────────────────────────────────────────── */}
-      <header className="h-10 bg-[#07080d]/90 backdrop-blur-md border-b border-slate-800/90 px-4 flex items-center justify-between shrink-0 font-mono text-[11px] relative z-20">
+      <header className="h-12 bg-[#080a10]/95 backdrop-blur-2xl border-b border-white/[0.08] px-4 flex items-center justify-between shrink-0 font-mono text-xs relative z-30 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-violet-600/15 border border-violet-500/30 text-violet-300 font-bold text-[10px] tracking-wider">
-            <Radio className="w-3 h-3 text-violet-400" /> FLAGSHIP DAW ENGINE
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/30 text-violet-400 font-extrabold text-[10.5px] tracking-wider uppercase flex items-center gap-1.5 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+              <Radio className="w-3 h-3 text-violet-400 animate-pulse" /> FLAGSHIP DAW ENGINE
+            </span>
           </div>
 
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="h-4 w-px bg-white/[0.1]" />
 
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Untitled Session Recording..."
-            className="bg-[#0b0d14] border border-slate-800 rounded px-2.5 py-0.5 text-xs text-white font-sans w-60 focus:outline-none focus:border-violet-500"
+            className="bg-[#0b0e17] border border-white/[0.08] hover:border-white/20 focus:border-violet-500/80 rounded-lg px-3 py-1 text-xs text-white font-sans w-72 focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all placeholder:text-slate-600 font-semibold"
           />
         </div>
 
@@ -850,41 +846,41 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             <button 
               onClick={discardRecording}
               disabled={recordingState === 'idle'}
-              className="px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-[10.5px] font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 text-[10.5px] font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
             >
-              <Trash2 className="w-3 h-3" /> Discard
+              <Trash2 className="w-3.5 h-3.5" /> Discard
             </button>
 
             <button 
               onClick={saveRecording}
               disabled={recordingState === 'idle' || uploading}
-              className="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold shadow-md shadow-emerald-600/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+              className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[10.5px] font-extrabold shadow-lg shadow-emerald-950/50 border border-emerald-400/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
             >
-              <Download className="w-3 h-3" /> {uploading ? 'Processing...' : 'Save & Analyze'}
+              <Download className="w-3.5 h-3.5" /> {uploading ? 'Processing...' : 'Save & Analyze'}
             </button>
           </div>
         </div>
       </header>
 
       {/* ── 2. PREMIUM HORIZONTAL LIVE RECORDING INTELLIGENCE BAR ─────────────── */}
-      <div className="h-10 bg-[#080a10]/80 backdrop-blur-md border-b border-slate-800/90 px-4 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none font-mono text-xs relative z-20">
+      <div className="h-10 bg-[#06070c]/95 backdrop-blur-2xl border-b border-white/[0.06] px-4 flex items-center gap-2.5 overflow-x-auto shrink-0 scrollbar-none font-mono text-xs relative z-20">
         {intelligenceStatus.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.id}
               title={item.tooltip}
-              className={`px-2.5 py-1 rounded-lg border flex items-center gap-2 shrink-0 transition-all cursor-help ${item.bg}`}
+              className={`px-3 py-1 rounded-lg border flex items-center gap-2 shrink-0 transition-all cursor-help backdrop-blur-md shadow-sm ${item.bg}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${item.dotColor}`} />
               
               <div className="flex items-center gap-1.5 text-[10px]">
                 <Icon className={`w-3 h-3 ${item.color}`} />
                 <span className="text-slate-400 font-bold">{item.label}:</span>
-                <span className={`font-bold ${item.color}`}>{item.state}</span>
+                <span className={`font-extrabold ${item.color}`}>{item.state}</span>
               </div>
 
-              <span className="px-1 py-0.2 bg-slate-950/60 rounded text-[8.5px] font-bold text-slate-400 border border-slate-800/60">
+              <span className="px-1.5 py-0.2 bg-black/60 rounded text-[8.5px] font-bold text-slate-300 border border-white/[0.08]">
                 {item.confidence}
               </span>
             </div>
@@ -1087,16 +1083,16 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
       </div>
 
       {/* ── 6. SLEEK & ESSENTIAL STUDIO RECORDER TRANSPORT BAR (BOTTOM) ─────────── */}
-      <footer className="h-14 bg-[#06080e]/95 backdrop-blur-xl border-t border-white/[0.08] px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-20">
+      <footer className="h-16 bg-[#07080e]/95 backdrop-blur-2xl border-t border-white/[0.08] px-6 flex items-center justify-between shrink-0 font-mono select-none relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
         
         {/* Left: Mic Device & Monitoring */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
 
           {/* Quick Microphone Input Selector */}
           <select
             value={selectedMicDevice}
             onChange={(e) => setSelectedMicDevice(e.target.value)}
-            className="bg-[#0b0d14] border border-white/[0.08] hover:border-white/20 rounded-lg px-2 py-1 text-[10px] text-slate-300 font-mono font-semibold focus:outline-none focus:border-[#8B5CF6] hidden lg:block cursor-pointer"
+            className="bg-[#0b0e18] border border-white/[0.08] hover:border-white/20 rounded-lg px-3 py-1.5 text-[10.5px] text-slate-200 font-mono font-bold focus:outline-none focus:border-violet-500 hidden lg:block cursor-pointer transition-all"
             title="Select Active Recording Microphone"
           >
             <option value="Default Microphone">Default Mic</option>
@@ -1107,10 +1103,10 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           {/* Audio Monitor */}
           <button
             onClick={() => setIsMuteMonitoring(prev => !prev)}
-            className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${
               isMuteMonitoring 
                 ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' 
-                : 'bg-[#0b0d14] border-white/[0.08] text-slate-300 hover:text-white'
+                : 'bg-[#0b0e18] border-white/[0.08] text-slate-300 hover:text-white hover:border-white/20'
             }`}
             title="Toggle Audio Monitoring (Key M)"
           >
@@ -1122,7 +1118,7 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           <button
             onClick={addBookmark}
             disabled={recordingState === 'idle'}
-            className="px-2.5 py-1.5 rounded-lg bg-[#0b0d14] hover:bg-white/[0.06] border border-white/[0.08] text-slate-300 hover:text-amber-300 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg bg-[#0b0e18] hover:bg-white/[0.06] border border-white/[0.08] text-slate-300 hover:text-amber-300 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
             title="Add Timeline Bookmark (Key B)"
           >
             <Bookmark className="w-3.5 h-3.5 text-amber-400" /> Marker ({bookmarks.length})
@@ -1134,9 +1130,9 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           {recordingState === 'idle' && (
             <button
               onClick={startRecording}
-              className="px-7 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-extrabold text-xs shadow-lg shadow-rose-600/30 border border-rose-400/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
+              className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-rose-500 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-[0_0_30px_rgba(244,63,94,0.35)] border border-rose-400/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer tracking-wider"
             >
-              <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
+              <div className="w-3 h-3 rounded-full bg-white animate-ping" />
               RECORD (Space)
             </button>
           )}
@@ -1145,14 +1141,14 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             <>
               <button
                 onClick={pauseRecording}
-                className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 font-bold text-xs transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95"
+                className="px-5 py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 font-extrabold text-xs transition-all flex items-center gap-2 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
               >
                 <Pause className="w-3.5 h-3.5" /> PAUSE (Space)
               </button>
               
               <button
                 onClick={stopRecording}
-                className="px-5 py-2 rounded-xl bg-[#0b0d14] border border-white/[0.1] text-slate-200 hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 hover:scale-105 active:scale-95"
+                className="px-6 py-2.5 rounded-xl bg-[#0b0e18] border border-white/[0.12] text-slate-200 hover:text-white font-extrabold text-xs transition-all flex items-center gap-2 hover:scale-105 active:scale-95 shadow-lg"
               >
                 <Square className="w-3.5 h-3.5 fill-slate-200" /> STOP (Esc)
               </button>
@@ -1163,14 +1159,14 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
             <>
               <button
                 onClick={resumeRecording}
-                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs transition-all flex items-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.3)] border border-emerald-400/40 hover:scale-105 active:scale-95"
               >
                 <Play className="w-3.5 h-3.5 fill-white" /> RESUME (Space)
               </button>
 
               <button
                 onClick={stopRecording}
-                className="px-4 py-2 rounded-xl bg-[#0b0d14] border border-white/[0.1] text-slate-200 font-bold text-xs transition-all flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl bg-[#0b0e18] border border-white/[0.12] text-slate-200 font-extrabold text-xs transition-all flex items-center gap-2"
               >
                 <Square className="w-3.5 h-3.5 fill-slate-200" /> STOP (Esc)
               </button>
@@ -1178,16 +1174,13 @@ export const DAWRecorderPage: React.FC<FlagshipDAWRecorderProps> = ({
           )}
         </div>
 
-        {/* Right: Master Playhead Clock & Audio Format Metadata */}
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden md:block text-[9.5px] font-mono text-slate-400">
-            <div className="text-[#8B5CF6] font-bold">16.0 kHz &middot; WAV</div>
-            <div className="text-emerald-400 font-bold">32-Bit Float</div>
-          </div>
-
-          <div className="text-xs text-slate-400 font-mono flex items-center gap-2 bg-[#0b0d14] border border-white/[0.08] px-3 py-1.5 rounded-lg shadow-inner">
-            <span className="text-[10px] text-slate-500 font-bold hidden sm:inline">PLAYHEAD:</span>
-            <span className="text-emerald-400 font-black tracking-wider text-sm">{formatHMS(duration)}</span>
+        {/* Right: Digital Playhead Time Display */}
+        <div className="flex items-center gap-3 font-mono">
+          <div className="text-right hidden md:block">
+            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Playhead Position</div>
+            <div className="text-sm font-extrabold text-emerald-400 tracking-wider">
+              {formatHMS(duration)}
+            </div>
           </div>
         </div>
 

@@ -370,108 +370,108 @@ export const RecordingMonitor: React.FC<RecordingMonitorProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-[#050609]/95 backdrop-blur-xl border-l border-slate-800/90 flex flex-col h-full shrink-0 font-mono text-xs overflow-y-auto select-none">
+    <aside className="w-64 bg-[#06070a] border-l border-white/[0.08] flex flex-col h-full shrink-0 font-mono text-xs overflow-y-auto select-none">
       
       {/* Panel Header */}
-      <div className="p-3 border-b border-slate-800/90 bg-[#08090f]/80 flex items-center justify-between shrink-0">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400 flex items-center gap-1.5">
+      <div className="p-3.5 border-b border-white/[0.08] bg-[#090b14] flex items-center justify-between shrink-0">
+        <span className="text-[10.5px] font-extrabold uppercase tracking-widest text-cyan-400 flex items-center gap-2">
           <Gauge className="w-3.5 h-3.5" /> RECORDING MONITOR
         </span>
-        <span className="text-[8.5px] px-1.5 py-0.5 rounded bg-sky-600/10 border border-sky-500/20 text-sky-300 font-bold">
+        <span className="text-[8.5px] px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-extrabold tracking-wider">
           LIVE FEEDBACK
         </span>
       </div>
 
-      <div className="flex-1 divide-y divide-slate-800/80">
+      <div className="flex-1 divide-y divide-white/[0.06]">
         
         {/* ── 1. SESSION SECTION ─────────────────────────────────────────────── */}
-        <div className="p-3 space-y-2.5">
-          <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 flex items-center justify-between border-b border-slate-800/60 pb-1.5">
+        <div className="p-3.5 space-y-3">
+          <div className="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center justify-between border-b border-white/[0.06] pb-2">
             <span>Session</span>
-            <span className={`px-1.5 py-0.2 rounded text-[8.5px] font-bold ${
-              recordingState === 'recording' ? 'bg-rose-500/20 text-rose-400 animate-pulse' : 'bg-slate-900 text-slate-400'
+            <span className={`px-2 py-0.5 rounded text-[8.5px] font-extrabold tracking-wider ${
+              recordingState === 'recording' ? 'bg-rose-500/20 border border-rose-500/40 text-rose-400 animate-pulse' : 'bg-slate-900 border border-slate-800 text-slate-400'
             }`}>
               {recordingState.toUpperCase()}
             </span>
           </div>
 
-          <div className="p-2.5 bg-[#090b10] border border-slate-800 rounded text-center space-y-0.5 shadow-inner">
-            <div className="text-[8.5px] text-slate-500 font-bold uppercase">ELAPSED TIME</div>
-            <div className="text-xl font-extrabold font-mono text-emerald-400 tracking-wider">
+          <div className="p-3 bg-[#0a0c14] border border-white/[0.08] rounded-lg text-center space-y-1">
+            <div className="text-[8.5px] text-slate-400 font-extrabold tracking-wider uppercase">ELAPSED TIME</div>
+            <div className="text-xl font-extrabold font-mono text-amber-400 tracking-wider">
               {telemetry.elapsedTime}
             </div>
           </div>
 
-          <div className="space-y-1 text-[10px]">
+          <div className="space-y-1.5 text-[10px]">
             <div className="flex justify-between text-slate-400">
               <span>Recording Duration:</span>
-              <span className="text-white font-bold">{formatHMS(duration)}</span>
+              <span className="text-white font-extrabold">{formatHMS(duration)}</span>
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Sample Rate / Bit:</span>
-              <span className="text-sky-400 font-bold">44.1 kHz / 24-bit</span>
+              <span className="text-cyan-400 font-extrabold">44.1 kHz / 24-bit</span>
             </div>
             <div className="flex justify-between text-slate-400">
               <span>Audio Channels:</span>
-              <span className="text-violet-400 font-bold">{captureSource === 'both' ? 'Stereo (2 Ch)' : 'Mono (1 Ch)'}</span>
+              <span className="text-amber-400 font-extrabold">{captureSource === 'both' ? 'Stereo (2 Ch)' : 'Mono (1 Ch)'}</span>
             </div>
           </div>
         </div>
 
         {/* ── 2. AUDIO METERING & LIVE WAVEFORM THUMBNAIL ─────────────────────── */}
-        <div className="p-3 space-y-2.5">
-          <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/60 pb-1.5 flex items-center justify-between">
+        <div className="p-3.5 space-y-3">
+          <div className="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-400 border-b border-white/[0.06] pb-2 flex items-center justify-between">
             <span>Audio Metering</span>
-            <span className="text-[8.5px] text-emerald-400 font-bold flex items-center gap-1">
+            <span className="text-[8.5px] text-emerald-400 font-extrabold flex items-center gap-1">
               <Wifi className="w-3 h-3" /> {telemetry.latencyMs} ms
             </span>
           </div>
 
           {/* Thin Loudness Canvas Meter + Peak Hold */}
           <div className="space-y-1">
-            <div className="flex justify-between text-[9px] text-slate-400">
+            <div className="flex justify-between text-[9px] text-slate-400 font-bold">
               <span>LOUDNESS (dB)</span>
-              <span className="text-amber-400 font-bold">{telemetry.currentLoudnessDb} dB</span>
+              <span className="text-amber-400 font-extrabold">{telemetry.currentLoudnessDb} dB</span>
             </div>
-            <div className="h-1.5 w-full rounded overflow-hidden border border-slate-800">
+            <div className="h-2 w-full rounded overflow-hidden border border-white/[0.08] bg-black">
               <canvas ref={thinMeterLoudnessRef} className="w-full h-full block" />
             </div>
           </div>
 
           {/* Thin Peak Canvas Meter */}
           <div className="space-y-1">
-            <div className="flex justify-between text-[9px] text-slate-400">
+            <div className="flex justify-between text-[9px] text-slate-400 font-bold">
               <span>PEAK EXCURSION</span>
-              <span className="text-rose-400 font-bold">{telemetry.peakLevelDb} dB</span>
+              <span className="text-rose-400 font-extrabold">{telemetry.peakLevelDb} dB</span>
             </div>
-            <div className="h-1.5 w-full rounded overflow-hidden border border-slate-800">
+            <div className="h-2 w-full rounded overflow-hidden border border-white/[0.08] bg-black">
               <canvas ref={thinMeterPeakRef} className="w-full h-full block" />
             </div>
           </div>
 
           {/* Live Waveform Thumbnail Canvas */}
           <div className="space-y-1 pt-1">
-            <div className="text-[8.5px] text-slate-500 font-bold uppercase">LIVE WAVEFORM THUMBNAIL</div>
-            <div className="h-6 w-full rounded overflow-hidden border border-slate-800">
+            <div className="text-[8.5px] text-slate-400 font-extrabold uppercase tracking-wider">LIVE WAVEFORM THUMBNAIL</div>
+            <div className="h-7 w-full rounded overflow-hidden border border-white/[0.08] bg-black">
               <canvas ref={miniWaveformThumbnailRef} className="w-full h-full block" />
             </div>
           </div>
         </div>
 
         {/* ── 3. SYSTEM RESOURCES (Mini Sparkline Graphs) ────────────────────── */}
-        <div className="p-3 space-y-2.5">
-          <div className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/60 pb-1.5">
+        <div className="p-3.5 space-y-3">
+          <div className="text-[9.5px] font-extrabold uppercase tracking-widest text-slate-400 border-b border-white/[0.06] pb-2">
             System Micro-Graphs
           </div>
 
           <div className="space-y-2 text-[10px]">
             {/* CPU Mini Sparkline */}
             <div className="space-y-1">
-              <div className="flex justify-between text-[9px] text-slate-400">
+              <div className="flex justify-between text-[9px] text-slate-400 font-bold">
                 <span>CPU Usage Micro-Graph:</span>
-                <span className="text-sky-400 font-bold">{telemetry.cpuUsage}%</span>
+                <span className="text-cyan-400 font-extrabold">{telemetry.cpuUsage}%</span>
               </div>
-              <div className="h-3 w-full rounded overflow-hidden border border-slate-800">
+              <div className="h-3.5 w-full rounded overflow-hidden border border-white/[0.08] bg-black">
                 <canvas ref={miniCpuSparklineRef} className="w-full h-full block" />
               </div>
             </div>

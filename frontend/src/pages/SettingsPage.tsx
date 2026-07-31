@@ -32,6 +32,7 @@ import { SystemSettings } from '../types';
 import { ShortcutSettingsPanel } from '../components/KeyboardShortcuts';
 import { SamvadSignatureHelixLogo } from '../components/SamvadSignatureHelixLogo';
 import { useProfile } from '../hooks/useProfile';
+import { useSettings } from '../context/SettingsContext';
 
 type SectionId = 'profile' | 'general' | 'appearance' | 'recording' | 'ai_models' | 'intelligence' | 'shortcuts' | 'export' | 'storage' | 'privacy' | 'advanced' | 'about';
 
@@ -47,6 +48,7 @@ interface SettingsPageProps {
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettings }) => {
   const { profile, initials, updateProfile, logout } = useProfile();
+  const { settings: globalSettings, updateSettings } = useSettings();
   const [settings, setSettings] = useState<SystemSettings>({
     model_size: 'base',
     default_language: 'auto',
@@ -1262,39 +1264,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
               {/* Settings Cards Stream */}
               <div className="space-y-3 font-mono text-xs">
                 
-                {/* 1. Theme Mode (Segmented Control) */}
-                <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
-                  <div>
-                    <h4 className="font-bold text-[#F5F7FA]">Theme Mode</h4>
-                    <p className="text-[10.5px] text-[#98A2B3] font-sans mt-0.5">Select primary UI color mode. Changes apply immediately across all pages.</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 bg-[#030305] p-1.5 rounded-lg border border-white/[0.05]">
-                    {(['Dark', 'Light', 'System'] as const).map(mode => (
-                      <button
-                        key={mode}
-                        onClick={() => {
-                          setThemeMode(mode);
-                          const modeKey = mode.toLowerCase();
-                          localStorage.setItem('samvad-theme', modeKey);
-                          document.documentElement.className = '';
-                          if (modeKey === 'light') {
-                            document.documentElement.classList.add('theme-light');
-                          }
-                          showToast(`Theme mode: ${mode}`);
-                        }}
-                        className={`py-1.5 rounded-md font-bold text-xs transition-all uppercase ${
-                          themeMode === mode
-                            ? 'bg-[#8B5CF6] text-white shadow-lg'
-                            : 'text-[#98A2B3] hover:text-white'
-                        }`}
-                      >
-                        {mode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Accent Color Palette */}
+                {/* 1. Accent Color Palette */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
                   <div>
                     <h4 className="font-bold text-[#F5F7FA]">Accent Color</h4>
@@ -1311,71 +1281,112 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                       <button
                         key={color.hex}
                         onClick={() => {
-                          setAccentColor(color.hex);
-                          document.documentElement.style.setProperty('--accent-primary', color.hex);
+                          updateSettings({ accentColor: color.hex });
                           showToast(`Accent color set: ${color.name}`);
                         }}
                         className={`w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 flex items-center justify-center ${
-                          accentColor === color.hex ? 'border-white scale-110 shadow-lg' : 'border-transparent'
+                          globalSettings.accentColor === color.hex ? 'border-white scale-110 shadow-lg' : 'border-transparent'
                         }`}
                         style={{ backgroundColor: color.hex }}
                         title={color.name}
                       >
-                        {accentColor === color.hex && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
+                        {globalSettings.accentColor === color.hex && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* 3. Glass Effect Intensity Slider */}
+                {/* 2. Background Cosmic Dust Particles Toggle */}
+                <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl flex items-center justify-between gap-4">
+                  <div>
+                    <h4 className="font-bold text-[#F5F7FA]">Cosmic Particles Background</h4>
+                    <p className="text-[10.5px] text-[#98A2B3] font-sans mt-0.5">Floating interactive canvas dust particles with mouse attraction.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={globalSettings.showParticles}
+                    onChange={e => {
+                      updateSettings({ showParticles: e.target.checked });
+                      showToast(e.target.checked ? "Cosmic particles enabled" : "Cosmic particles disabled");
+                    }}
+                    className="w-4 h-4 accent-[#8B5CF6]"
+                  />
+                </div>
+
+                {/* 3. Particle Density Slider */}
+                {globalSettings.showParticles && (
+                  <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-[#F5F7FA]">Particle Density</h4>
+                        <p className="text-[10.5px] text-[#98A2B3] font-sans mt-0.5">Number of active canvas floating particles.</p>
+                      </div>
+                      <span className="text-[#8B5CF6] font-bold text-xs">{globalSettings.particleDensity} Particles</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="20"
+                      max="160"
+                      step="10"
+                      value={globalSettings.particleDensity}
+                      onChange={e => {
+                        const val = parseInt(e.target.value);
+                        updateSettings({ particleDensity: val });
+                        showToast(`Particle density: ${val}`);
+                      }}
+                      className="w-full h-1.5 bg-[#030305] rounded-lg appearance-none cursor-pointer accent-[#8B5CF6]"
+                    />
+                  </div>
+                )}
+
+                {/* 4. Glass Effect Intensity Slider */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-bold text-[#F5F7FA]">Glass Effect Intensity</h4>
                       <p className="text-[10.5px] text-[#98A2B3] font-sans mt-0.5">Adjust backdrop blur and glass reflection transparency filter.</p>
                     </div>
-                    <span className="text-[#8B5CF6] font-bold text-xs">{glassIntensity}%</span>
+                    <span className="text-[#8B5CF6] font-bold text-xs">{globalSettings.glassIntensity}%</span>
                   </div>
                   <input
                     type="range"
                     min="0"
                     max="100"
-                    value={glassIntensity}
+                    value={globalSettings.glassIntensity}
                     onChange={e => {
                       const val = parseInt(e.target.value);
-                      setGlassIntensity(val);
-                      document.documentElement.style.setProperty('--glass-blur', `${val / 5}px`);
+                      updateSettings({ glassIntensity: val });
                       showToast(`Glass intensity: ${val}%`);
                     }}
                     className="w-full h-1.5 bg-[#030305] rounded-lg appearance-none cursor-pointer accent-[#8B5CF6]"
                   />
                 </div>
 
-                {/* 4. Animation Speed Slider */}
+                {/* 5. Animation Speed Slider */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-bold text-[#F5F7FA]">Animation Speed</h4>
                       <p className="text-[10.5px] text-[#98A2B3] font-sans mt-0.5">Speed multiplier for framer-motion transitions.</p>
                     </div>
-                    <span className="text-[#8B5CF6] font-bold text-xs">{animationSpeed}%</span>
+                    <span className="text-[#8B5CF6] font-bold text-xs">{globalSettings.animationSpeed}%</span>
                   </div>
                   <input
                     type="range"
                     min="25"
                     max="200"
                     step="25"
-                    value={animationSpeed}
+                    value={globalSettings.animationSpeed}
                     onChange={e => {
                       const val = parseInt(e.target.value);
-                      setAnimationSpeed(val);
+                      updateSettings({ animationSpeed: val });
                       showToast(`Animation speed: ${val}%`);
                     }}
                     className="w-full h-1.5 bg-[#030305] rounded-lg appearance-none cursor-pointer accent-[#8B5CF6]"
                   />
                 </div>
 
-                {/* 5. Compact Mode Toggle */}
+                {/* 6. Compact Mode Toggle */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl flex items-center justify-between gap-4">
                   <div>
                     <h4 className="font-bold text-[#F5F7FA]">Compact Mode</h4>
@@ -1383,17 +1394,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                   </div>
                   <input
                     type="checkbox"
-                    checked={compactMode}
+                    checked={globalSettings.compactMode}
                     onChange={e => {
-                      setCompactMode(e.target.checked);
-                      document.documentElement.classList.toggle('compact-layout', e.target.checked);
+                      updateSettings({ compactMode: e.target.checked });
                       showToast(e.target.checked ? "Compact mode enabled" : "Comfortable mode restored");
                     }}
                     className="w-4 h-4 accent-[#8B5CF6]"
                   />
                 </div>
 
-                {/* 6. Sidebar Density (Segmented Control) */}
+                {/* 7. Sidebar Density (Segmented Control) */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
                   <div>
                     <h4 className="font-bold text-[#F5F7FA]">Sidebar Density</h4>
@@ -1404,11 +1414,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                       <button
                         key={den}
                         onClick={() => {
-                          setSidebarDensity(den);
+                          updateSettings({ sidebarDensity: den });
                           showToast(`Sidebar density: ${den}`);
                         }}
                         className={`py-1.5 rounded-md font-bold text-xs transition-all uppercase ${
-                          sidebarDensity === den
+                          globalSettings.sidebarDensity === den
                             ? 'bg-[#8B5CF6] text-white shadow-lg'
                             : 'text-[#98A2B3] hover:text-white'
                         }`}
@@ -1419,7 +1429,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                   </div>
                 </div>
 
-                {/* 7. Font Size (Segmented Control) */}
+                {/* 8. Font Size (Segmented Control) */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
                   <div>
                     <h4 className="font-bold text-[#F5F7FA]">Font Size</h4>
@@ -1430,11 +1440,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                       <button
                         key={sz}
                         onClick={() => {
-                          setFontSize(sz);
+                          updateSettings({ fontSize: sz });
                           showToast(`Font size scaling: ${sz}`);
                         }}
                         className={`py-1.5 rounded-md font-bold text-xs transition-all uppercase ${
-                          fontSize === sz
+                          globalSettings.fontSize === sz
                             ? 'bg-[#8B5CF6] text-white shadow-lg'
                             : 'text-[#98A2B3] hover:text-white'
                         }`}
@@ -1445,7 +1455,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                   </div>
                 </div>
 
-                {/* 8. Monospace Telemetry Font Segmented Selection */}
+                {/* 9. Monospace Telemetry Font Segmented Selection */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl space-y-2">
                   <div>
                     <h4 className="font-bold text-[#F5F7FA]">Monospace Telemetry Font</h4>
@@ -1456,11 +1466,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                       <button
                         key={font}
                         onClick={() => {
-                          setMonospaceFont(font);
+                          updateSettings({ monospaceFont: font });
                           showToast(`Monospace font: ${font}`);
                         }}
                         className={`py-1.5 rounded-md font-bold text-[10.5px] transition-all truncate ${
-                          monospaceFont === font
+                          globalSettings.monospaceFont === font
                             ? 'bg-[#8B5CF6] text-white shadow-lg'
                             : 'text-[#98A2B3] hover:text-white'
                         }`}
@@ -1471,7 +1481,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                   </div>
                 </div>
 
-                {/* 9. Reduce Motion Toggle */}
+                {/* 10. Reduce Motion Toggle */}
                 <div className="p-4 bg-[#0e1016] border border-white/[0.08] rounded-xl flex items-center justify-between gap-4">
                   <div>
                     <h4 className="font-bold text-[#F5F7FA]">Reduce Motion</h4>
@@ -1479,16 +1489,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                   </div>
                   <input
                     type="checkbox"
-                    checked={reduceMotion}
+                    checked={globalSettings.reduceMotion}
                     onChange={e => {
-                      setReduceMotion(e.target.checked);
+                      updateSettings({ reduceMotion: e.target.checked });
                       showToast(e.target.checked ? "Reduce Motion enabled" : "Full Motion enabled");
                     }}
                     className="w-4 h-4 accent-[#8B5CF6]"
                   />
                 </div>
 
-                {/* 10. LIVE PREVIEW CARD */}
+                {/* 11. LIVE PREVIEW CARD */}
                 <div className="p-4 bg-[#030305] border border-white/[0.08] rounded-xl space-y-2.5 font-sans shadow-2xl">
                   <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 font-mono">
                     <span className="text-[10px] font-bold text-[#8B5CF6] uppercase tracking-wider">
@@ -1500,12 +1510,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onUpdateGlobalSettin
                   <div className="p-3 bg-[#0e1016] border border-white/[0.06] rounded-lg space-y-2">
                     <div className="flex items-center justify-between font-mono text-[11px]">
                       <span className="font-bold text-[#F5F7FA]">SAMVAD Studio Dashboard Preview</span>
-                      <span className="px-2 py-0.5 rounded font-bold text-[9px]" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
-                        {themeMode} MODE
+                      <span className="px-2 py-0.5 rounded font-bold text-[9px]" style={{ backgroundColor: `${globalSettings.accentColor}20`, color: globalSettings.accentColor }}>
+                        LIVE REACTIVE STORE
                       </span>
                     </div>
                     <p className="text-[11px] text-[#C4C9D4] leading-relaxed">
-                      Sample telemetry snippet showing instant font scaling ({fontSize}), accent color ({accentColor}), and glass blur ({glassIntensity}%).
+                      Sample telemetry snippet showing instant font scaling ({globalSettings.fontSize}), accent color ({globalSettings.accentColor}), and glass blur ({globalSettings.glassIntensity}%).
                     </p>
                   </div>
                 </div>

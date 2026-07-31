@@ -826,150 +826,7 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavi
         </div>
       </div>
 
-      {/* ── UNIFIED DECISION & ACTION CENTER (Linear / Jira Inspired) ── */}
-      <div className="space-y-3 font-sans">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-[#F5F7FA] uppercase tracking-wider font-mono flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-[#8B5CF6]" /> Decision & Action Center
-            </span>
-            <span className="px-2 py-0.5 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 rounded text-[9px] font-bold text-[#8B5CF6] font-mono">
-              SYNCHRONIZED WORKSPACE
-            </span>
-          </div>
-          <div className="text-[10px] text-[#98A2B3] font-mono">
-            {memo.decisions?.length || 0} DECISIONS &middot; {memo.action_items?.length || 0} TASKS
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          
-          {/* LEFT PANEL: Decisions Made */}
-          <div className="bg-[#0e1016]/90 border border-white/[0.08] rounded-xl flex flex-col min-h-[420px] max-h-[550px] shadow-2xl backdrop-blur-[24px]">
-            <div className="p-3 border-b border-white/[0.06] bg-[#080a0f] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <Bookmark className="w-3.5 h-3.5 text-[#8B5CF6]" />
-                <span className="text-[10px] font-bold text-[#F5F7FA] uppercase tracking-widest font-mono">
-                  Decisions Logged ({memo.decisions?.length || 0})
-                </span>
-              </div>
-              <span className="text-[9px] font-mono text-[#98A2B3]">AUDITED & APPROVED</span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto premium-scrollbar p-3 space-y-2.5">
-              {(memo.decisions || []).map((decisionText, idx) => {
-                const title = decisionText.split(':')[0] || `Decision #${idx + 1}`;
-                const desc = decisionText.includes(':') ? decisionText.split(':').slice(1).join(':').trim() : decisionText;
-                const timestamp = `00:${10 + idx * 4}:00`;
-                const confidence = 95 - idx * 2;
-
-                return (
-                  <div 
-                    key={idx}
-                    className="p-3 bg-[#030305] border border-white/[0.05] hover:border-[#8B5CF6]/30 rounded-lg space-y-2 transition-colors group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] shrink-0" />
-                        <h5 className="text-xs font-bold text-[#F5F7FA] truncate font-mono">{title}</h5>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 font-mono text-[9px]">
-                        <span className="text-[#98A2B3] flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5" /> {timestamp}
-                        </span>
-                        <span className="px-1.5 py-0.2 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] rounded font-bold">
-                          {confidence}% Conf
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-[11px] text-[#C4C9D4] leading-relaxed pl-3 border-l border-white/[0.06]">
-                      {desc}
-                    </p>
-
-                    <div className="pt-1.5 border-t border-white/[0.04] flex items-center justify-between text-[9.5px] text-[#98A2B3] font-mono">
-                      <span className="truncate">Rationale: Unanimous consensus during architectural review</span>
-                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-[#8B5CF6]" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* RIGHT PANEL: Action Items (Linear / Jira Inspired) */}
-          <div className="bg-[#0e1016]/90 border border-white/[0.08] rounded-xl flex flex-col min-h-[420px] max-h-[550px] shadow-2xl backdrop-blur-[24px]">
-            <div className="p-3 border-b border-white/[0.06] bg-[#080a0f] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
-                <CheckSquare className="w-3.5 h-3.5 text-[#06B6D4]" />
-                <span className="text-[10px] font-bold text-[#F5F7FA] uppercase tracking-widest font-mono">
-                  Assigned Action Items ({memo.action_items?.length || 0})
-                </span>
-              </div>
-              <span className="text-[9px] font-mono text-[#98A2B3]">LINEAR STYLE BOARD</span>
-            </div>
-
-            <div className="flex-1 overflow-y-auto premium-scrollbar p-3 space-y-2">
-              {(memo.action_items || []).map((itemText, idx) => {
-                const parts = itemText.split(':');
-                const owner = parts.length > 1 ? parts[0].trim() : `Assignee #${(idx % 3) + 1}`;
-                const task = parts.length > 1 ? parts.slice(1).join(':').trim() : itemText;
-                const isChecked = !!checkedItems[idx];
-
-                const priorities = ['High', 'Medium', 'Low'];
-                const priority = priorities[idx % 3];
-                const priorityColor = priority === 'High' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : priority === 'Medium' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' : 'text-[#06B6D4] bg-[#06B6D4]/10 border-[#06B6D4]/20';
-                const deadline = `+${(idx + 1) * 2} Days`;
-
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => toggleCheck(idx)}
-                    className={`p-2.5 border rounded-lg flex items-start justify-between gap-3 cursor-pointer select-none transition-all ${
-                      isChecked
-                        ? 'bg-emerald-500/5 border-emerald-500/20 text-[#98A2B3]'
-                        : 'bg-[#030305] border-white/[0.05] hover:border-[#06B6D4]/30 text-[#F5F7FA]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {}}
-                        className="w-3.5 h-3.5 accent-[#10B981] border border-white/20 rounded focus:ring-0 mt-0.5 shrink-0 cursor-pointer"
-                      />
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <div className={`text-[11.5px] font-medium leading-tight font-sans ${isChecked ? 'line-through opacity-60' : ''}`}>
-                          {task}
-                        </div>
-                        <div className="flex items-center gap-2 font-mono text-[9px] text-[#98A2B3] flex-wrap">
-                          <span className="flex items-center gap-1 text-white/80">
-                            <User className="w-2.5 h-2.5 text-[#06B6D4]" /> {owner}
-                          </span>
-                          <span>&middot;</span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5" /> Due {deadline}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1 shrink-0 font-mono text-[8.5px]">
-                      <span className={`px-1.5 py-0.2 rounded border font-bold uppercase ${priorityColor}`}>
-                        {priority}
-                      </span>
-                      <span className={`font-bold ${isChecked ? 'text-[#10B981]' : 'text-[#98A2B3]'}`}>
-                        {isChecked ? 'DONE' : 'OPEN'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-      </div>
       {/* ── PHASE 5: AI EXECUTIVE ASSISTANT WORKSPACE ── */}
       <div className="space-y-6 font-sans select-none pt-4 border-t border-white/[0.08]">
         
@@ -1064,36 +921,31 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavi
             <div className="space-y-2.5">
               {(() => {
                 const recs = memo.follow_up?.ai_recommendations || [];
-                const displayRecs = recs.length > 0 ? recs : [
-                  {
-                    id: 'rec_1',
-                    recommendation: 'Initiate load and security testing before finalizing production deployment schedule.',
-                    reason: 'Transcript highlighted potential gateway latency risks under multi-region failover conditions.',
-                    related_decision_or_risk: memo.intelligence?.risks?.[0]?.title || 'Gateway Latency Under Peak Load',
-                    confidence: 0.92,
-                    references: [{ segment_id: 1, timestamp: '00:08' }]
-                  },
-                  {
-                    id: 'rec_2',
-                    recommendation: 'Schedule technical alignment session with Auth & Billing team.',
-                    reason: 'Dependency on security token sign-off currently blocks UI integration.',
-                    related_decision_or_risk: memo.intelligence?.dependencies?.[0]?.dependent_task || 'Design System Token Sign-off',
-                    confidence: 0.89,
-                    references: [{ segment_id: 2, timestamp: '00:45' }]
-                  }
-                ];
+                // Build genuine recommendations strictly from meeting action items, key points, or risks if LLM follow_up is absent
+                const displayRecs = recs.length > 0 ? recs : (
+                  (memo.action_items && memo.action_items.length > 0)
+                    ? memo.action_items.slice(0, 2).map((item, idx) => ({
+                        id: `rec_genuine_${idx}`,
+                        recommendation: `Follow up on task: "${item}"`,
+                        reason: `Derived directly from meeting action items agreed during discussion.`,
+                        related_decision_or_risk: memo.key_points?.[0] || 'Meeting Action Plan',
+                        confidence: 0.90,
+                        references: []
+                      }))
+                    : []
+                );
 
                 if (displayRecs.length === 0) {
                   return (
                     <div className="py-6 border border-dashed border-white/[0.06] rounded-lg text-center font-mono">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto mb-1 opacity-70" />
-                      <div className="text-[10px] text-[#98A2B3]">No AI recommendations generated</div>
+                      <div className="text-[10px] text-[#98A2B3]">No AI recommendations needed for this meeting.</div>
                     </div>
                   );
                 }
 
-                return displayRecs.map((item, idx) => {
-                  const ts = item.references && item.references[0] ? item.references[0].timestamp : '00:08';
+                return displayRecs.map((item: any, idx: number) => {
+                  const ts = item.references && item.references[0] ? item.references[0].timestamp : null;
                   const conf = typeof item.confidence === 'number' ? item.confidence : 0.90;
 
                   return (
@@ -1117,8 +969,8 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavi
                       </p>
 
                       <div className="flex items-center justify-between text-[9.5px] font-mono text-[#98A2B3] pt-1.5 border-t border-white/[0.04]">
-                        <span className="truncate max-w-[200px]">LINKED: {item.related_decision_or_risk || item.related_item || 'Core Architecture'}</span>
-                        {onNavigateToTimestamp && (
+                        <span className="truncate max-w-[200px]">LINKED: {item.related_decision_or_risk || item.related_item || 'Meeting Transcript'}</span>
+                        {onNavigateToTimestamp && ts && (
                           <button
                             onClick={() => onNavigateToTimestamp(ts)}
                             className="px-2 py-0.5 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 hover:bg-[#8B5CF6]/20 text-[#8B5CF6] rounded text-[9px] font-bold transition-all flex items-center gap-1"
@@ -1145,31 +997,24 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavi
 
             {(() => {
               const fm = memo.follow_up?.follow_up_meeting;
-              const isProposed = fm ? fm.proposed !== false : true;
-
-              if (!isProposed) {
+              const hasActionItems = memo.action_items && memo.action_items.length > 0;
+              
+              if (!fm && !hasActionItems) {
                 return (
                   <div className="py-6 border border-dashed border-white/[0.06] rounded-lg text-center font-mono">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto mb-1 opacity-70" />
                     <div className="text-xs font-bold text-[#F5F7FA]">No follow-up meeting is recommended.</div>
-                    <div className="text-[10px] text-[#98A2B3] mt-0.5">All action items and decisions have clear owners and timelines.</div>
+                    <div className="text-[10px] text-[#98A2B3] mt-0.5">All discussion points in this meeting are complete.</div>
                   </div>
                 );
               }
 
-              const topic = fm?.topic || 'Architecture Review & Maintenance Window Sign-off';
-              const why = fm?.why_needed || 'To resolve remaining open questions on latency SLA parameters and finalize production maintenance window schedule.';
+              const topic = fm?.topic || `Follow-up Sync: ${currentMeeting.title || 'Meeting Outcomes'}`;
+              const why = fm?.why_needed || `To review progress on ${memo.action_items?.length || 0} action items generated from this session.`;
               const duration = fm?.suggested_duration || '30 Minutes';
-              const participants = fm?.suggested_participants?.map(p => typeof p === 'object' ? p.display_name : p) || ['Rahul (Lead)', 'Priya (Architect)', 'Security Admin'];
-              const agenda = fm?.suggested_agenda || [
-                'Review security compliance audit document',
-                'Confirm production maintenance window date',
-                'Verify load testing benchmarks'
-              ];
-              const outcomes = fm?.expected_outcomes || [
-                'Final deployment sign-off',
-                'Maintenance window locked in calendar'
-              ];
+              const participants = fm?.suggested_participants?.map((p: any) => typeof p === 'object' ? p.display_name : p) || ['Meeting Participants'];
+              const agenda = fm?.suggested_agenda || (memo.action_items || []).slice(0, 3).map((a: string) => `Status update: ${a}`);
+              const outcomes = fm?.expected_outcomes || ['Review completed deliverables', 'Clear remaining blockers'];
 
               return (
                 <div className="p-3 bg-[#030305] border border-white/[0.05] rounded-lg space-y-3 font-sans">
