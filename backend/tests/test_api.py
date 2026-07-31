@@ -4,14 +4,16 @@ from fastapi.testclient import TestClient
 from src.app import app
 from src.services.database.db import SessionLocal, DBSetting, DBMeeting
 
+from unittest.mock import patch
+
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
-def mock_qa_engine(mocker):
+def mock_qa_engine(monkeypatch):
     # Mock AnswerExtractor loading
     from src.services.qa.answerer import AnswerExtractor
-    mocker.patch.object(AnswerExtractor, 'load_model', return_value=True)
-    mocker.patch.object(AnswerExtractor, 'extract_answer', return_value={
+    monkeypatch.setattr(AnswerExtractor, 'load_model', lambda self: True)
+    monkeypatch.setattr(AnswerExtractor, 'extract_answer', lambda self, context, question: {
         "answer": "Mocked Q&A Answer couldn't find evidence in transcript.",
         "confidence": 0.95,
         "start": 0.0,
@@ -20,7 +22,7 @@ def mock_qa_engine(mocker):
     
     # Mock MemoGenerator summarization loading
     from src.services.intelligence.meeting_analyzer import MeetingAnalyzer
-    mocker.patch.object(MeetingAnalyzer, 'analyze', return_value={
+    monkeypatch.setattr(MeetingAnalyzer, 'analyze', lambda self, transcript, title=None: {
         "action_items": [],
         "decisions": [],
         "risks": [],

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 
 class WordTimestampSchema(BaseModel):
@@ -8,6 +8,8 @@ class WordTimestampSchema(BaseModel):
     probability: float
 
 class TranscriptSegmentSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     meeting_id: str
     start: Optional[str] = None
@@ -20,10 +22,9 @@ class TranscriptSegmentSchema(BaseModel):
     speaker_confidence: Optional[float] = 1.0
     metadata: Optional[Dict[str, Any]] = {}
 
-    class Config:
-        from_attributes = True
-
 class MemoSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     meeting_id: str
     summary: str = ""
     action_items: List[str] = []
@@ -33,10 +34,9 @@ class MemoSchema(BaseModel):
     generated_at: str = ""
     confidence: float = 1.0
 
-    class Config:
-        from_attributes = True
-
 class QAHistorySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     meeting_id: str
     question: str
@@ -46,9 +46,6 @@ class QAHistorySchema(BaseModel):
     was_helpful: Optional[int] = None
     source_snippet: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 class QAHistoryCreate(BaseModel):
     question: str
 
@@ -56,6 +53,8 @@ class QAFeedbackSchema(BaseModel):
     was_helpful: Optional[bool] = None
 
 class MeetingResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     meeting_id: str
     title: str
     date: str
@@ -65,9 +64,6 @@ class MeetingResponse(BaseModel):
     transcript: Optional[List[TranscriptSegmentSchema]] = []
     memo: Optional[MemoSchema] = None
     qa_history: Optional[List[QAHistorySchema]] = []
-
-    class Config:
-        from_attributes = True
 
 class MeetingTitleUpdate(BaseModel):
     title: str

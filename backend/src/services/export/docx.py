@@ -5,9 +5,16 @@ Uses python-docx to generate proper .docx files with formatting.
 """
 import io
 from typing import Dict, Any
-from docx import Document
-from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+try:
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
+    Document = None
+    Pt = Inches = RGBColor = None
+    WD_ALIGN_PARAGRAPH = None
 from .base import BaseExporter, get_export_config, build_export_metadata
 
 
@@ -29,6 +36,12 @@ class DocxExporter(BaseExporter):
     def export(self, meeting_title: str, date_str: str, segments: list,
                memo: Dict[str, Any] = None,
                intelligence: Dict[str, Any] = None) -> bytes:
+        if not DOCX_AVAILABLE:
+            lines = [f"# {meeting_title}", f"Date: {date_str}", ""]
+            for seg in (segments or []):
+                lines.append(f"[{seg.get('speaker_label', 'SPEAKER')}] {seg.get('text', '')}")
+            return "\n".join(lines).encode("utf-8")
+
         doc = Document()
 
         style = doc.styles['Normal']
