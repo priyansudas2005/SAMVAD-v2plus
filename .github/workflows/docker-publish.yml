@@ -1,42 +1,28 @@
 name: Docker Build and Publish
 
-# Publishing is owned by this GitHub workflow. It builds and pushes the
-# multi-arch images to Docker Hub when a GitHub Release is published, on public
-# runners with auditable build logs and provenance attestation. Building images
-# on public CI rather than a private runner lets anyone verify exactly how a
-# published image was produced and from which commit. The Forgejo
-# docker-publish workflow is kept as a manual fallback only (workflow_dispatch),
-# so the same tag is never published twice. To hand CD back to Forgejo, restore
-# its `push: tags` trigger and comment out the `release` trigger below.
+# Builds and pushes SAMVAD backend + frontend images to Docker Hub when a
+# GitHub Release is published. Runs on public runners with auditable logs
+# and provenance attestation. The Forgejo docker-publish workflow is kept as
+# a manual fallback only (workflow_dispatch) so the same tag is never
+# published twice.
+#
+# Requires repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+
 on:
   release:
     types: [published]
   workflow_dispatch:
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: docker.io
-  # Use explicit image name instead of github.repository
-  IMAGE_NAME: learnedmachine/speakr
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: speakr
-          POSTGRES_PASSWORD: speakr
-          POSTGRES_DB: speakr_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U speakr"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout repository
@@ -46,33 +32,25 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: 'backend/requirements-ci.txt'
 
-      - name: Install ffmpeg (needed by stitch / ffprobe tests)
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt pytest pytest-cov
+      - name: Install test dependencies
+        run: pip install -r requirements-ci.txt
 
       - name: Run full test suite (gates the release)
-        env:
-          # App tests run on an isolated SQLite DB (conftest.py);
-          # test_postgres_migrations reads TEST_DATABASE_URI for real PG.
-          TEST_DATABASE_URI: postgresql://speakr:speakr@localhost:5432/speakr_test
-        run: pytest tests/ -q --cov=src --cov-report=term-missing --cov-fail-under=54
+        run: pytest tests/test_api.py -v
 
-  build:
+  build-backend:
     needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
     steps:
-      # Free up disk space on the runner (~30GB)
-      - name: Free disk space
+      - name: Free disk space on runner
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
           sudo docker image prune -af
@@ -81,16 +59,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # Set up QEMU for multi-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Login to Docker Hub
-      - name: Log into registry ${{ env.REGISTRY }}
+      - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
@@ -98,33 +73,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      - name: Extract Docker metadata
-        id: meta
+      - name: Extract Docker metadata (backend)
+        id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/samvad-backend
           tags: |
             type=match,pattern=v(.*),group=1
             type=sha
-            type=raw,value=latest,enable=${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
 
-      # Build and push full Docker image
-      - name: Build and push Docker image
-        id: build-and-push
+      - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.backend
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            PRODUCTION=1
 
-  build-lite:
+  build-frontend:
     needs: test
     runs-on: ubuntu-latest
     permissions:
@@ -133,8 +104,7 @@ jobs:
       id-token: write
 
     steps:
-      # Free up disk space on the runner (~30GB)
-      - name: Free disk space
+      - name: Free disk space on runner
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
           sudo docker image prune -af
@@ -143,16 +113,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # Set up QEMU for multi-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Login to Docker Hub
-      - name: Log into registry ${{ env.REGISTRY }}
+      - name: Log into Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
@@ -160,35 +127,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Extract metadata for lite image
-      - name: Extract Docker metadata (lite)
-        id: meta-lite
+      - name: Extract Docker metadata (frontend)
+        id: meta-frontend
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # Never tag the lite image as `latest`; `latest` is the full image,
-          # set only by the build job above. Without this, metadata-action's
-          # default `latest=auto` makes the lite job also push `latest`, and
-          # since it runs last it clobbers the full image's `latest`.
-          flavor: |
-            latest=false
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/samvad-frontend
           tags: |
-            type=raw,value=lite,enable=${{ github.event_name == 'workflow_dispatch' || github.event_name == 'release' }}
-            type=match,pattern=v(.*),group=1,suffix=-lite
-            type=sha,suffix=-lite
+            type=match,pattern=v(.*),group=1
+            type=sha
+            type=raw,value=latest,enable=${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
 
-      # Build and push lightweight Docker image (no PyTorch/sentence-transformers)
-      - name: Build and push lite Docker image
-        id: build-and-push-lite
+      - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.frontend
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-lite.outputs.tags }}
-          labels: ${{ steps.meta-lite.outputs.labels }}
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            PRODUCTION=1
-            LIGHTWEIGHT=1

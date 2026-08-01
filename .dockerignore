@@ -25,13 +25,13 @@ logs/
 
 # Models (downloaded at runtime, persisted in volumes)
 models/
+backend/models/
 
 # Non-runtime directories
 docs/
 site/
 plan/
 scratch/
-deployment/
 .forgejo/
 .github/
 .claude/

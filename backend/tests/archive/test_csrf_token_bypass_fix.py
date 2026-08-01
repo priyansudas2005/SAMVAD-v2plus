@@ -440,7 +440,6 @@ def test_api_v1_post_with_query_string_token_still_works():
                 f'/api/v1/* POST with ?token= regressed; got {resp.status_code}: {resp.data!r}'
             )
             # 404 is acceptable here if the endpoint requires more
-            # setup than we have (e.g. completed transcript); what we
             # really care about is that it is NOT a 400 CSRF rejection.
             assert resp.status_code != 400
 

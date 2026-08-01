@@ -25,7 +25,8 @@ class STTConfig:
         # Generation/Beam search settings
         self.beam_size: int = int(stt.get("beam_size", 5))
         self.best_of: int = int(stt.get("best_of", 5))
-        self.temperature: List[float] = stt.get("temperature", [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        temp_val = stt.get("temperature", [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        self.temperature = [temp_val] if isinstance(temp_val, (int, float)) else temp_val
         self.word_timestamps: bool = bool(stt.get("word_timestamps", True))
         self.condition_on_previous_text: bool = bool(stt.get("condition_on_previous_text", True))
         self.initial_prompt: Optional[str] = stt.get("initial_prompt", None)
