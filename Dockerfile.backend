@@ -30,14 +30,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY backend/requirements.txt ./
 
-# Install only production runtime packages; skip test/lint/dev tools.
-# --no-cache-dir keeps the image lean by not persisting the pip wheel cache.
+# Install PyTorch CPU-only binaries first (avoids downloading ~2.5GB CUDA bloat)
+RUN pip install --no-cache-dir \
+        torch torchaudio \
+        --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining production runtime packages; skip test/lint/dev tools.
 RUN pip install --no-cache-dir \
         $(grep -v '^\s*#' requirements.txt | \
-          grep -v -e 'pytest' -e 'pytest-cov' -e 'pytest-mock' \
+          grep -v -e 'torch' -e 'torchaudio' -e 'pytest' -e 'pytest-cov' -e 'pytest-mock' \
                   -e 'httpx' -e 'black' -e 'flake8' -e 'isort') \
     && apt-get purge -y --auto-remove gcc g++ \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && find /usr/local/lib/python3.11/site-packages -type d \( -name "tests" -o -name "testing" \) -exec rm -rf {} + 2>/dev/null || true
 
 # ── Application code ─────────────────────────────────────────────────────────
 # Copied AFTER dependency install so that code edits don't invalidate the
