@@ -101,3 +101,4 @@ SAMVADv2/
 ## 🔒 Security & Privacy
 
 All processing runs 100% offline on your local machine. No audio streams, transcripts, summary memos, or Q&A interaction histories leave your system.
+ 
