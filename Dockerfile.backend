@@ -91,3 +91,4 @@ CMD ["uvicorn", "src.app:app", \
      "--port", "8000", \
      "--workers", "1", \
      "--timeout-keep-alive", "600"]
+

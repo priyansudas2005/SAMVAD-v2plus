@@ -145,3 +145,4 @@ volumes:
     # Whisper / diarization model weights (downloaded on first run)
   samvad-logs:
     # Application log files
+

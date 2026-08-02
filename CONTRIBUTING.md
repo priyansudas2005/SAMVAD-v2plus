@@ -74,3 +74,4 @@ Before submitting a Pull Request, please ensure all automated tests pass:
 2. Keep commits concise and write clear commit messages.
 3. Ensure no hardcoded credentials, secret keys, or large audio/model binary files are committed.
 4. Verify that both backend tests (`pytest`) and frontend builds (`npm run build`) pass cleanly.
+

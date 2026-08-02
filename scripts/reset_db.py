@@ -127,3 +127,4 @@ if __name__ == "__main__":
     print("Attempting to reset the database and clean up all data...")
     reset_database(delete_uploads=True)
     print("Database reset process finished.")
+
