@@ -65,7 +65,15 @@
 
 ## 🏗️ System Architecture & Dataflow
 
-### 📐 High-Level Component Diagram
+### 📐 High-Level Component Topology
+
+<p align="center">
+  <img src="docs/assets/architecture.svg" alt="SAMVAD v2.0 Architecture Diagram" width="100%" />
+</p>
+
+<details>
+<summary><b>View Mermaid Code Diagram</b></summary>
+<br/>
 
 ```mermaid
 graph TD
@@ -106,12 +114,13 @@ graph TD
     RAG --> DB
     API --> REC
 ```
+</details>
 
 <br/>
 
-### 🔄 End-to-End Methodology
+### 🔄 End-to-End Processing Methodology
 
-<p center>
+<p align="center">
   <img src="docs/assets/methodology.svg" alt="SAMVAD Methodology Pipeline" width="100%" />
 </p>
 
