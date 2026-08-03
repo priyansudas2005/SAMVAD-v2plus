@@ -465,9 +465,18 @@ class StatsEngine:
         product_list = []
         all_keywords = []
 
-        seen_entities = set()
-        if not isinstance(entities, dict):
-            entities = {}
+        # If DBMeetingIntelligence has no entities, pull directly from segment-level entity extractions
+        if not entities:
+            seg_ents = defaultdict(list)
+            for seg in segments:
+                for e in seg.get("entities", []):
+                    if isinstance(e, dict):
+                        etype = e.get("type", "ENT")
+                        etext = e.get("text", "")
+                        if etext:
+                            seg_ents[etype].append(etext)
+            entities = dict(seg_ents)
+
         for etype, elist in entities.items():
             if isinstance(elist, list):
                 for e in elist:
@@ -482,11 +491,11 @@ class StatsEngine:
                     seen_entities.add(name.lower())
                     ent = {"name": name, "type": etype.lower(), "frequency": freq}
                     etype_lower = etype.lower()
-                    if etype_lower == "person":
+                    if etype_lower in ("person", "people"):
                         people_list.append(ent)
                     elif etype_lower in ("org", "organization"):
                         org_list.append(ent)
-                    elif etype_lower == "technology":
+                    elif etype_lower in ("technology", "tech"):
                         tech_list.append(ent)
                     elif etype_lower == "date":
                         date_list.append(ent)
