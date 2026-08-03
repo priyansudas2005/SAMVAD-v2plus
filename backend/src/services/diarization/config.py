@@ -19,7 +19,7 @@ class DiarizationConfig:
         self.enabled: bool = bool(diar.get("enabled", True))
         self.min_speakers: int = int(diar.get("min_speakers", 1))
         self.max_speakers: int = int(diar.get("max_speakers", 8))
-        self.clustering_threshold: float = float(diar.get("clustering_threshold", 0.5))
+        self.clustering_threshold: float = float(diar.get("clustering_threshold", 0.28))
         self.similarity_threshold: float = float(diar.get("similarity_threshold", 0.7))
         self.embedding_model: str = diar.get("embedding_model", "speechbrain")
         
