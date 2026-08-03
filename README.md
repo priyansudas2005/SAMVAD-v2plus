@@ -9,8 +9,8 @@
 
 ---
 
-<p center>
-  <img src="docs/assets/cover.svg" alt="SAMVAD v2.0 Cover Banner" width="100%" />
+<p align="center">
+  <img src="https://raw.githubusercontent.com/priyansudas2005/SAMVAD-v2plus/feature/ui-redesign/docs/assets/cover.svg" alt="SAMVAD v2.0 Cover Banner" width="100%" />
 </p>
 
 > 🔒 **100% Private & Offline.** Processing speech, generating executive memos, performing speaker diarization, and running RAG Q&A locally on consumer hardware without sending data to the cloud.
@@ -29,7 +29,7 @@
 - [🔌 REST & WebSocket API Documentation](#-rest--websocket-api-documentation)
 - [🔒 Security & Privacy Hardening](#-security--privacy-hardening)
 - [❓ Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
-- [🛠️ Troubleshooting Guide](#️-troubleshooting-guide)
+- [🛠️ Troubleshooting Guide](#-troubleshooting-guide)
 - [📜 Roadmap & Governance](#-roadmap--governance)
 
 ---
@@ -68,7 +68,7 @@
 ### 📐 High-Level Component Topology
 
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="SAMVAD v2.0 Architecture Diagram" width="100%" />
+  <img src="https://raw.githubusercontent.com/priyansudas2005/SAMVAD-v2plus/feature/ui-redesign/docs/assets/architecture.svg" alt="SAMVAD v2.0 Architecture Diagram" width="100%" />
 </p>
 
 <details>
@@ -121,7 +121,7 @@ graph TD
 ### 🔄 End-to-End Processing Methodology
 
 <p align="center">
-  <img src="docs/assets/methodology.svg" alt="SAMVAD Methodology Pipeline" width="100%" />
+  <img src="https://raw.githubusercontent.com/priyansudas2005/SAMVAD-v2plus/feature/ui-redesign/docs/assets/methodology.svg" alt="SAMVAD Methodology Pipeline" width="100%" />
 </p>
 
 ---
