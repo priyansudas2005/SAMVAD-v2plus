@@ -67,8 +67,10 @@
 
 ### 📐 High-Level Component Topology
 
+### 📐 High-Level Component Topology
+
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="SAMVAD v2.0 Architecture Diagram" width="100%" />
+  <img src="docs/assets/architecture.svg" alt="SAMVAD v2.0 Architecture Diagram" width="100%" style="min-height: 480px; max-width: 100%;" />
 </p>
 
 <details>
@@ -121,7 +123,7 @@ graph TD
 ### 🔄 End-to-End Processing Methodology
 
 <p align="center">
-  <img src="docs/assets/methodology.svg" alt="SAMVAD Methodology Pipeline" width="100%" />
+  <img src="docs/assets/methodology.svg" alt="SAMVAD Methodology Pipeline" width="100%" style="min-height: 550px; max-width: 100%;" />
 </p>
 
 ---
