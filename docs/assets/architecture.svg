@@ -1,5 +1,25 @@
 <svg width="1000" height="520" viewBox="0 0 1000 520" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <style>
+      @keyframes dashFlow {
+        to { stroke-dashoffset: -24; }
+      }
+      @keyframes pulseNode {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(56,189,248,0.3)); }
+        50% { transform: scale(1.02); filter: drop-shadow(0 0 12px rgba(56,189,248,0.7)); }
+      }
+      @keyframes pulsePurpleNode {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(139,92,246,0.3)); }
+        50% { transform: scale(1.02); filter: drop-shadow(0 0 14px rgba(139,92,246,0.7)); }
+      }
+
+      .flow-cyan { stroke-dasharray: 8 6; animation: dashFlow 1.5s linear infinite; }
+      .flow-purple { stroke-dasharray: 8 6; animation: dashFlow 1.8s linear infinite; }
+      .node-1 { animation: pulseNode 4s ease-in-out infinite; transform-origin: 135px 180px; }
+      .node-2 { animation: pulsePurpleNode 3.5s ease-in-out infinite; transform-origin: 500px 180px; }
+      .node-3 { animation: pulseNode 4.5s ease-in-out infinite; transform-origin: 865px 180px; }
+    </style>
+
     <radialGradient id="bgGlow" cx="50%" cy="50%" r="70%">
       <stop offset="0%" stop-color="#0F172A" />
       <stop offset="100%" stop-color="#020617" />
@@ -29,12 +49,12 @@
   <rect width="1000" height="520" rx="16" fill="url(#bgGlow)" />
   <rect width="998" height="518" x="1" y="1" rx="15" fill="none" stroke="#1E293B" stroke-width="2" />
 
-  <!-- Flow Arrows / Connectors -->
-  <path d="M 230 180 L 330 180 M 670 180 L 770 180" stroke="url(#cyanLine)" stroke-width="3" stroke-dasharray="6 6" />
-  <path d="M 500 240 L 500 320" stroke="url(#purpleLine)" stroke-width="3" stroke-dasharray="6 6" />
+  <!-- Animated Flow Connectors -->
+  <path class="flow-cyan" d="M 230 180 L 330 180 M 670 180 L 770 180" stroke="url(#cyanLine)" stroke-width="3.5" />
+  <path class="flow-purple" d="M 500 280 L 500 320" stroke="url(#purpleLine)" stroke-width="3.5" />
 
   <!-- Node 1: Capture -->
-  <g transform="translate(40, 100)" filter="url(#shadow)">
+  <g class="node-1" transform="translate(40, 100)" filter="url(#shadow)">
     <rect width="190" height="160" rx="12" fill="url(#cardBg)" stroke="#38BDF8" stroke-width="1.5" />
     <text x="20" y="38" font-family="-apple-system, sans-serif" font-size="24">🎙️</text>
     <text x="56" y="36" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">Audio Capture</text>
@@ -45,7 +65,7 @@
   </g>
 
   <!-- Node 2: Processing Engine -->
-  <g transform="translate(330, 80)" filter="url(#shadow)">
+  <g class="node-2" transform="translate(330, 80)" filter="url(#shadow)">
     <rect width="340" height="200" rx="12" fill="url(#cardBg)" stroke="#8B5CF6" stroke-width="2" />
     <text x="24" y="38" font-family="-apple-system, sans-serif" font-size="24">⚡</text>
     <text x="60" y="36" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#F8FAFC">SAMVAD Python Core Engine</text>
@@ -66,7 +86,7 @@
   </g>
 
   <!-- Node 3: Intelligence & RAG -->
-  <g transform="translate(770, 100)" filter="url(#shadow)">
+  <g class="node-3" transform="translate(770, 100)" filter="url(#shadow)">
     <rect width="190" height="160" rx="12" fill="url(#cardBg)" stroke="#EC4899" stroke-width="1.5" />
     <text x="20" y="38" font-family="-apple-system, sans-serif" font-size="24">🔮</text>
     <text x="56" y="36" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">AI Intelligence</text>
@@ -76,7 +96,7 @@
     <text x="20" y="130" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Confidence Scoring</text>
   </g>
 
-  <!-- Node 4: Storage & Exports (Bottom) -->
+  <!-- Node 4: Storage & Exports -->
   <g transform="translate(250, 320)" filter="url(#shadow)">
     <rect width="500" height="150" rx="12" fill="url(#cardBg)" stroke="#10B981" stroke-width="1.5" />
     <text x="24" y="38" font-family="-apple-system, sans-serif" font-size="24">💾</text>
