@@ -1,4 +1,4 @@
-# <img src="frontend/public/samvad_logo.svg" width="36" height="36" vertical-align="middle" /> SAMVAD v2.0 — Secure Offline AI Meeting Intelligence Platform
+# <div align="left" style="display: flex; align-items: center; gap: 12px;"><img src="frontend/public/samvad_logo.svg" width="44" height="44" style="vertical-align: middle; margin-bottom: 4px;" /> <span>SAMVAD v2.0 — Secure Offline AI Meeting Intelligence Platform</span></div>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
