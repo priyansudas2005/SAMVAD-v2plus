@@ -1199,9 +1199,42 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                   {openSections.entities && (
                     <div className="p-3 bg-black/20 space-y-2">
                       <div className="flex flex-wrap gap-1">
-                        <span className="px-1.5 py-0.5 bg-[#06B6D4]/10 border border-[#06B6D4]/20 text-[#06B6D4] rounded text-[8px] font-mono font-bold">ORG: BBC LEARNING</span>
-                        <span className="px-1.5 py-0.5 bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] rounded text-[8px] font-mono font-bold">ORG: SAMVAD STUDIO</span>
-                        <span className="px-1.5 py-0.5 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] rounded text-[8px] font-mono font-bold">PEOPLE: GEORGIE</span>
+                        {(() => {
+                          const allEnts: { type: string; text: string }[] = [];
+                          if ((currentMeeting as any).entities && Array.isArray((currentMeeting as any).entities)) {
+                            allEnts.push(...(currentMeeting as any).entities);
+                          }
+                          currentMeeting.transcript?.forEach(seg => {
+                            if (seg.metadata?.entities) {
+                              seg.metadata.entities.forEach((e: any) => {
+                                if (typeof e === 'string') allEnts.push({ type: 'ENT', text: e });
+                                else if (e.text) allEnts.push({ type: e.type || 'ENT', text: e.text });
+                              });
+                            }
+                          });
+                          const uniqueEnts = Array.from(new Set(allEnts.map(e => `${e.type}:${e.text}`)))
+                            .map(str => {
+                              const [type, ...rest] = str.split(':');
+                              return { type, text: rest.join(':') };
+                            });
+
+                          if (uniqueEnts.length === 0) {
+                            return <div className="text-[8.5px] text-slate-500 font-mono italic">No entities detected in meeting audio.</div>;
+                          }
+
+                          return uniqueEnts.map((ent, i) => {
+                            const isOrg = ent.type === 'ORGANIZATION' || ent.type === 'ORG';
+                            const isPerson = ent.type === 'PERSON' || ent.type === 'PEOPLE';
+                            const badgeColor = isOrg ? 'text-[#06B6D4] bg-[#06B6D4]/10 border-[#06B6D4]/20'
+                              : isPerson ? 'text-[#8B5CF6] bg-[#8B5CF6]/10 border-[#8B5CF6]/20'
+                              : 'text-[#10B981] bg-[#10B981]/10 border-[#10B981]/20';
+                            return (
+                              <span key={i} className={`px-1.5 py-0.5 border rounded text-[8px] font-mono font-bold uppercase ${badgeColor}`}>
+                                {ent.type}: {ent.text}
+                              </span>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   )}
@@ -1219,15 +1252,30 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                   {openSections.keywords && (
                     <div className="p-3 bg-black/20">
                       <div className="flex flex-wrap gap-1">
-                        {['#offline', '#whisper', '#studio', '#transcription', '#accuracy', '#meeting'].map((kw, i) => (
-                          <button 
-                            key={i} 
-                            onClick={() => setSearchQuery(kw.replace('#', ''))}
-                            className="px-1.5 py-0.5 bg-[#030305] border border-white/[0.04] rounded hover:border-[#8B5CF6]/30 text-[9px] text-[#98A2B3] hover:text-[#F5F7FA] desktop-hover-transition font-mono"
-                          >
-                            {kw}
-                          </button>
-                        ))}
+                        {(() => {
+                          const kwSet = new Set<string>();
+                          currentMeeting.transcript?.forEach(seg => {
+                            if (seg.metadata?.keywords) {
+                              seg.metadata.keywords.forEach((k: any) => {
+                                const word = typeof k === 'string' ? k : k.keyword;
+                                if (word) kwSet.add(word.toLowerCase());
+                              });
+                            }
+                          });
+                          const kws = Array.from(kwSet).slice(0, 15);
+                          if (kws.length === 0) {
+                            return <div className="text-[8.5px] text-slate-500 font-mono italic">No keywords extracted.</div>;
+                          }
+                          return kws.map((kw, i) => (
+                            <button 
+                              key={i} 
+                              onClick={() => setSearchQuery(kw)}
+                              className="px-1.5 py-0.5 bg-[#030305] border border-white/[0.04] rounded hover:border-[#8B5CF6]/30 text-[9px] text-[#98A2B3] hover:text-[#F5F7FA] desktop-hover-transition font-mono"
+                            >
+                              #{kw}
+                            </button>
+                          ));
+                        })()}
                       </div>
                     </div>
                   )}
@@ -1284,11 +1332,17 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                     <div className="p-3 bg-black/20 text-[9.5px] text-[#98A2B3] leading-relaxed font-sans space-y-2">
                       <div className="flex gap-1.5 items-start">
                         <span className="text-[#8B5CF6]">■</span>
-                        <span>Diarization matches Speaker 1 turns correctly throughout the conversation stream.</span>
+                        <span>
+                          Diarization identified {detectedSpeakers.length} speaker{detectedSpeakers.length > 1 ? 's' : ''} across {currentMeeting.transcript?.length || 0} transcript dialogue turns.
+                        </span>
                       </div>
                       <div className="flex gap-1.5 items-start">
                         <span className="text-[#8B5CF6]">■</span>
-                        <span>Key action items extracted offline using local llama-based parameters successfully.</span>
+                        <span>
+                          {currentMeeting.summary?.overview?.executive_summary
+                            ? 'Executive meeting memo and action items compiled locally.'
+                            : 'Audio processed via Faster-Whisper ASR engine.'}
+                        </span>
                       </div>
                     </div>
                   )}

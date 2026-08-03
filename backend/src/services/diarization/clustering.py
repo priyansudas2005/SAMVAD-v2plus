@@ -75,7 +75,7 @@ class SpeakerClustering:
                         best_pair = (id_a, id_b)
 
             # Stop merging if distance threshold is crossed or max clusters met
-            threshold = getattr(self.config, 'clustering_threshold', 0.45)
+            threshold = getattr(self.config, 'clustering_threshold', 0.28)
             if min_dist > threshold or best_pair == (-1, -1) or active_clusters <= self.config.min_speakers:
                 break
                 
