@@ -111,12 +111,8 @@
     <circle cx="0" cy="0" r="110" fill="#000000" opacity="0.5" filter="url(#glow)" />
     <circle class="pulse-bg" cx="0" cy="0" r="95" fill="url(#badgeGrad)" opacity="0.3" filter="url(#glow)" />
 
-    <!-- Machined Metal Outer Ring (Rotating Knurl Pattern) -->
+    <!-- Machined Metal Outer Ring -->
     <circle cx="0" cy="0" r="90" fill="url(#metalRing)" />
-    <g class="rotate-ring" opacity="0.3" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="4 8">
-      <circle cx="0" cy="0" r="86" fill="none" />
-    </g>
-
     <circle cx="0" cy="0" r="82" fill="#020617" />
 
     <!-- Inner Metallic Bevel -->
