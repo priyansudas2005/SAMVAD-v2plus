@@ -1,0 +1,263 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" width="100%"
+     preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="SAMVAD V2+ Audio Intelligence &amp; Speaker Diarization Signal Flow Pipeline">
+  <title>SAMVAD V2+ Signal Flow Pipeline</title>
+  <defs>
+    <!-- Soft &amp; Intense Neon Glow Filters -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="aurora" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+
+    <!-- Deep Ambient Aurora Gradients -->
+    <radialGradient id="auWarm" cx="30%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#00F2FE" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#00F2FE" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="auEmber" cx="70%" cy="70%" r="60%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="auAmber" cx="50%" cy="20%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Node Gradient Fills -->
+    <linearGradient id="primary-node-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <!-- Outer Card Border Gradient for GitHub Light/Dark Mode Contrast -->
+    <linearGradient id="canvas-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(0, 242, 254, 0.4)"/>
+      <stop offset="50%" stop-color="rgba(59, 130, 246, 0.2)"/>
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.1)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Canvas Base -->
+  <rect x="2" y="2" width="1596" height="496" rx="16" fill="#070C18" stroke="url(#canvas-border)" stroke-width="1.5"/>
+
+  <!-- Ambient Background Aurora -->
+  <g filter="url(#aurora)" opacity="0.85">
+    <ellipse cx="300" cy="200" rx="350" ry="200" fill="url(#auWarm)">
+      <animateTransform attributeName="transform" type="translate" values="0 0;40 20;0 0" dur="20s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="1300" cy="350" rx="360" ry="200" fill="url(#auEmber)">
+      <animateTransform attributeName="transform" type="translate" values="0 0;-35 -15;0 0" dur="25s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="800" cy="120" rx="300" ry="150" fill="url(#auAmber)">
+      <animateTransform attributeName="transform" type="translate" values="0 0;25 25;0 0" dur="22s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+
+  <!-- Header Title -->
+  <g transform="translate(60, 55)">
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#64748B" letter-spacing="2.2">SAMVAD V2+ · AUDIO INTELLIGENCE &amp; DIARIZATION PIPELINE</text>
+  </g>
+
+  <!-- PIPELINE CONNECTING PATHS -->
+  <!-- 1. Meeting Audio -> Speech Recognition -->
+  <path d="M250,250 L340,250" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M250,250 L340,250" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+  
+  <!-- 2. Speech Recognition -> Speaker Diarization -->
+  <path d="M540,250 L630,250" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M540,250 L630,250" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+  
+  <!-- 3. Speaker Diarization -> Transcript -->
+  <path d="M850,250 L940,250" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M850,250 L940,250" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+
+  <!-- 4. Transcript Fan-out to 4 Destinations -->
+  <path d="M1120,250 C1170,250 1170,100 1220,100" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M1120,250 C1170,250 1170,100 1220,100" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+
+  <path d="M1120,250 C1170,250 1170,200 1220,200" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M1120,250 C1170,250 1170,200 1220,200" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+
+  <path d="M1120,250 C1170,250 1170,300 1220,300" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M1120,250 C1170,250 1170,300 1220,300" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+
+  <path d="M1120,250 C1170,250 1170,400 1220,400" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M1120,250 C1170,250 1170,400 1220,400" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6"/>
+
+
+  <!-- PIPELINE NODES WITH IDENTICAL STYLING &amp; SEQUENTIAL ANIMATION -->
+
+  <!-- NODE 1: Meeting Audio -->
+  <g>
+    <rect x="60" y="215" width="190" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="60" y="215" width="190" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.00;0.05;0.18;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Mic Icon -->
+    <g transform="translate(78, 235)" fill="#00F2FE">
+      <rect x="7" y="2" width="6" height="12" rx="3"/>
+      <path d="M4 11 C4 14.3 6.7 17 10 17 C13.3 17 16 14.3 16 11" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round"/>
+      <line x1="10" y1="17" x2="10" y2="21" stroke="#00F2FE" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <text x="110" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Meeting Audio</text>
+    <text x="110" y="266" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">stream input</text>
+  </g>
+
+  <!-- NODE 2: Speech Recognition -->
+  <g>
+    <rect x="340" y="215" width="200" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="340" y="215" width="200" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.18;0.23;0.36;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Waveform Icon -->
+    <g transform="translate(356, 236)" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" fill="none">
+      <path d="M2 14 L6 8 L10 20 L14 4 L18 22 L22 14"/>
+    </g>
+    <text x="390" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Speech Rec.</text>
+    <text x="390" y="266" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">whisper v3 turbo</text>
+  </g>
+
+  <!-- NODE 3: Speaker Diarization (EXACT MATCH ANIMATION) -->
+  <g>
+    <rect x="630" y="215" width="220" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="630" y="215" width="220" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.36;0.41;0.54;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Multi-User / Diarization Icon -->
+    <g transform="translate(648, 235)" fill="none" stroke="#00F2FE" stroke-width="2" stroke-linecap="round">
+      <circle cx="8" cy="8" r="4"/>
+      <path d="M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20"/>
+      <circle cx="20" cy="8" r="3" stroke="#3B82F6"/>
+      <path d="M16 18 C16 15 18 13.5 20 13.5" stroke="#3B82F6"/>
+    </g>
+    <text x="686" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Speaker Diarization</text>
+    <text x="686" y="266" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">who spoke when</text>
+  </g>
+
+  <!-- NODE 4: Transcript -->
+  <g>
+    <rect x="940" y="215" width="180" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="940" y="215" width="180" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.54;0.59;0.72;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Document Icon -->
+    <g transform="translate(958, 237)" stroke="#00F2FE" stroke-width="2" stroke-linecap="round" fill="none">
+      <path d="M4 2 H14 L20 8 V22 H4 Z"/>
+      <line x1="8" y1="12" x2="16" y2="12"/>
+      <line x1="8" y1="16" x2="14" y2="16"/>
+    </g>
+    <text x="990" y="246" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Transcript</text>
+    <text x="990" y="266" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">speaker tagged</text>
+  </g>
+
+  <!-- DESTINATION NODES -->
+  
+  <!-- Output 1: Summary -->
+  <g>
+    <rect x="1220" y="65" width="170" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="1220" y="65" width="170" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.72;0.77;0.90;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Sparkle / AI Icon -->
+    <g transform="translate(1238, 87)" fill="#00F2FE">
+      <path d="M10 2 L12 7 L17 9 L12 11 L10 16 L8 11 L3 9 L8 7 Z"/>
+    </g>
+    <text x="1268" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Summary</text>
+    <text x="1268" y="116" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">ai overview</text>
+  </g>
+
+  <!-- Output 2: Chat -->
+  <g>
+    <rect x="1220" y="165" width="170" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="1220" y="165" width="170" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.72;0.77;0.90;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Chat Icon -->
+    <g transform="translate(1238, 187)" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" fill="none">
+      <path d="M3 6 C3 4.3 4.3 3 6 3 H16 C17.7 3 19 4.3 19 6 V12 C19 13.7 17.7 15 16 15 H11 L6 19 V15 H6 C4.3 15 3 13.7 3 12 Z"/>
+    </g>
+    <text x="1268" y="196" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Chat</text>
+    <text x="1268" y="216" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">rag assistant</text>
+  </g>
+
+  <!-- Output 3: Action Items -->
+  <g>
+    <rect x="1220" y="265" width="170" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="1220" y="265" width="170" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.72;0.77;0.90;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Checkmark List Icon -->
+    <g transform="translate(1238, 287)" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M3 11 L7 15 L17 5"/>
+    </g>
+    <text x="1268" y="296" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Action Items</text>
+    <text x="1268" y="316" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">task extraction</text>
+  </g>
+
+  <!-- Output 4: Export -->
+  <g>
+    <rect x="1220" y="365" width="170" height="70" rx="14" fill="url(#primary-node-bg)" stroke="#334155" stroke-width="1.2"/>
+    <rect x="1220" y="365" width="170" height="70" rx="14" fill="none" stroke="#00F2FE" stroke-width="2.6" filter="url(#glow)" opacity="0">
+      <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.72;0.77;0.90;1" values="0;0;0.95;0;0"/>
+    </rect>
+    <!-- Export / Download Icon -->
+    <g transform="translate(1238, 387)" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M10 3 V13 M6 9 L10 13 L14 9 M3 17 H17"/>
+    </g>
+    <text x="1268" y="396" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#F8FAFC">Export</text>
+    <text x="1268" y="416" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#64748B">json · pdf · srt</text>
+  </g>
+
+
+  <!-- TRAVELLING SIGNAL PARTICLES (FAST HIGH-PRECISION MOTION) -->
+
+  <!-- Segment 1: Audio -> Speech Recognition -->
+  <circle r="7" fill="#00F2FE" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.02;0.18;1" keyPoints="0;0;1;1" path="M250,250 L340,250"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.01;0.04;0.16;0.18;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+  <!-- Segment 2: Speech Rec -> Speaker Diarization -->
+  <circle r="7" fill="#00F2FE" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.20;0.36;1" keyPoints="0;0;1;1" path="M540,250 L630,250"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.19;0.22;0.34;0.36;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+  <!-- Segment 3: Speaker Diarization -> Transcript -->
+  <circle r="7" fill="#00F2FE" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.38;0.54;1" keyPoints="0;0;1;1" path="M850,250 L940,250"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.37;0.40;0.52;0.54;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+  <!-- Segment 4: Fan-out Branch 1 (Summary) -->
+  <circle r="7" fill="#00F2FE" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.56;0.72;1" keyPoints="0;0;1;1" path="M1120,250 C1170,250 1170,100 1220,100"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.55;0.58;0.70;0.72;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+  <!-- Segment 4: Fan-out Branch 2 (Chat) -->
+  <circle r="7" fill="#3B82F6" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.56;0.72;1" keyPoints="0;0;1;1" path="M1120,250 C1170,250 1170,200 1220,200"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.55;0.58;0.70;0.72;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+  <!-- Segment 4: Fan-out Branch 3 (Action Items) -->
+  <circle r="7" fill="#10B981" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.56;0.72;1" keyPoints="0;0;1;1" path="M1120,250 C1170,250 1170,300 1220,300"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.55;0.58;0.70;0.72;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+  <!-- Segment 4: Fan-out Branch 4 (Export) -->
+  <circle r="7" fill="#F59E0B" filter="url(#glow)" opacity="0">
+    <animateMotion dur="5.0s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.56;0.72;1" keyPoints="0;0;1;1" path="M1120,250 C1170,250 1170,400 1220,400"/>
+    <animate attributeName="opacity" dur="5.0s" repeatCount="indefinite" keyTimes="0;0.55;0.58;0.70;0.72;1" values="0;0;1;1;0;0"/>
+  </circle>
+
+</svg>

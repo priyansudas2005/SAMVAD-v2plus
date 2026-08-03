@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Generator
 from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey, Text, text
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from src.utils.logger import logger
 
 # Determine SQLite path
 default_dir = "data/database" if os.getcwd().endswith("backend") else "backend/data/database"
@@ -152,7 +153,7 @@ def init_db():
                 db.add(DBSetting(key=k, value=v))
         db.commit()
     except Exception as e:
-        print("Error seeding default settings:", e)
+        logger.error(f"Error seeding default settings: {e}")
     finally:
         db.close()
 

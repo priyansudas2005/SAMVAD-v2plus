@@ -1,0 +1,102 @@
+<svg width="512" height="512" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="steelFace" x1="15" y1="10" x2="85" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="8%" stop-color="#E8EEF4" />
+      <stop offset="22%" stop-color="#B0BEC9" />
+      <stop offset="35%" stop-color="#6E8090" />
+      <stop offset="48%" stop-color="#9BB0C0" />
+      <stop offset="58%" stop-color="#D0DCE6" />
+      <stop offset="68%" stop-color="#8FA4B5" />
+      <stop offset="80%" stop-color="#526070" />
+      <stop offset="92%" stop-color="#3A4A58" />
+      <stop offset="100%" stop-color="#232D38" />
+    </linearGradient>
+    <linearGradient id="ringFace" x1="8" y1="8" x2="92" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F0F4F8" />
+      <stop offset="15%" stop-color="#C4D0DA" />
+      <stop offset="35%" stop-color="#8098AA" />
+      <stop offset="55%" stop-color="#506070" />
+      <stop offset="75%" stop-color="#3A4E5C" />
+      <stop offset="100%" stop-color="#18222A" />
+    </linearGradient>
+    <linearGradient id="ringSpec" x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.60" />
+      <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="bevelHL" x1="0" y1="0" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55" />
+      <stop offset="35%" stop-color="#E8F0F8" stop-opacity="0.30" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="bevelSH" x1="100" y1="100" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A1525" stop-opacity="0.55" />
+      <stop offset="45%" stop-color="#152030" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#0A1525" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="iridescent" x1="0" y1="50" x2="100" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7DD3FC" stop-opacity="0.25" />
+      <stop offset="25%" stop-color="#A78BFA" stop-opacity="0.30" />
+      <stop offset="50%" stop-color="#F472B6" stop-opacity="0.18" />
+      <stop offset="75%" stop-color="#34D399" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#60A5FA" stop-opacity="0.25" />
+    </linearGradient>
+    <linearGradient id="plasmaBar" x1="30" y1="30" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#67E8F9" stop-opacity="1.0" />
+      <stop offset="40%" stop-color="#818CF8" stop-opacity="0.92" />
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0.95" />
+    </linearGradient>
+    <radialGradient id="wellGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.28" />
+      <stop offset="50%" stop-color="#0EA5E9" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="platformAO" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#000000" stop-opacity="0" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.65" />
+    </radialGradient>
+    <radialGradient id="fillLight" cx="72%" cy="75%" r="35%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.20" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="100" height="100" rx="22" fill="#070A0F" />
+
+  <circle cx="52" cy="53" r="44" fill="#020408" opacity="0.90" />
+  <circle cx="50" cy="50" r="44" fill="url(#ringFace)" />
+  <circle cx="50" cy="50" r="44" fill="url(#ringSpec)" />
+  <circle cx="50" cy="50" r="44" fill="url(#iridescent)" />
+
+  <path d="M 13 33 A 39 39 0 0 1 67 11" stroke="url(#bevelHL)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.65" />
+  <path d="M 87 67 A 39 39 0 0 1 33 89" stroke="url(#bevelSH)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.5" />
+
+  <circle cx="50" cy="50" r="36" fill="#07080E" />
+  <circle cx="50" cy="50" r="35.2" fill="#0B0D1A" />
+  <circle cx="50" cy="50" r="35" fill="url(#wellGlow)" />
+
+  <circle cx="51.5" cy="52.5" r="26.5" fill="#030507" opacity="0.95" />
+  <circle cx="50" cy="50" r="26" fill="url(#steelFace)" />
+  <circle cx="50" cy="50" r="26" fill="url(#platformAO)" />
+
+  <path d="M 29 28 A 23 23 0 0 1 72 28" stroke="url(#bevelHL)" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.90" />
+
+  <rect x="33" y="44.5" width="5" height="11" rx="2" fill="#020407" opacity="0.95" />
+  <rect x="41.5" y="39.5" width="5" height="21" rx="2" fill="#020407" opacity="0.95" />
+  <rect x="50" y="35.5" width="5" height="29" rx="2" fill="#020407" opacity="0.95" />
+  <rect x="58.5" y="39.5" width="5" height="21" rx="2" fill="#020407" opacity="0.95" />
+  <rect x="67" y="44.5" width="5" height="11" rx="2" fill="#020407" opacity="0.95" />
+
+  <rect x="32" y="43.5" width="5" height="11" rx="2" fill="url(#plasmaBar)" />
+  <rect x="40.5" y="38.5" width="5" height="21" rx="2" fill="url(#plasmaBar)" />
+  <rect x="49" y="34.5" width="5" height="29" rx="2" fill="url(#plasmaBar)" />
+  <rect x="57.5" y="38.5" width="5" height="21" rx="2" fill="url(#plasmaBar)" />
+  <rect x="66" y="43.5" width="5" height="11" rx="2" fill="url(#plasmaBar)" />
+
+  <rect x="32" y="43.5" width="5" height="2.2" rx="1.1" fill="#FFFFFF" opacity="0.72" />
+  <rect x="40.5" y="38.5" width="5" height="2.2" rx="1.1" fill="#FFFFFF" opacity="0.72" />
+  <rect x="49" y="34.5" width="5" height="2.2" rx="1.1" fill="#FFFFFF" opacity="0.72" />
+  <rect x="57.5" y="38.5" width="5" height="2.2" rx="1.1" fill="#FFFFFF" opacity="0.72" />
+  <rect x="66" y="43.5" width="5" height="2.2" rx="1.1" fill="#FFFFFF" opacity="0.72" />
+</svg>

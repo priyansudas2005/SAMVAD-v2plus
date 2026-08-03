@@ -213,7 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Recording Controls */}
           {recordingState === 'idle' && (
             <div className="space-y-3">
-              {/* Capture Source Tabs (Speakr Style Glider) */}
+              {/* Capture Source Tabs (SAMVAD Style Glider) */}
               <div className="glass-radio-group">
                 <input
                   type="radio"

@@ -33,14 +33,17 @@ env/
 
 # Models (downloaded ML model weights — too large for GitHub)
 models/
-# But DO track Python source code in src/models/
-!src/models/
-!src/models/**
+backend/models/
+!backend/src/models/
+!backend/src/models/**
 
 # Local databases and data files
 data/
+backend/data/
 db.sqlite3
 *.db
+*.bin
+*.safetensors
 
 # Logs
 logs/

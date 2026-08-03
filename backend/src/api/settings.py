@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from src.services.database.db import get_db, DBSetting
 from src.models.schemas import SystemSettingsSchema
 from src.services.audio.recorder import SOUNDDEVICE_AVAILABLE
+from src.utils.logger import logger
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 

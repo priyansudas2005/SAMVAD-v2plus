@@ -1,49 +1,33 @@
 name: Publish to Docker Hub
 
-# Publish step, kept separate from CI. Tag-push publishing is now owned by the
-# GitHub workflow (.github/workflows/docker-publish.yml fires on a published
-# Release) so release images are built on public runners with auditable logs and
-# provenance. This Forgejo workflow is a MANUAL fallback only: run it by hand
-# from the Actions tab if GitHub CD is unavailable. It does NOT fire on tag
-# pushes, so the same tag is never published from two places at once.
-# Building/pushing the multi-arch images needs the DOCKERHUB_USERNAME /
-# DOCKERHUB_TOKEN repo secrets. To hand CD back to Forgejo, restore the
-# `push: tags: ['v*']` trigger here and comment out the GitHub `release` trigger.
+# Manual fallback publisher. Publishing is primarily owned by the GitHub
+# Actions workflow (.github/workflows/docker-publish.yml) which fires on a
+# published GitHub Release. Run this workflow by hand from the Forgejo
+# Actions tab only if GitHub CD is unavailable. It does NOT fire on tag
+# pushes to avoid publishing the same tag from two places simultaneously.
 #
+# Requires repository secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+
 on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to publish"
+        description: "Image tag to publish (e.g. 2.0.1)"
         required: false
         default: latest
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: learnedmachine/speakr
-  # Manual run -> the input; tag push -> the git tag name (e.g. v0.6.0).
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/samvad
   IMAGE_TAG: ${{ github.event.inputs.image_tag || github.ref_name }}
 
 jobs:
-  # Quick gate so a broken migration never gets published, even if someone runs
-  # this against an untested commit. The full suite lives in the Tests workflow.
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: speakr
-          POSTGRES_PASSWORD: speakr
-          POSTGRES_DB: speakr_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U speakr"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout repository
@@ -53,51 +37,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: 'backend/requirements-ci.txt'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install test dependencies
+        run: pip install -r requirements-ci.txt
 
-      - name: Run static migration compatibility tests
-        run: python tests/test_migration_compatibility.py
+      - name: Run test suite
+        run: pytest tests/test_api.py -v
 
-      - name: Run migrations against PostgreSQL
-        env:
-          TEST_DATABASE_URI: postgresql://speakr:speakr@postgres:5432/speakr_test
-        run: python tests/test_postgres_migrations.py
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      # arm64 is built via QEMU emulation (no native arm runner). Slow but works.
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log into Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          build-args: |
-            PRODUCTION=1
-
-  build-lite:
+  build-and-push:
     needs: test
     runs-on: ubuntu-latest
 
@@ -118,13 +67,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push lite image
+      - name: Build and push backend image
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.backend
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}-lite
-          build-args: |
-            PRODUCTION=1
-            LIGHTWEIGHT=1
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.frontend
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}

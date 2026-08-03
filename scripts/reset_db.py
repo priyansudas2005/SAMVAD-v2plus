@@ -8,7 +8,6 @@ import shutil
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Load environment variables in case DB path relies on them (optional here)
-# from dotenv import load_dotenv
 # load_dotenv()
 
 # Check if running within app context already (e.g., via Flask command)
@@ -128,3 +127,4 @@ if __name__ == "__main__":
     print("Attempting to reset the database and clean up all data...")
     reset_database(delete_uploads=True)
     print("Database reset process finished.")
+

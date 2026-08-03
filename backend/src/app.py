@@ -1,17 +1,21 @@
 import os
 import sys
 
-# Limit PyTorch CPU threads to prevent CPU spikes and sudden system restarts/BSODs
-os.environ["OMP_NUM_THREADS"] = "4"
-os.environ["MKL_NUM_THREADS"] = "4"
-os.environ["OPENBLAS_NUM_THREADS"] = "4"
-os.environ["VECLIB_MAXIMUM_THREADS"] = "4"
-os.environ["NUMEXPR_NUM_THREADS"] = "4"
+# Limit PyTorch CPU threads to prevent CPU spikes and system instability.
+# Defaults to 4. Override by setting *_NUM_THREADS in your .env file
+# (or docker-compose.yml environment:) before the container starts.
+_DEFAULT_THREADS = "4"
+os.environ.setdefault("OMP_NUM_THREADS",        _DEFAULT_THREADS)
+os.environ.setdefault("MKL_NUM_THREADS",        _DEFAULT_THREADS)
+os.environ.setdefault("OPENBLAS_NUM_THREADS",   _DEFAULT_THREADS)
+os.environ.setdefault("VECLIB_MAXIMUM_THREADS", _DEFAULT_THREADS)
+os.environ.setdefault("NUMEXPR_NUM_THREADS",    _DEFAULT_THREADS)
 
 try:
     import torch
-    torch.set_num_threads(4)
+    torch.set_num_threads(int(os.environ["OMP_NUM_THREADS"]))
 except ImportError:
+    # PyTorch not loaded in minimal mode
     pass
 
 from pathlib import Path
@@ -75,3 +79,4 @@ def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+

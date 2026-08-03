@@ -320,11 +320,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     if (!editTitle.trim() || saving) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/meetings/${id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: editTitle.trim() }),
-      });
-      if (!res.ok) throw new Error();
+      await api.updateMeetingTitle(id, editTitle.trim());
       await refreshMeetings(); setEditingId(null);
     } catch { alert("Failed to rename."); }
     finally { setSaving(false); }

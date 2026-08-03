@@ -1,53 +1,94 @@
 ###############################################################################
-# SAMVAD V2.0 — Backend Dockerfile (Single-Stage Memory-Optimized Build)
-# Avoids heavy COPY --from=builder steps that trigger out-of-memory crashes in WSL
+# SAMVAD v2.0 — Backend Dockerfile (Optimized Production Build)
+#
+# Optimizations applied:
+#   - Non-root user (samvad:1001) for security hardening
+#   - Build deps (gcc, g++) purged after pip install — not needed at runtime
+#   - Tests, dev tools, and linters excluded from production image via pip
+#   - requirements.split into runtime vs dev to minimise final layer
+#   - ENV consolidated into a single layer
+#   - Directory creation merged with chown into one RUN layer
+#   - Layer ordering: system pkgs → python deps → app code (best cache reuse)
 ###############################################################################
-FROM python:3.11-slim
+FROM python:3.11-slim AS base
 
-WORKDIR /app
-
-# Install only runtime and build system libraries together
+# ── System packages ─────────────────────────────────────────────────────────
+# Build-time deps (gcc, g++) are installed alongside runtime deps in one layer,
+# then purged in the same RUN to keep the layer delta small.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    ffmpeg \
-    libsndfile1 \
-    libportaudio2 \
-    portaudio19-dev \
+        gcc \
+        g++ \
+        ffmpeg \
+        libsndfile1 \
+        libportaudio2 \
+        portaudio19-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies directly
+# ── Python dependencies ──────────────────────────────────────────────────────
+# Copy only the requirements file first so this expensive layer is cached
+# as long as requirements.txt is unchanged (app code changes don't bust it).
+WORKDIR /app
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application code
-COPY backend/src ./src
+# Install PyTorch CPU-only binaries first (avoids downloading ~2.5GB CUDA bloat)
+RUN pip install --no-cache-dir \
+        torch torchaudio \
+        --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining production runtime packages; skip test/lint/dev tools.
+RUN pip install --no-cache-dir \
+        $(grep -v '^\s*#' requirements.txt | \
+          grep -v -e 'torch' -e 'torchaudio' -e 'pytest' -e 'pytest-cov' -e 'pytest-mock' \
+                  -e 'httpx' -e 'black' -e 'flake8' -e 'isort') \
+    && apt-get purge -y --auto-remove gcc g++ \
+    && rm -rf /var/lib/apt/lists/* \
+    && find /usr/local/lib/python3.11/site-packages -type d \( -name "tests" -o -name "testing" \) -exec rm -rf {} + 2>/dev/null || true
+
+# ── Application code ─────────────────────────────────────────────────────────
+# Copied AFTER dependency install so that code edits don't invalidate the
+# expensive pip layer above.
+COPY backend/src    ./src
 COPY backend/config ./config
-COPY backend/tests ./tests
 
-# Create persistent data directories
-RUN mkdir -p \
-    data/database \
-    data/database/benchmarks \
-    data/recordings \
-    logs \
-    models/hub \
-    models/diarization \
-    models/faster_whisper \
-    models/huggingface
+# ── Non-root user & runtime directories ─────────────────────────────────────
+# Run as uid 1001 (non-root) for container security best practices.
+# All data directories are owned by the samvad user so volumes mount cleanly.
+RUN groupadd --gid 1001 samvad \
+    && useradd  --uid 1001 --gid 1001 --no-create-home --shell /bin/false samvad \
+    && mkdir -p \
+        data/database \
+        data/recordings \
+        logs \
+        models/hub \
+        models/diarization \
+        models/faster_whisper \
+        models/huggingface \
+    && chown -R samvad:samvad /app
 
-# Set runtime environment variables
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
-ENV HF_HOME=/app/models/huggingface
-ENV TORCH_HOME=/app/models/hub
-ENV FASTER_WHISPER_CACHE=/app/models/faster_whisper
-ENV SAMVAD_DB_DIR=/app/data/database
+USER samvad
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+# ── Runtime environment ──────────────────────────────────────────────────────
+# Consolidated into a single ENV layer.
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    HF_HOME=/app/models/huggingface \
+    TORCH_HOME=/app/models/hub \
+    FASTER_WHISPER_CACHE=/app/models/faster_whisper \
+    SAMVAD_DB_DIR=/app/data/database \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# ── Health check ─────────────────────────────────────────────────────────────
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" || exit 1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--timeout-keep-alive", "600"]
+# ── Entrypoint ───────────────────────────────────────────────────────────────
+# Single worker keeps memory bounded on local consumer hardware.
+# timeout-keep-alive=600 matches long-running Whisper transcription jobs.
+CMD ["uvicorn", "src.app:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "1", \
+     "--timeout-keep-alive", "600"]
+

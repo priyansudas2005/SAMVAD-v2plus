@@ -1,0 +1,420 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 580" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="SAMVAD V2+ Interconnected Story Pipeline">
+  <title>SAMVAD V2+ How Meeting Audio Becomes Intelligence</title>
+
+  <defs>
+    <style type="text/css"><![CDATA[
+      text {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .mono {
+        font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      /* 1. CONTINUOUS STREAM FLOW */
+      .story-laser-stream {
+        stroke-dasharray: 16 32;
+        animation: streamFlow 2.4s linear infinite;
+      }
+      @keyframes streamFlow {
+        to { stroke-dashoffset: -96; }
+      }
+
+      /* 2. SLOW BREATHING BACKGROUND AURORAS */
+      @keyframes breathCyan {
+        0%, 100% { opacity: 0.15; }
+        50% { opacity: 0.35; }
+      }
+      @keyframes breathPurple {
+        0%, 100% { opacity: 0.15; }
+        50% { opacity: 0.35; }
+      }
+      .b-cyan { animation: breathCyan 10s ease-in-out infinite alternate; }
+      .b-purple { animation: breathPurple 12s ease-in-out infinite alternate; }
+
+      /* 3. MATHEMATICALLY EXACT CARD ACTIVATION TIMING */
+      /* Path: M 170 465 to 1415 465, Distance = 1245px, dur = 10.0s linear */
+      /* Node positions as % of 1245px:
+         Node1 X=170: 0%
+         Node2 X=420: (420-170)/1245 = 20.08%
+         Node3 X=670: (670-170)/1245 = 40.16%
+         Node4 X=920: (920-170)/1245 = 60.24%
+         Node5 X=1170: (1170-170)/1245 = 80.32%
+         Node6 X=1415: (1415-170)/1245 = 100%
+      */
+      @keyframes actCard1 {
+        0%, 5% { opacity: 0.55; stroke-width: 1.5px; }
+        6%, 100% { opacity: 0; stroke-width: 0px; }
+      }
+      @keyframes actCard2 {
+        0%, 19% { opacity: 0; stroke-width: 0px; }
+        20%, 25% { opacity: 0.55; stroke-width: 1.5px; }
+        26%, 100% { opacity: 0; stroke-width: 0px; }
+      }
+      @keyframes actCard3 {
+        0%, 39% { opacity: 0; stroke-width: 0px; }
+        40%, 45% { opacity: 0.55; stroke-width: 1.5px; }
+        46%, 100% { opacity: 0; stroke-width: 0px; }
+      }
+      @keyframes actCard4 {
+        0%, 59% { opacity: 0; stroke-width: 0px; }
+        60%, 65% { opacity: 0.55; stroke-width: 1.5px; }
+        66%, 100% { opacity: 0; stroke-width: 0px; }
+      }
+      @keyframes actCard5 {
+        0%, 79% { opacity: 0; stroke-width: 0px; }
+        80%, 85% { opacity: 0.55; stroke-width: 1.5px; }
+        86%, 100% { opacity: 0; stroke-width: 0px; }
+      }
+      @keyframes actCard6 {
+        0%, 98% { opacity: 0; stroke-width: 0px; }
+        99%, 100% { opacity: 0.55; stroke-width: 1.5px; }
+      }
+
+      .card-act-1 { animation: actCard1 10.0s linear infinite; }
+      .card-act-2 { animation: actCard2 10.0s linear infinite; }
+      .card-act-3 { animation: actCard3 10.0s linear infinite; }
+      .card-act-4 { animation: actCard4 10.0s linear infinite; }
+      .card-act-5 { animation: actCard5 10.0s linear infinite; }
+      .card-act-6 { animation: actCard6 10.0s linear infinite; }
+
+      /* 4. GLASS SPECULAR SHIMMER */
+      @keyframes glassShimmer {
+        0%, 100% { opacity: 0.08; transform: translateX(-100%) rotate(25deg); }
+        50% { opacity: 0.25; transform: translateX(250%) rotate(25deg); }
+      }
+      .shimmer { animation: glassShimmer 8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+      /* 5. MORPHING WAVEFORM — restrained amplitude */
+      @keyframes waveMorph {
+        0%, 100% { d: path("M 0 13 Q 18 8, 36 13 T 72 13"); }
+        50%       { d: path("M 0 13 Q 18 18, 36 8 T 72 13"); }
+      }
+      .wave-live { animation: waveMorph 3.5s ease-in-out infinite; }
+    ]]></style>
+
+    <!-- Canvas Background -->
+    <linearGradient id="g-canvas" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080C14"/>
+      <stop offset="50%" stop-color="#05070D"/>
+      <stop offset="100%" stop-color="#020305"/>
+    </linearGradient>
+
+    <!-- Rainbow Spectrum Gradient (stream only) -->
+    <linearGradient id="g-spectrum" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#38BDF8"/>
+      <stop offset="20%"  stop-color="#818CF8"/>
+      <stop offset="40%"  stop-color="#C084FC"/>
+      <stop offset="60%"  stop-color="#10B981"/>
+      <stop offset="80%"  stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+
+    <!-- Restrained 2-stop heading gradient: soft white → muted indigo -->
+    <linearGradient id="g-heading" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#E2E8F0"/>
+      <stop offset="100%" stop-color="#A5B4FC"/>
+    </linearGradient>
+
+    <!-- Glass card fill -->
+    <linearGradient id="g-glass-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="rgba(30, 41, 59, 0.65)" />
+      <stop offset="100%" stop-color="rgba(15, 23, 42, 0.80)" />
+    </linearGradient>
+
+    <linearGradient id="g-glass-border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="rgba(255, 255, 255, 0.30)" />
+      <stop offset="40%"  stop-color="rgba(255, 255, 255, 0.10)" />
+      <stop offset="100%" stop-color="rgba(56, 189, 248, 0.20)" />
+    </linearGradient>
+
+    <!-- Clip paths -->
+    <clipPath id="clip-card-standard">
+      <rect x="0" y="0" width="220" height="260" rx="18"/>
+    </clipPath>
+    <clipPath id="clip-card-stage6">
+      <rect x="0" y="0" width="210" height="260" rx="18"/>
+    </clipPath>
+    <clipPath id="clip-wave-box">
+      <rect x="2" y="2" width="180" height="38" rx="6"/>
+    </clipPath>
+
+    <!-- Ambient gradients -->
+    <radialGradient id="g-aurora-cyan" cx="20%" cy="30%" r="45%">
+      <stop offset="0%"   stop-color="rgba(56, 189, 248, 0.08)" />
+      <stop offset="100%" stop-color="rgba(0, 0, 0, 0)" />
+    </radialGradient>
+    <radialGradient id="g-aurora-purple" cx="80%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="rgba(192, 132, 252, 0.07)" />
+      <stop offset="100%" stop-color="rgba(0, 0, 0, 0)" />
+    </radialGradient>
+
+    <!-- Filters -->
+    <filter id="f-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#000000" flood-opacity="0.75" />
+    </filter>
+    <filter id="f-subtle-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Reusable symbols -->
+    <g id="sym-glass-card">
+      <g clip-path="url(#clip-card-standard)">
+        <rect x="0" y="0" width="220" height="260" rx="18"
+              fill="url(#g-glass-fill)" stroke="url(#g-glass-border)" stroke-width="1.5"/>
+        <rect x="-50" y="-50" width="80" height="340"
+              fill="url(#g-glass-border)" opacity="0.2" class="shimmer" />
+      </g>
+    </g>
+    <g id="sym-preview-box">
+      <rect x="0" y="0" width="184" height="42" rx="8"
+            fill="rgba(15, 23, 42, 0.90)" stroke="rgba(255, 255, 255, 0.10)" stroke-width="1"/>
+    </g>
+  </defs>
+
+  <!-- LAYER 1: CANVAS -->
+  <rect width="1600" height="580" rx="20" fill="url(#g-canvas)"
+        stroke="rgba(255, 255, 255, 0.10)" stroke-width="1.5" />
+
+  <!-- Ambient auroras -->
+  <circle cx="280"  cy="200" r="480" fill="url(#g-aurora-cyan)"   class="b-cyan" />
+  <circle cx="1280" cy="380" r="520" fill="url(#g-aurora-purple)" class="b-purple" />
+
+  <!-- Precision grid -->
+  <g stroke="rgba(255, 255, 255, 0.025)" stroke-width="1">
+    <line x1="0"    y1="145" x2="1600" y2="145" />
+    <line x1="0"    y1="290" x2="1600" y2="290" />
+    <line x1="0"    y1="435" x2="1600" y2="435" />
+    <line x1="266"  y1="0"   x2="266"  y2="580" />
+    <line x1="532"  y1="0"   x2="532"  y2="580" />
+    <line x1="798"  y1="0"   x2="798"  y2="580" />
+    <line x1="1064" y1="0"   x2="1064" y2="580" />
+    <line x1="1330" y1="0"   x2="1330" y2="580" />
+  </g>
+
+  <!-- LAYER 2: HEADER -->
+  <g transform="translate(60, 45)">
+    <!-- Badge pill — vertically centered on title text cap-height (rect center y=11 matches title cap-height center y≈11) -->
+    <rect x="0" y="-2" width="220" height="26" rx="13"
+          fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.16)" stroke-width="1" />
+    <circle cx="14" cy="11" r="3.5" fill="#38BDF8" />
+    <text x="26" y="15" fill="rgba(255,255,255,0.65)" font-size="10" font-weight="600"
+          class="mono" letter-spacing="1.2">PRODUCT STORY PIPELINE</text>
+
+    <!-- Title: SAMVAD V2+ stays white, subtitle uses restrained 2-stop gradient -->
+    <text x="240" y="20" fill="#FFFFFF" font-size="26" font-weight="700" letter-spacing="-1.0">SAMVAD V2+ :</text>
+    <text x="430" y="20" fill="url(#g-heading)" font-size="26" font-weight="600" letter-spacing="-0.8">HOW A MEETING BECOMES INTELLIGENCE</text>
+    <text x="0"   y="48" fill="#CBD5E1" font-size="14" font-weight="400" letter-spacing="-0.2">
+      A continuous data stream showing raw audio transform into searchable chat intelligence across 6 connected stages.
+    </text>
+  </g>
+
+  <!-- LAYER 3: STREAM & CONNECTORS -->
+  <g fill="none" stroke-linecap="round">
+    <!-- Vertical connectors -->
+    <path d="M 170 410 L 170 465" stroke="rgba(56,189,248,0.35)"  stroke-dasharray="4 4" stroke-width="1.5"/>
+    <path d="M 420 410 L 420 465" stroke="rgba(129,140,248,0.35)" stroke-dasharray="4 4" stroke-width="1.5"/>
+    <path d="M 670 410 L 670 465" stroke="rgba(192,132,252,0.35)" stroke-dasharray="4 4" stroke-width="1.5"/>
+    <path d="M 920 410 L 920 465" stroke="rgba(16,185,129,0.35)"  stroke-dasharray="4 4" stroke-width="1.5"/>
+    <path d="M 1170 410 L 1170 465" stroke="rgba(245,158,11,0.35)" stroke-dasharray="4 4" stroke-width="1.5"/>
+    <path d="M 1415 410 L 1415 465" stroke="rgba(56,189,248,0.35)" stroke-dasharray="4 4" stroke-width="1.5"/>
+
+    <!-- Cable track -->
+    <path d="M 170 465 L 1415 465" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+    <!-- Animated stream -->
+    <path d="M 170 465 L 1415 465" stroke="url(#g-spectrum)" stroke-width="2.5"
+          class="story-laser-stream" filter="url(#f-subtle-glow)" />
+
+    <!-- Station nodes -->
+    <circle cx="170"  cy="465" r="5" fill="#38BDF8" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)"/>
+    <circle cx="420"  cy="465" r="5" fill="#818CF8" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)"/>
+    <circle cx="670"  cy="465" r="5" fill="#C084FC" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)"/>
+    <circle cx="920"  cy="465" r="5" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)"/>
+    <circle cx="1170" cy="465" r="5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)"/>
+    <circle cx="1415" cy="465" r="5" fill="#38BDF8" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)"/>
+
+    <!-- Traveling particle -->
+    <circle r="7.5" fill="#00F2FE" stroke="#FFFFFF" stroke-width="1.5" filter="url(#f-subtle-glow)">
+      <animateMotion dur="10.0s" repeatCount="indefinite"
+        path="M 170 465 L 1415 465" calcMode="linear" />
+    </circle>
+  </g>
+
+  <!-- LAYER 4: STAGE CARDS -->
+
+  <!-- STAGE 1: AUDIO (Center X=170) -->
+  <g transform="translate(60, 150)" filter="url(#f-shadow)">
+    <use href="#sym-glass-card" />
+    <rect x="0" y="0" width="220" height="260" rx="18"
+          fill="none" stroke="#38BDF8" filter="url(#f-subtle-glow)" class="card-act-1" />
+
+    <g transform="translate(18, 20)">
+      <rect x="0" y="0" width="36" height="36" rx="10"
+            fill="rgba(56,189,248,0.20)" stroke="rgba(56,189,248,0.40)" stroke-width="1"/>
+      <g transform="translate(11,9)" stroke="#38BDF8" stroke-width="2" fill="none" stroke-linecap="round">
+        <path d="M6 1a2.5 2.5 0 0 0-2.5 2.5v5a2.5 2.5 0 0 0 5 0v-5A2.5 2.5 0 0 0 6 1z"/>
+        <path d="M10 8.5a4 4 0 0 1-8 0"/>
+      </g>
+    </g>
+
+    <text x="18" y="82"  fill="#38BDF8" font-size="11" font-weight="700" class="mono" letter-spacing="0.8">01. AUDIO</text>
+    <text x="18" y="106" fill="#FFFFFF" font-size="16" font-weight="700">Audio Enters</text>
+    <text x="18" y="130" fill="#CBD5E1" font-size="11.5">24kHz PCM stream</text>
+    <text x="18" y="146" fill="#CBD5E1" font-size="11.5">captured locally.</text>
+
+    <g transform="translate(18, 180)">
+      <use href="#sym-preview-box" />
+      <g clip-path="url(#clip-wave-box)">
+        <g transform="translate(50, 11)" stroke="#38BDF8" stroke-width="2" fill="none" stroke-linecap="round">
+          <path class="wave-live"/>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- STAGE 2: TRANSCRIPT (Center X=420) -->
+  <g transform="translate(310, 150)" filter="url(#f-shadow)">
+    <use href="#sym-glass-card" />
+    <rect x="0" y="0" width="220" height="260" rx="18"
+          fill="none" stroke="#818CF8" filter="url(#f-subtle-glow)" class="card-act-2" />
+
+    <g transform="translate(18, 20)">
+      <rect x="0" y="0" width="36" height="36" rx="10"
+            fill="rgba(129,140,248,0.20)" stroke="rgba(129,140,248,0.40)" stroke-width="1"/>
+      <g transform="translate(10,9)" stroke="#818CF8" stroke-width="2" fill="none" stroke-linecap="round">
+        <path d="M1 2 h12 M1 6 h8 M1 10 h12"/>
+      </g>
+    </g>
+
+    <text x="18" y="82"  fill="#818CF8" font-size="11" font-weight="700" class="mono" letter-spacing="0.8">02. TRANSCRIPT</text>
+    <text x="18" y="106" fill="#FFFFFF" font-size="16" font-weight="700">Speech &#8594; Text</text>
+    <text x="18" y="130" fill="#CBD5E1" font-size="11.5">Whisper V3 decodes</text>
+    <text x="18" y="146" fill="#CBD5E1" font-size="11.5">words into tokens.</text>
+
+    <g transform="translate(18, 180)">
+      <use href="#sym-preview-box" />
+      <text x="12" y="25" fill="#818CF8" font-size="10" font-weight="600" class="mono">"Deploying to prod..."</text>
+    </g>
+  </g>
+
+  <!-- STAGE 3: KNOWLEDGE (Center X=670) -->
+  <g transform="translate(560, 150)" filter="url(#f-shadow)">
+    <use href="#sym-glass-card" />
+    <rect x="0" y="0" width="220" height="260" rx="18"
+          fill="none" stroke="#C084FC" filter="url(#f-subtle-glow)" class="card-act-3" />
+
+    <g transform="translate(18, 20)">
+      <rect x="0" y="0" width="36" height="36" rx="10"
+            fill="rgba(192,132,252,0.20)" stroke="rgba(192,132,252,0.40)" stroke-width="1"/>
+      <g transform="translate(9,9)" stroke="#C084FC" stroke-width="2" fill="none" stroke-linecap="round">
+        <circle cx="6" cy="4" r="3"/>
+        <path d="M1 12v-1a4 4 0 0 1 8 0v1"/>
+      </g>
+    </g>
+
+    <text x="18" y="82"  fill="#C084FC" font-size="11" font-weight="700" class="mono" letter-spacing="0.8">03. KNOWLEDGE</text>
+    <text x="18" y="106" fill="#FFFFFF" font-size="16" font-weight="700">Diarized Intel</text>
+    <text x="18" y="130" fill="#CBD5E1" font-size="11.5">PyAnnote maps text</text>
+    <text x="18" y="146" fill="#CBD5E1" font-size="11.5">to 3 speaker IDs.</text>
+
+    <g transform="translate(18, 180)">
+      <use href="#sym-preview-box" />
+      <g transform="translate(10, 11)">
+        <rect x="0"   y="0" width="48" height="18" rx="4" fill="rgba(56,189,248,0.25)"/>
+        <text x="6"   y="12" fill="#38BDF8" font-size="8" font-weight="700" class="mono">Spk 01</text>
+        <rect x="56"  y="0" width="48" height="18" rx="4" fill="rgba(16,185,129,0.25)"/>
+        <text x="62"  y="12" fill="#34D399" font-size="8" font-weight="700" class="mono">Spk 02</text>
+        <rect x="112" y="0" width="48" height="18" rx="4" fill="rgba(245,158,11,0.25)"/>
+        <text x="118" y="12" fill="#F59E0B" font-size="8" font-weight="700" class="mono">Spk 03</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- STAGE 4: SUMMARY (Center X=920) -->
+  <g transform="translate(810, 150)" filter="url(#f-shadow)">
+    <use href="#sym-glass-card" />
+    <rect x="0" y="0" width="220" height="260" rx="18"
+          fill="none" stroke="#10B981" filter="url(#f-subtle-glow)" class="card-act-4" />
+
+    <g transform="translate(18, 20)">
+      <rect x="0" y="0" width="36" height="36" rx="10"
+            fill="rgba(16,185,129,0.20)" stroke="rgba(16,185,129,0.40)" stroke-width="1"/>
+      <g transform="translate(11,9)" stroke="#34D399" stroke-width="2" fill="none" stroke-linecap="round">
+        <rect x="1" y="1" width="11" height="14" rx="2"/>
+        <path d="M3 5h7 M3 9h5"/>
+      </g>
+    </g>
+
+    <text x="18" y="82"  fill="#34D399" font-size="11" font-weight="700" class="mono" letter-spacing="0.8">04. SUMMARY</text>
+    <text x="18" y="106" fill="#FFFFFF" font-size="16" font-weight="700">AI Summary</text>
+    <text x="18" y="130" fill="#CBD5E1" font-size="11.5">Extracts key topics</text>
+    <text x="18" y="146" fill="#CBD5E1" font-size="11.5">&amp; executive notes.</text>
+
+    <g transform="translate(18, 180)">
+      <use href="#sym-preview-box" />
+      <text x="12" y="25" fill="#34D399" font-size="10" font-weight="600" class="mono">• Prod launch setup</text>
+    </g>
+  </g>
+
+  <!-- STAGE 5: INSIGHTS (Center X=1170) -->
+  <g transform="translate(1060, 150)" filter="url(#f-shadow)">
+    <use href="#sym-glass-card" />
+    <rect x="0" y="0" width="220" height="260" rx="18"
+          fill="none" stroke="#F59E0B" filter="url(#f-subtle-glow)" class="card-act-5" />
+
+    <g transform="translate(18, 20)">
+      <rect x="0" y="0" width="36" height="36" rx="10"
+            fill="rgba(245,158,11,0.20)" stroke="rgba(245,158,11,0.40)" stroke-width="1"/>
+      <g transform="translate(11,10)" stroke="#F59E0B" stroke-width="2.2"
+         fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 7 L6 11 L13 2"/>
+      </g>
+    </g>
+
+    <text x="18" y="82"  fill="#F59E0B" font-size="11" font-weight="700" class="mono" letter-spacing="0.8">05. INSIGHTS</text>
+    <text x="18" y="106" fill="#FFFFFF" font-size="16" font-weight="700">Action Items</text>
+    <text x="18" y="130" fill="#CBD5E1" font-size="11.5">Action items auto-</text>
+    <text x="18" y="146" fill="#CBD5E1" font-size="11.5">assigned to owners.</text>
+
+    <g transform="translate(18, 180)">
+      <use href="#sym-preview-box" />
+      <text x="12" y="25" fill="#F59E0B" font-size="10" font-weight="600" class="mono">&#10003; Deploy Diarization</text>
+    </g>
+  </g>
+
+  <!-- STAGE 6: CHAT (Center X=1415) -->
+  <g transform="translate(1310, 150)" filter="url(#f-shadow)">
+    <g clip-path="url(#clip-card-stage6)">
+      <rect x="0" y="0" width="210" height="260" rx="18"
+            fill="url(#g-glass-fill)" stroke="url(#g-glass-border)" stroke-width="1.5"/>
+      <rect x="-50" y="-50" width="80" height="340"
+            fill="url(#g-glass-border)" opacity="0.2" class="shimmer" />
+    </g>
+    <rect x="0" y="0" width="210" height="260" rx="18"
+          fill="none" stroke="#38BDF8" filter="url(#f-subtle-glow)" class="card-act-6" />
+
+    <g transform="translate(18, 20)">
+      <rect x="0" y="0" width="36" height="36" rx="10"
+            fill="rgba(56,189,248,0.20)" stroke="rgba(56,189,248,0.40)" stroke-width="1"/>
+      <g transform="translate(10,9)" stroke="#38BDF8" stroke-width="2" fill="none">
+        <path d="M1 8C1 4 4 1 8 1H10C14 1 17 4 17 8V9C17 13 14 16 10 16H6L2 19V15C1 13 1 11 1 8Z"/>
+      </g>
+    </g>
+
+    <text x="18" y="82"  fill="#38BDF8" font-size="11" font-weight="700" class="mono" letter-spacing="0.8">06. CHAT</text>
+    <text x="18" y="106" fill="#FFFFFF" font-size="16" font-weight="700">RAG AI Chat</text>
+    <text x="18" y="130" fill="#CBD5E1" font-size="11.5">Ask questions over</text>
+    <text x="18" y="146" fill="#CBD5E1" font-size="11.5">meeting transcripts.</text>
+
+    <g transform="translate(18, 180)">
+      <rect x="0" y="0" width="174" height="42" rx="8"
+            fill="rgba(15,23,42,0.90)" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+      <text x="12" y="25" fill="#38BDF8" font-size="9.5" font-weight="600" class="mono">Q: "What latency?"</text>
+    </g>
+  </g>
+
+</svg>
