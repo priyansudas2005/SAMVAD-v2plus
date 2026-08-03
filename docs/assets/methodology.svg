@@ -1,0 +1,90 @@
+<svg width="1000" height="480" viewBox="0 0 1000 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+
+    <linearGradient id="stepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="50%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9" />
+    </linearGradient>
+
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="480" rx="16" fill="url(#bgGlow)" />
+  <rect width="998" height="478" x="1" y="1" rx="15" fill="none" stroke="#1E293B" stroke-width="2" />
+
+  <!-- Process Timeline Connector -->
+  <path d="M 120 240 L 880 240" stroke="url(#stepGrad)" stroke-width="4" />
+
+  <!-- Step 1: Capture -->
+  <g transform="translate(60, 110)" filter="url(#shadow)">
+    <rect width="180" height="260" rx="12" fill="url(#cardBg)" stroke="#38BDF8" stroke-width="1.5" />
+    <circle cx="90" cy="-20" r="28" fill="#020617" stroke="#38BDF8" stroke-width="3" />
+    <text x="90" y="-12" font-family="-apple-system, sans-serif" font-size="20" font-weight="900" fill="#38BDF8" text-anchor="middle">1</text>
+    <text x="90" y="45" font-family="-apple-system, sans-serif" font-size="28" text-anchor="middle">🎙️</text>
+    <text x="90" y="75" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC" text-anchor="middle">Audio Input</text>
+    <text x="20" y="115" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Web Audio API</text>
+    <text x="20" y="135" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Native sounddevice</text>
+    <text x="20" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Real-time VU meter</text>
+    <text x="20" y="175" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Silero VAD Filter</text>
+    <rect x="20" y="200" width="140" height="32" rx="6" fill="#0F172A" stroke="#334155" />
+    <text x="90" y="221" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#38BDF8" text-anchor="middle">PCM Audio Stream</text>
+  </g>
+
+  <!-- Step 2: ASR & Diarization -->
+  <g transform="translate(290, 110)" filter="url(#shadow)">
+    <rect width="180" height="260" rx="12" fill="url(#cardBg)" stroke="#8B5CF6" stroke-width="1.5" />
+    <circle cx="90" cy="-20" r="28" fill="#020617" stroke="#8B5CF6" stroke-width="3" />
+    <text x="90" y="-12" font-family="-apple-system, sans-serif" font-size="20" font-weight="900" fill="#8B5CF6" text-anchor="middle">2</text>
+    <text x="90" y="45" font-family="-apple-system, sans-serif" font-size="28" text-anchor="middle">⚡</text>
+    <text x="90" y="75" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC" text-anchor="middle">ASR &amp; Diarize</text>
+    <text x="20" y="115" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Faster-Whisper ASR</text>
+    <text x="20" y="135" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Word Timestamps</text>
+    <text x="20" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• SpeechBrain Vector</text>
+    <text x="20" y="175" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Cosine Clustering</text>
+    <rect x="20" y="200" width="140" height="32" rx="6" fill="#0F172A" stroke="#334155" />
+    <text x="90" y="221" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#C084FC" text-anchor="middle">Speaker Segments</text>
+  </g>
+
+  <!-- Step 3: Intelligence & Memo -->
+  <g transform="translate(520, 110)" filter="url(#shadow)">
+    <rect width="180" height="260" rx="12" fill="url(#cardBg)" stroke="#EC4899" stroke-width="1.5" />
+    <circle cx="90" cy="-20" r="28" fill="#020617" stroke="#EC4899" stroke-width="3" />
+    <text x="90" y="-12" font-family="-apple-system, sans-serif" font-size="20" font-weight="900" fill="#EC4899" text-anchor="middle">3</text>
+    <text x="90" y="45" font-family="-apple-system, sans-serif" font-size="28" text-anchor="middle">📝</text>
+    <text x="90" y="75" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC" text-anchor="middle">Intelligence</text>
+    <text x="20" y="115" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Executive Summary</text>
+    <text x="20" y="135" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Action Item Lists</text>
+    <text x="20" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Decision Logging</text>
+    <text x="20" y="175" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Topic Extraction</text>
+    <rect x="20" y="200" width="140" height="32" rx="6" fill="#0F172A" stroke="#334155" />
+    <text x="90" y="221" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#F472B6" text-anchor="middle">Structured Memo</text>
+  </g>
+
+  <!-- Step 4: Storage & RAG -->
+  <g transform="translate(750, 110)" filter="url(#shadow)">
+    <rect width="180" height="260" rx="12" fill="url(#cardBg)" stroke="#10B981" stroke-width="1.5" />
+    <circle cx="90" cy="-20" r="28" fill="#020617" stroke="#10B981" stroke-width="3" />
+    <text x="90" y="-12" font-family="-apple-system, sans-serif" font-size="20" font-weight="900" fill="#10B981" text-anchor="middle">4</text>
+    <text x="90" y="45" font-family="-apple-system, sans-serif" font-size="28" text-anchor="middle">🔮</text>
+    <text x="90" y="75" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC" text-anchor="middle">RAG &amp; Export</text>
+    <text x="20" y="115" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Local SQLite DB</text>
+    <text x="20" y="135" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Contextual Q&amp;A</text>
+    <text x="20" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Confidence Score</text>
+    <text x="20" y="175" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• DOCX/PDF Exports</text>
+    <rect x="20" y="200" width="140" height="32" rx="6" fill="#0F172A" stroke="#334155" />
+    <text x="90" y="221" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#34D399" text-anchor="middle">Verified Outputs</text>
+  </g>
+</svg>

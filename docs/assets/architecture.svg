@@ -1,0 +1,95 @@
+<svg width="1000" height="520" viewBox="0 0 1000 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+
+    <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9" />
+    </linearGradient>
+
+    <linearGradient id="cyanLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+
+    <linearGradient id="purpleLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="520" rx="16" fill="url(#bgGlow)" />
+  <rect width="998" height="518" x="1" y="1" rx="15" fill="none" stroke="#1E293B" stroke-width="2" />
+
+  <!-- Flow Arrows / Connectors -->
+  <path d="M 230 180 L 330 180 M 670 180 L 770 180" stroke="url(#cyanLine)" stroke-width="3" stroke-dasharray="6 6" />
+  <path d="M 500 240 L 500 320" stroke="url(#purpleLine)" stroke-width="3" stroke-dasharray="6 6" />
+
+  <!-- Node 1: Capture -->
+  <g transform="translate(40, 100)" filter="url(#shadow)">
+    <rect width="190" height="160" rx="12" fill="url(#cardBg)" stroke="#38BDF8" stroke-width="1.5" />
+    <text x="20" y="38" font-family="-apple-system, sans-serif" font-size="24">🎙️</text>
+    <text x="56" y="36" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">Audio Capture</text>
+    <text x="20" y="70" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Web Audio API</text>
+    <text x="20" y="90" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• sounddevice Engine</text>
+    <text x="20" y="110" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Silero VAD Trimming</text>
+    <text x="20" y="130" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• 16kHz PCM Stream</text>
+  </g>
+
+  <!-- Node 2: Processing Engine -->
+  <g transform="translate(330, 80)" filter="url(#shadow)">
+    <rect width="340" height="200" rx="12" fill="url(#cardBg)" stroke="#8B5CF6" stroke-width="2" />
+    <text x="24" y="38" font-family="-apple-system, sans-serif" font-size="24">⚡</text>
+    <text x="60" y="36" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#F8FAFC">SAMVAD Python Core Engine</text>
+
+    <!-- Sub-block 1 -->
+    <rect x="20" y="60" width="140" height="115" rx="8" fill="#0F172A" stroke="#334155" />
+    <text x="32" y="85" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#38BDF8">Faster-Whisper</text>
+    <text x="32" y="110" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">Word Timestamps</text>
+    <text x="32" y="128" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">CTranslate2</text>
+    <text x="32" y="146" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">Multi-thread CPU</text>
+
+    <!-- Sub-block 2 -->
+    <rect x="180" y="60" width="140" height="115" rx="8" fill="#0F172A" stroke="#334155" />
+    <text x="192" y="85" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#C084FC">SpeechBrain</text>
+    <text x="192" y="110" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">Speaker Embeddings</text>
+    <text x="192" y="128" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">Cosine Clustering</text>
+    <text x="192" y="146" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">Segment Alignment</text>
+  </g>
+
+  <!-- Node 3: Intelligence & RAG -->
+  <g transform="translate(770, 100)" filter="url(#shadow)">
+    <rect width="190" height="160" rx="12" fill="url(#cardBg)" stroke="#EC4899" stroke-width="1.5" />
+    <text x="20" y="38" font-family="-apple-system, sans-serif" font-size="24">🔮</text>
+    <text x="56" y="36" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">AI Intelligence</text>
+    <text x="20" y="70" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Executive Memos</text>
+    <text x="20" y="90" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Action Item Lists</text>
+    <text x="20" y="110" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Local RAG Engine</text>
+    <text x="20" y="130" font-family="-apple-system, sans-serif" font-size="12" fill="#94A3B8">• Confidence Scoring</text>
+  </g>
+
+  <!-- Node 4: Storage & Exports (Bottom) -->
+  <g transform="translate(250, 320)" filter="url(#shadow)">
+    <rect width="500" height="150" rx="12" fill="url(#cardBg)" stroke="#10B981" stroke-width="1.5" />
+    <text x="24" y="38" font-family="-apple-system, sans-serif" font-size="24">💾</text>
+    <text x="60" y="36" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#F8FAFC">Local SQLite Database &amp; Exporters</text>
+    
+    <g transform="translate(24, 60)">
+      <rect x="0" y="0" width="210" height="65" rx="6" fill="#0F172A" stroke="#334155" />
+      <text x="14" y="24" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#34D399">SQLite (transcriptions.db)</text>
+      <text x="14" y="44" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">Indexed Full-Text &amp; Embeddings</text>
+
+      <rect x="230" y="0" width="220" height="65" rx="6" fill="#0F172A" stroke="#334155" />
+      <text x="14" y="24" transform="translate(230,0)" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#34D399">Multi-Format Exporters</text>
+      <text x="14" y="44" transform="translate(230,0)" font-family="-apple-system, sans-serif" font-size="11" fill="#94A3B8">PDF, DOCX, CSV, TXT, VTT, SRT</text>
+    </g>
+  </g>
+</svg>
