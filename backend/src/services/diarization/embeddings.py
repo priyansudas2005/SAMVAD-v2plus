@@ -84,9 +84,20 @@ class SpeakerEmbeddingExtractor:
         pitch = sample_rate / pitch_lag if pitch_lag > 0 else 0
 
         # 5. Concatenate into 256-dim feature vector
-        extra_feats = np.array([centroid, float(rolloff), zcr, pitch], dtype=np.float32)
+        # Normalize features to [0.0, 1.0] to prevent scale dominance in clustering
+        norm_centroid = centroid / 128.0
+        norm_rolloff = float(rolloff) / 128.0
+        norm_zcr = float(zcr)
+        norm_pitch = min(1.0, pitch / 300.0) if pitch > 0 else 0.0
+
+        extra_feats = np.array([norm_centroid, norm_rolloff, norm_zcr, norm_pitch], dtype=np.float32)
         extra_interp = np.interp(np.linspace(0, 1, 128), np.linspace(0, 1, 4), extra_feats)
-        embedding = np.concatenate([spec_feat, extra_interp])
+
+        # Normalize spec_feat envelope first
+        spec_norm = np.linalg.norm(spec_feat)
+        norm_spec_feat = spec_feat / spec_norm if spec_norm > 0 else spec_feat
+
+        embedding = np.concatenate([norm_spec_feat, extra_interp])
 
         # 6. L2 Normalization
         norm = np.linalg.norm(embedding)

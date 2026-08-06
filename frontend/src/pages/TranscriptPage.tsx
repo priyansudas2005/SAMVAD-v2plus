@@ -355,12 +355,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
 
   // Get filtered segments with sorting and query matches
   const getFilteredSegments = useMemo(() => {
-    if (!currentMeeting.transcript) return [];
-    let list = currentMeeting.transcript.map((seg) => {
-      // Standardize empty or null labels to SPEAKER_00 fallback without mutating valid labels
-      const label = seg.speaker_label && seg.speaker_label !== 'UNKNOWN' ? seg.speaker_label : 'SPEAKER_00';
-      return { ...seg, speaker_label: label };
-    });
+    let list = [...mappedTranscript];
     
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -450,23 +445,30 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     return (total / currentMeeting.transcript.length) * 100;
   }, [currentMeeting.transcript]);
 
-  const uniqueSpeakers = useMemo(() => {
+  const mappedTranscript = useMemo(() => {
     if (!currentMeeting.transcript) return [];
-    return Array.from(new Set(currentMeeting.transcript.map(s => s.speaker_label || 'UNKNOWN')));
+    return currentMeeting.transcript.map(seg => {
+      const label = seg.speaker_label && seg.speaker_label !== 'UNKNOWN' ? seg.speaker_label : 'SPEAKER_00';
+      return { ...seg, speaker_label: label };
+    });
   }, [currentMeeting.transcript]);
+
+  const uniqueSpeakers = useMemo(() => {
+    return Array.from(new Set(mappedTranscript.map(s => s.speaker_label)));
+  }, [mappedTranscript]);
 
   const speakerSegmentCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    currentMeeting.transcript?.forEach(seg => {
-      const spk = seg.speaker_label || 'UNKNOWN';
+    mappedTranscript.forEach(seg => {
+      const spk = seg.speaker_label;
       counts[spk] = (counts[spk] || 0) + 1;
     });
     return counts;
-  }, [currentMeeting.transcript]);
+  }, [mappedTranscript]);
 
   // Precompute per-speaker stats & profile info for SpeakerBadge popovers
   const allSpeakerStats = useMemo(() => {
-    const totalDuration = (currentMeeting.transcript || []).reduce((sum, seg) => {
+    const totalDuration = mappedTranscript.reduce((sum, seg) => {
       const parts = seg.start.split(':');
       const start = parts.length === 2 ? parseInt(parts[0], 10) * 60 + parseFloat(parts[1]) : parseFloat(parts[0]);
       const end = seg.end_seconds ?? start + 5;
@@ -474,7 +476,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     }, 0);
 
     return uniqueSpeakers.reduce<Record<string, import('../components/SpeakerBadge').ExtendedSpeakerStats>>((acc, label, idx) => {
-      const segs = (currentMeeting.transcript || []).filter(s => (s.speaker_label || 'UNKNOWN') === label);
+      const segs = mappedTranscript.filter(s => s.speaker_label === label);
       const totalSeconds = segs.reduce((sum, seg) => {
         const parts = seg.start.split(':');
         const start = parts.length === 2 ? parseInt(parts[0], 10) * 60 + parseFloat(parts[1]) : parseFloat(parts[0]);
@@ -513,7 +515,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       };
       return acc;
     }, {});
-  }, [uniqueSpeakers, currentMeeting.transcript, speakerNames, speakerColors, speakerProfiles, resolveSpeakerColor]);
+  }, [uniqueSpeakers, mappedTranscript, speakerNames, speakerColors, speakerProfiles, resolveSpeakerColor]);
 
   // Audio Playback Actions
   const togglePlayPause = () => {
@@ -671,7 +673,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
         {/* Speaker Manager Panel — slides in from right */}
         {showSpeakerManager && hasTranscript && (
           <SpeakerManagerPanel
-            transcript={currentMeeting.transcript || []}
+            transcript={mappedTranscript}
             speakerNames={speakerNames}
             speakerColors={speakerColors}
             speakerProfiles={speakerProfiles}
