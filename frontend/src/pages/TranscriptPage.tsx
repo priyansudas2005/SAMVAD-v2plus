@@ -353,6 +353,27 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     return speakerColors[raw] ?? SPEAKER_COLORS[index % SPEAKER_COLORS.length];
   }, [speakerColors]);
 
+  const mappedTranscript = useMemo(() => {
+    if (!currentMeeting.transcript) return [];
+    return currentMeeting.transcript.map(seg => {
+      const label = seg.speaker_label && seg.speaker_label !== 'UNKNOWN' ? seg.speaker_label : 'SPEAKER_00';
+      return { ...seg, speaker_label: label };
+    });
+  }, [currentMeeting.transcript]);
+
+  const uniqueSpeakers = useMemo(() => {
+    return Array.from(new Set(mappedTranscript.map(s => s.speaker_label)));
+  }, [mappedTranscript]);
+
+  const speakerSegmentCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    mappedTranscript.forEach(seg => {
+      const spk = seg.speaker_label;
+      counts[spk] = (counts[spk] || 0) + 1;
+    });
+    return counts;
+  }, [mappedTranscript]);
+
   // Get filtered segments with sorting and query matches
   const getFilteredSegments = useMemo(() => {
     let list = [...mappedTranscript];
@@ -445,26 +466,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     return (total / currentMeeting.transcript.length) * 100;
   }, [currentMeeting.transcript]);
 
-  const mappedTranscript = useMemo(() => {
-    if (!currentMeeting.transcript) return [];
-    return currentMeeting.transcript.map(seg => {
-      const label = seg.speaker_label && seg.speaker_label !== 'UNKNOWN' ? seg.speaker_label : 'SPEAKER_00';
-      return { ...seg, speaker_label: label };
-    });
-  }, [currentMeeting.transcript]);
 
-  const uniqueSpeakers = useMemo(() => {
-    return Array.from(new Set(mappedTranscript.map(s => s.speaker_label)));
-  }, [mappedTranscript]);
-
-  const speakerSegmentCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    mappedTranscript.forEach(seg => {
-      const spk = seg.speaker_label;
-      counts[spk] = (counts[spk] || 0) + 1;
-    });
-    return counts;
-  }, [mappedTranscript]);
 
   // Precompute per-speaker stats & profile info for SpeakerBadge popovers
   const allSpeakerStats = useMemo(() => {
