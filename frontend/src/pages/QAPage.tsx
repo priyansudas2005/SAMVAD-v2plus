@@ -49,6 +49,7 @@ interface QAPageProps {
   onNavigateToTimestamp?: (timestamp: string) => void;
   isProcessing?: boolean;
   setActivePage?: (page: string) => void;
+  onCancelProcessing?: () => void;
 }
 
 export const QAPage: React.FC<QAPageProps> = ({
@@ -57,6 +58,7 @@ export const QAPage: React.FC<QAPageProps> = ({
   onNavigateToTimestamp,
   isProcessing = false,
   setActivePage,
+  onCancelProcessing,
 }) => {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
@@ -314,6 +316,14 @@ export const QAPage: React.FC<QAPageProps> = ({
             <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed font-sans">
               Audio processing is active in the background. The AI assistant workspace will populate automatically once the Whisper pipeline completes.
             </p>
+            {onCancelProcessing && (
+              <button
+                onClick={onCancelProcessing}
+                className="mt-4 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+              >
+                Cancel Transcription
+              </button>
+            )}
           </div>
         </div>
       );

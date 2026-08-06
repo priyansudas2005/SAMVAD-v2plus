@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Sparkles, LayoutDashboard, Mic, AlertCircle, RefreshCw, Radio } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Mic, AlertCircle, RefreshCw, Radio, X } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { CommandPalette } from './components/CommandPalette';
 import { NotificationCenter } from './components/NotificationCenter';
@@ -176,6 +176,23 @@ function App() {
         delete next[meetingId];
         return next;
       });
+    }
+  };
+
+  const handleCancelProcessing = async (meetingId: string) => {
+    try {
+      await api.cancelMeetingProcessing(meetingId);
+      setProcessingMeetings(prev => {
+        const next = { ...prev };
+        delete next[meetingId];
+        return next;
+      });
+      if (currentMeetingRef.current && currentMeetingRef.current.meeting_id === meetingId) {
+        const refreshed = await api.getMeeting(meetingId);
+        setCurrentMeeting(refreshed);
+      }
+    } catch (err: any) {
+      console.error(`Failed to cancel processing for ${meetingId}:`, err);
     }
   };
 
@@ -626,6 +643,7 @@ function App() {
                   onUpdateMeeting={handleUpdateCurrentMeeting}
                   isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
                   onStartProcessing={(options) => startBackgroundProcessing(currentMeeting.meeting_id, options)}
+                  onCancelProcessing={() => handleCancelProcessing(currentMeeting.meeting_id)}
                 />
               ) : (
                 <NoMeetingSelected setActivePage={setActivePage} title="No Active Transcript Selected" />
@@ -648,6 +666,7 @@ function App() {
                   currentMeeting={currentMeeting}
                   isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
                   setActivePage={setActivePage}
+                  onCancelProcessing={() => handleCancelProcessing(currentMeeting.meeting_id)}
                 />
               ) : (
                 <NoMeetingSelected setActivePage={setActivePage} title="No Meeting Selected for Memo" />
@@ -672,6 +691,7 @@ function App() {
                     onUpdateMeeting={handleUpdateCurrentMeeting} 
                     isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
                     setActivePage={setActivePage}
+                    onCancelProcessing={() => handleCancelProcessing(currentMeeting.meeting_id)}
                   />
                 </Suspense>
               ) : (
@@ -697,6 +717,7 @@ function App() {
                     onUpdateMeeting={handleUpdateCurrentMeeting}
                     isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
                     setActivePage={setActivePage}
+                    onCancelProcessing={() => handleCancelProcessing(currentMeeting.meeting_id)}
                   />
                 </Suspense>
               ) : (
@@ -836,6 +857,17 @@ function App() {
                 <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1">
                   <Radio className="w-3 h-3 animate-pulse text-violet-400" /> Background AI Pipeline
                 </span>
+                {!globalUploading && (
+                  <button
+                    onClick={() => {
+                      const meetingId = Object.keys(processingMeetings)[0];
+                      if (meetingId) handleCancelProcessing(meetingId);
+                    }}
+                    className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded text-[8px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <X className="w-2.5 h-2.5" /> Cancel
+                  </button>
+                )}
               </div>
               <p className="text-xs font-bold text-white truncate mt-0.5">
                 {globalUploading 

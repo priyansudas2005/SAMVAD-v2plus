@@ -19,6 +19,7 @@ interface StatsPageProps {
   onNavigateToTimestamp?: (timestamp: string) => void;
   isProcessing?: boolean;
   setActivePage?: (page: string) => void;
+  onCancelProcessing?: () => void;
 }
 
 type TabType = 'overview' | 'speakers' | 'conversation' | 'audio_ai' | 'pipeline';
@@ -29,6 +30,7 @@ export const StatsPage: React.FC<StatsPageProps> = ({
   onNavigateToTimestamp,
   isProcessing = false,
   setActivePage,
+  onCancelProcessing,
 }) => {
   const [stats, setStats] = useState<MeetingStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,6 +185,30 @@ export const StatsPage: React.FC<StatsPageProps> = ({
     );
   };
 
+  if (isProcessing) {
+    return (
+      <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">
+        <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#0e1016]/90 border border-violet-500/20 backdrop-blur-xl rounded-2xl max-w-md w-full shadow-2xl text-center">
+          <div className="w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400 mb-2">
+            <BrainCircuit className="w-6 h-6 animate-spin" style={{ animationDuration: '3s' }} />
+          </div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Running AI Transcription...</h3>
+          <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed">
+            Audio processing is active in the background. Stats and speaker analytics will populate automatically once the Whisper pipeline completes.
+          </p>
+          {onCancelProcessing && (
+            <button
+              onClick={onCancelProcessing}
+              className="mt-4 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+            >
+              Cancel Transcription
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono">
@@ -212,21 +238,6 @@ export const StatsPage: React.FC<StatsPageProps> = ({
 
   const hasTranscript = currentMeeting.transcript && currentMeeting.transcript.length > 0;
   if (!hasTranscript || stats.total_transcript_segments === 0) {
-    if (isProcessing) {
-      return (
-        <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">
-          <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#0e1016]/90 border border-violet-500/20 backdrop-blur-xl rounded-2xl max-w-md w-full shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400 mb-2">
-              <BrainCircuit className="w-6 h-6 animate-spin" style={{ animationDuration: '3s' }} />
-            </div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest">Running AI Transcription...</h3>
-            <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed">
-              Audio processing is active in the background. Stats and speaker analytics will populate automatically once the Whisper pipeline completes.
-            </p>
-          </div>
-        </div>
-      );
-    }
 
     return (
       <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">

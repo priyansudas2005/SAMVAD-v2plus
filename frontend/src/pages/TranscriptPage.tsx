@@ -50,6 +50,7 @@ interface TranscriptPageProps {
   onUpdateMeeting: (meeting: Meeting) => void;
   isProcessing?: boolean;
   onStartProcessing?: (options: { modelSize: string; language?: string; vadEnabled: boolean }) => void;
+  onCancelProcessing?: () => void;
 }
 
 export const TranscriptPage: React.FC<TranscriptPageProps> = ({
@@ -57,6 +58,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   onUpdateMeeting,
   isProcessing = false,
   onStartProcessing,
+  onCancelProcessing,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [speakerFilter, setSpeakerFilter] = useState<string>('all');
@@ -764,6 +766,14 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                 <p className="text-xs text-[#98A2B3] mt-2 max-w-sm">
                   Transcribing local audio stream...
                 </p>
+                {onCancelProcessing && (
+                  <button
+                    onClick={onCancelProcessing}
+                    className="mt-4 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+                  >
+                    Cancel Transcription
+                  </button>
+                )}
               </div>
 
               <div className="flex-1 p-4 space-y-2 animate-pulse overflow-y-auto">

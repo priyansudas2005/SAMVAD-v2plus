@@ -39,13 +39,15 @@ interface SummaryPageProps {
   onNavigateToTimestamp?: (timestamp: string) => void;
   isProcessing?: boolean;
   setActivePage?: (page: string) => void;
+  onCancelProcessing?: () => void;
 }
 
 export const SummaryPage: React.FC<SummaryPageProps> = ({ 
   currentMeeting, 
   onNavigateToTimestamp,
   isProcessing = false,
-  setActivePage
+  setActivePage,
+  onCancelProcessing
 }) => {
   const memo = currentMeeting.memo;
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
@@ -75,6 +77,14 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({
           <p className="text-xs text-slate-400 mt-2 leading-relaxed">
             FastAPI backend is generating the structured summary, action items, and decision registry. This will update automatically once complete.
           </p>
+          {onCancelProcessing && (
+            <button
+              onClick={onCancelProcessing}
+              className="mt-4 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+            >
+              Cancel Transcription
+            </button>
+          )}
         </div>
       </div>
     );

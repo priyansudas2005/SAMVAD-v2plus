@@ -19,6 +19,14 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 
+cancelled_meetings = set()
+
+def check_cancelled(meeting_id: str):
+    if meeting_id in cancelled_meetings:
+        cancelled_meetings.discard(meeting_id)
+        logger.info(f"Cancellation check: Task for meeting {meeting_id} is cancelled. Aborting.")
+        raise HTTPException(status_code=499, detail="Processing cancelled by user")
+
 RECORDINGS_DIR = "backend/data/recordings"
 os.makedirs(RECORDINGS_DIR, exist_ok=True)
 
@@ -378,6 +386,12 @@ def upload_meeting_audio(
     db.refresh(meeting_data)
     return serialize_meeting(meeting_data)
 
+@router.post("/{meeting_id}/cancel")
+def cancel_meeting(meeting_id: str):
+    cancelled_meetings.add(meeting_id)
+    logger.info(f"Meeting {meeting_id} cancellation requested.")
+    return {"status": "cancellation_requested"}
+
 @router.post("/{meeting_id}/process", response_model=MeetingResponse)
 async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session = Depends(get_db)):
     m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
@@ -389,11 +403,13 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         
     try:
         import asyncio
+        check_cancelled(meeting_id)
         # 1. Preprocess audio
         processor = AudioProcessor()
         processed_path = await asyncio.to_thread(processor.preprocess_audio, m.audio_path)
         active_audio_path = processed_path if processed_path else m.audio_path
         
+        check_cancelled(meeting_id)
         # 2. Transcribe speech-to-text
         whisper_model_size = request.modelSize or "base"
         vad_filter = request.vadEnabled if request.vadEnabled is not None else None
@@ -402,6 +418,8 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         stt_engine = await asyncio.to_thread(FasterWhisperSTT, model_size=whisper_model_size)
         # Log actual vad_filter value being sent to engine
         logger.info(f"Transcription request: model_size={whisper_model_size}, vad_filter={vad_filter}, lang={stt_lang}")
+        
+        check_cancelled(meeting_id)
         transcribe_result = await asyncio.to_thread(
             stt_engine.transcribe,
             audio_path=active_audio_path,
@@ -411,28 +429,37 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         
         raw_segments = transcribe_result[0] if transcribe_result else []
         
+        check_cancelled(meeting_id)
         # 3. Speaker Diarization execution (uses float timestamps)
         try:
             from src.services.diarization import DiarizationEngine
             diar_engine = await asyncio.to_thread(DiarizationEngine)
             logger.info(f"Diarization config: min_speakers={diar_engine.config.min_speakers}, max_speakers={diar_engine.config.max_speakers}, threshold={diar_engine.config.clustering_threshold}")
+            check_cancelled(meeting_id)
             segments = await asyncio.to_thread(diar_engine.diarize, active_audio_path, raw_segments)
             unique_speakers = set(s.get("speaker_label", "NONE") for s in segments)
             logger.info(f"Speaker diarization completed. Speakers found: {unique_speakers}")
         except Exception as diar_err:
+            if isinstance(diar_err, HTTPException) and diar_err.status_code == 499:
+                raise diar_err
             logger.warning(f"Speaker diarization failed: {diar_err}. Continuing with fallback labels.")
             segments = raw_segments
             
+        check_cancelled(meeting_id)
         # 4. Intelligent Transcript Processing execution (uses float timestamps)
         try:
             from src.services.transcript import TranscriptProcessorPipeline
             pipeline = await asyncio.to_thread(TranscriptProcessorPipeline)
+            check_cancelled(meeting_id)
             segments, meta = await asyncio.to_thread(pipeline.process_transcript, meeting_id, segments)
             logger.info("Intelligent transcript processing completed successfully.")
         except Exception as proc_err:
+            if isinstance(proc_err, HTTPException) and proc_err.status_code == 499:
+                raise proc_err
             logger.warning(f"Intelligent transcript processing failed: {proc_err}. Skipping enhancements.")
             meta = {}
             
+        check_cancelled(meeting_id)
         # 5. Convert to string timestamps for storage and API response
         segments = TimestampGenerator.add_timestamps(segments)
             

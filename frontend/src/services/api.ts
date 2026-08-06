@@ -73,6 +73,12 @@ export const api = {
     });
   },
 
+  cancelMeetingProcessing(id: string): Promise<{ status: string }> {
+    return request<{ status: string }>(`/meetings/${id}/cancel`, {
+      method: 'POST',
+    });
+  },
+
   // Q&A API
   askQuestion(id: string, question: string): Promise<QAEntry> {
     return request<QAEntry>(`/meetings/${id}/qa`, {
