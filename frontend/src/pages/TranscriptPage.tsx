@@ -1427,6 +1427,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                         <span>DIARIZATION:</span>
                         <span className="text-[#06B6D4]">ENABLED</span>
                       </div>
+                      <div className="pt-2 border-t border-white/[0.05]">
+                        <button
+                          onClick={handleProcess}
+                          disabled={processing}
+                          className="w-full py-1 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/30 disabled:opacity-50 border border-[#8B5CF6]/30 text-[#8B5CF6] rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>{processing ? 'Processing...' : 'Re-process Meeting'}</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
