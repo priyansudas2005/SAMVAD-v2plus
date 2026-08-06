@@ -37,9 +37,16 @@ import { Toast } from '../components/Toast';
 interface SummaryPageProps {
   currentMeeting: Meeting;
   onNavigateToTimestamp?: (timestamp: string) => void;
+  isProcessing?: boolean;
+  setActivePage?: (page: string) => void;
 }
 
-export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavigateToTimestamp }) => {
+export const SummaryPage: React.FC<SummaryPageProps> = ({ 
+  currentMeeting, 
+  onNavigateToTimestamp,
+  isProcessing = false,
+  setActivePage
+}) => {
   const memo = currentMeeting.memo;
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [toastMsg, setToastMsg] = useState('');
@@ -59,15 +66,37 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavi
     }));
   };
 
+  if (isProcessing) {
+    return (
+      <div className="flex-1 overflow-y-auto bg-slate-950 p-8 flex items-center justify-center select-none font-sans">
+        <div className="text-center p-8 bg-[#0e1016]/90 border border-violet-500/20 backdrop-blur-xl rounded-2xl max-w-sm w-full shadow-2xl">
+          <Sparkles className="w-10 h-10 text-violet-400 mx-auto mb-3 animate-spin" style={{ animationDuration: '3s' }} />
+          <h3 className="text-lg font-bold text-white uppercase tracking-widest">Generating Memo...</h3>
+          <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+            FastAPI backend is generating the structured summary, action items, and decision registry. This will update automatically once complete.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!memo) {
     return (
-      <div className="flex-1 overflow-y-auto bg-slate-950 p-8 flex items-center justify-center">
-        <div className="text-center p-8 bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full">
-          <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-white">No Summary Generated</h3>
-          <p className="text-xs text-slate-400 mt-1.5">
-            Please run the transcript processor on the Transcript page to generate meeting intelligence and action items.
+      <div className="flex-1 overflow-y-auto bg-slate-950 p-8 flex items-center justify-center select-none font-sans">
+        <div className="text-center p-8 bg-[#0e1016]/90 border border-white/[0.08] rounded-2xl max-w-sm w-full shadow-2xl">
+          <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+          <h3 className="text-sm font-bold text-white uppercase tracking-widest font-mono">No Summary Generated</h3>
+          <p className="text-xs text-slate-455 mt-2 leading-relaxed">
+            Please run the transcript processor on the Transcript page to generate meeting intelligence, memo summaries, and action items.
           </p>
+          {setActivePage && (
+            <button 
+              onClick={() => setActivePage('transcript')}
+              className="mt-4 px-5 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-violet-600/25 transition-all duration-300 transform active:scale-[0.98] font-mono"
+            >
+              Go to Transcript
+            </button>
+          )}
         </div>
       </div>
     );
@@ -656,14 +685,14 @@ export const SummaryPage: React.FC<SummaryPageProps> = ({ currentMeeting, onNavi
             <div className="bg-[#0e1016]/90 border border-white/[0.08] rounded-xl p-4 shadow-2xl backdrop-blur-[24px] space-y-3">
               <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-[10.5px] font-bold text-[#F5F7FA] uppercase tracking-widest font-mono flex items-center gap-1.5">
-                  <Bookmark className="w-3.5 h-3.5 text-[#10B981]" /> Pending Decisions ({memo.execution?.pending_decisions?.length || (currentMeeting.transcript?.some(s => s.text.toLowerCase().includes('pending')) ? 1 : 0)})
+                  <Bookmark className="w-3.5 h-3.5 text-[#10B981]" /> Pending Decisions ({memo.intelligence?.pending_decisions?.length || (currentMeeting.transcript?.some(s => s.text.toLowerCase().includes('pending')) ? 1 : 0)})
                 </span>
                 <span className="text-[8.5px] font-mono text-[#98A2B3]">UNRESOLVED DISCUSSIONS</span>
               </div>
 
               <div className="space-y-2.5">
                 {(() => {
-                  const pdecs = memo.execution?.pending_decisions || [];
+                  const pdecs = memo.intelligence?.pending_decisions || [];
                   const displayPdecs = pdecs.length > 0 ? pdecs : (currentMeeting.transcript || [])
                     .filter(s => s.text.toLowerCase().includes('pending') || s.text.toLowerCase().includes('decide later') || s.text.toLowerCase().includes('next meeting'))
                     .map((seg, i) => ({

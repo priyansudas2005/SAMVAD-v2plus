@@ -48,11 +48,15 @@ import { RenameSpeakerModal, SPEAKER_COLORS } from '../components/SpeakerManager
 interface TranscriptPageProps {
   currentMeeting: Meeting;
   onUpdateMeeting: (meeting: Meeting) => void;
+  isProcessing?: boolean;
+  onStartProcessing?: (options: { modelSize: string; language?: string; vadEnabled: boolean }) => void;
 }
 
 export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   currentMeeting,
   onUpdateMeeting,
+  isProcessing = false,
+  onStartProcessing,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [speakerFilter, setSpeakerFilter] = useState<string>('all');
@@ -99,7 +103,8 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   // Bookmarks state
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
 
-  const [processing, setProcessing] = useState(false);
+  const [localProcessing, setLocalProcessing] = useState(false);
+  const processing = localProcessing || isProcessing;
   const [error, setError] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
@@ -117,6 +122,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollTop(e.currentTarget.scrollTop);
   };
+  
+  // Sync VAD & language from meeting metadata if present
+  useEffect(() => {
+    if (currentMeeting.metadata) {
+      if (currentMeeting.metadata.model_size) setModelSize(currentMeeting.metadata.model_size);
+      if (currentMeeting.metadata.language) setLanguage(currentMeeting.metadata.language);
+      if (currentMeeting.metadata.vad_filter !== undefined) setVadEnabled(currentMeeting.metadata.vad_filter);
+    }
+  }, [currentMeeting]);
   
   // Processing settings
   const [modelSize, setModelSize] = useState('base');
@@ -149,7 +163,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   }, [volume, playbackSpeed]);
 
   const handleProcess = async () => {
-    setProcessing(true);
+    if (onStartProcessing) {
+      onStartProcessing({
+        modelSize,
+        language: language === 'auto' ? undefined : language,
+        vadEnabled,
+      });
+      return;
+    }
+    setLocalProcessing(true);
     setError(null);
     try {
       const updated = await api.processMeeting(currentMeeting.meeting_id, {
@@ -162,7 +184,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       console.error(err);
       setError(err.message || 'Failed to process meeting. Please check model download or RAM capacity.');
     } finally {
-      setProcessing(false);
+      setLocalProcessing(false);
     }
   };
 
@@ -1333,13 +1355,16 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                       <div className="flex gap-1.5 items-start">
                         <span className="text-[#8B5CF6]">■</span>
                         <span>
-                          Diarization identified {detectedSpeakers.length} speaker{detectedSpeakers.length > 1 ? 's' : ''} across {currentMeeting.transcript?.length || 0} transcript dialogue turns.
+                          {(() => {
+                            const count = new Set(currentMeeting.transcript?.map(t => t.speaker_label) || []).size;
+                            return `Diarization identified ${count} speaker${count !== 1 ? 's' : ''} across ${currentMeeting.transcript?.length || 0} transcript dialogue turns.`;
+                          })()}
                         </span>
                       </div>
                       <div className="flex gap-1.5 items-start">
                         <span className="text-[#8B5CF6]">■</span>
                         <span>
-                          {currentMeeting.summary?.overview?.executive_summary
+                          {currentMeeting.memo?.summary
                             ? 'Executive meeting memo and action items compiled locally.'
                             : 'Audio processed via Faster-Whisper ASR engine.'}
                         </span>

@@ -47,12 +47,16 @@ interface QAPageProps {
   currentMeeting: Meeting;
   onUpdateMeeting: (meeting: Meeting) => void;
   onNavigateToTimestamp?: (timestamp: string) => void;
+  isProcessing?: boolean;
+  setActivePage?: (page: string) => void;
 }
 
 export const QAPage: React.FC<QAPageProps> = ({
   currentMeeting,
   onUpdateMeeting,
   onNavigateToTimestamp,
+  isProcessing = false,
+  setActivePage,
 }) => {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
@@ -299,14 +303,40 @@ export const QAPage: React.FC<QAPageProps> = ({
   const hasTranscript = currentMeeting.transcript && currentMeeting.transcript.length > 0;
 
   if (!hasTranscript) {
+    if (isProcessing) {
+      return (
+        <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">
+          <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#0e1016]/90 border border-violet-500/20 backdrop-blur-xl rounded-2xl max-w-md w-full shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400 mb-2">
+              <BrainCircuit className="w-6 h-6 animate-spin" style={{ animationDuration: '3s' }} />
+            </div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest">Running AI Transcription...</h3>
+            <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed font-sans">
+              Audio processing is active in the background. The AI assistant workspace will populate automatically once the Whisper pipeline completes.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="flex-1 overflow-y-auto bg-slate-950 p-8 flex items-center justify-center font-mono">
-        <div className="text-center p-8 bg-[#0e1016] border border-white/[0.08] rounded-xl max-w-sm w-full shadow-2xl">
-          <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-[#F5F7FA]">Transcript Required for AI Intelligence Workspace</h3>
-          <p className="text-xs text-[#98A2B3] mt-2 font-sans leading-relaxed">
+      <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">
+        <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#0e1016]/90 border border-white/[0.08] rounded-2xl max-w-md w-full shadow-2xl text-center">
+          <div className="w-12 h-12 rounded-xl bg-slate-900/60 border border-white/[0.06] flex items-center justify-center text-[#98A2B3] mb-2">
+            <AlertTriangle className="w-10 h-10 text-amber-400" />
+          </div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Transcript Required</h3>
+          <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed font-sans mt-2">
             Please run the audio transcriber on the Transcript page before launching the meeting intelligence workspace.
           </p>
+          {setActivePage && (
+            <button 
+              onClick={() => setActivePage('transcript')}
+              className="mt-4 px-5 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-violet-600/25 transition-all duration-300 transform active:scale-[0.98] font-mono"
+            >
+              Go to Transcript
+            </button>
+          )}
         </div>
       </div>
     );

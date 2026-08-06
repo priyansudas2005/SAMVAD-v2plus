@@ -70,6 +70,7 @@ class StatsEngine:
             "meeting_highlights": self._build_highlights(intel_data, memo_data),
             "action_item_breakdown": self._build_action_breakdown(intel_data),
             "decision_summary": self._build_decision_summary(intel_data),
+            "intelligence_summary": self._build_intelligence_summary(intel_data),
             "topics_entities": self._build_topics_entities(intel_data, seg_dicts),
             "audio_diagnostics": self._build_audio_diagnostics(),
             "transcription_diagnostics": self._build_transcription_diagnostics(seg_dicts),
@@ -105,16 +106,19 @@ class StatsEngine:
         if not self.intel:
             return {}
         return {
-            "action_items": safe_json_load(self.intel.action_items_json, []),
-            "decisions": safe_json_load(self.intel.decisions_json, []),
-            "risks": safe_json_load(self.intel.risks_json, []),
-            "blockers": safe_json_load(self.intel.blockers_json, []),
-            "followups": safe_json_load(self.intel.followups_json, []),
-            "questions": safe_json_load(self.intel.questions_json, []),
-            "entities": safe_json_load(self.intel.entities_json, {}),
-            "topics": safe_json_load(self.intel.topics_json, []),
-            "timeline": safe_json_load(self.intel.timeline_json, {}),
-            "analytics": safe_json_load(self.intel.analytics_json, {})
+            "action_items": safe_json_load(getattr(self.intel, "action_items_json", None), []),
+            "decisions": safe_json_load(getattr(self.intel, "decisions_json", None), []),
+            "pending_decisions": safe_json_load(getattr(self.intel, "pending_decisions_json", None), []),
+            "risks": safe_json_load(getattr(self.intel, "risks_json", None), []),
+            "blockers": safe_json_load(getattr(self.intel, "blockers_json", None), []),
+            "followups": safe_json_load(getattr(self.intel, "followups_json", None), []),
+            "questions": safe_json_load(getattr(self.intel, "questions_json", None), []),
+            "sentiment_shifts": safe_json_load(getattr(self.intel, "sentiment_shifts_json", None), []),
+            "recommendations": safe_json_load(getattr(self.intel, "recommendations_json", None), []),
+            "entities": safe_json_load(getattr(self.intel, "entities_json", None), {}),
+            "topics": safe_json_load(getattr(self.intel, "topics_json", None), []),
+            "timeline": safe_json_load(getattr(self.intel, "timeline_json", None), {}),
+            "analytics": safe_json_load(getattr(self.intel, "analytics_json", None), {})
         }
 
     def _load_memo(self) -> dict:
@@ -308,6 +312,8 @@ class StatsEngine:
         decisions = intel_data.get("decisions", []) or memo_data.get("decisions", [])
         risks = intel_data.get("risks", [])
         blockers = intel_data.get("blockers", [])
+        questions = intel_data.get("questions", [])
+        followups = intel_data.get("followups", [])
 
         # Segment-level fallback extractions if intelligence lists are unpopulated
         segments = self._segments_to_dicts()
@@ -330,13 +336,14 @@ class StatsEngine:
             high_pri = [a for a in actions if isinstance(a, dict) and a.get("priority") in ("HIGH", "CRITICAL")]
             most_important_ai = (high_pri[0] if high_pri else actions[0]).get("task", str(actions[0])) if isinstance(actions[0], dict) else str(actions[0])
 
-        biggest_risk = None
-        if risks:
-            biggest_risk = risks[0].get("text", str(risks[0])) if isinstance(risks[0], dict) else str(risks[0])
+        def _extract_text(item: Any) -> str:
+            if isinstance(item, dict):
+                return item.get("text", item.get("task", item.get("description", str(item))))
+            return str(item)
 
-        biggest_blocker = None
-        if blockers:
-            biggest_blocker = blockers[0].get("text", str(blockers[0])) if isinstance(blockers[0], dict) else str(blockers[0])
+        biggest_risk = _extract_text(risks[0]) if risks else None
+        biggest_blocker = _extract_text(blockers[0]) if blockers else None
+        top_open_question = _extract_text(questions[0]) if questions else None
 
         key_deadline = None
         if actions:
@@ -359,6 +366,11 @@ class StatsEngine:
             "most_important_action_item": most_important_ai,
             "biggest_risk": biggest_risk,
             "biggest_blocker": biggest_blocker,
+            "top_open_question": top_open_question,
+            "risks_count": len(risks),
+            "blockers_count": len(blockers),
+            "open_questions_count": len(questions),
+            "followups_count": len(followups),
             "key_deadline": key_deadline,
             "critical_discussion": critical_discussion,
             "meeting_outcome": meeting_outcome
@@ -399,15 +411,25 @@ class StatsEngine:
 
     def _build_decision_summary(self, intel_data: Dict) -> Dict:
         decisions = intel_data.get("decisions", [])
+        raw_pending = intel_data.get("pending_decisions", [])
         major = []
         technical = []
         business = []
         pending = []
         open_dec = []
+
+        for p in raw_pending:
+            if isinstance(p, dict):
+                text = p.get("topic", p.get("text", p.get("decision", str(p))))
+            else:
+                text = str(p)
+            if text and text not in pending:
+                pending.append(text)
+
         for d in decisions:
             if isinstance(d, dict):
                 text = d.get("text", str(d))
-                dtype = d.get("type", "")
+                dtype = str(d.get("type", "")).lower()
             else:
                 text = str(d)
                 dtype = ""
@@ -417,8 +439,9 @@ class StatsEngine:
                 technical.append(text)
             elif dtype == "business":
                 business.append(text)
-            elif dtype == "pending":
-                pending.append(text)
+            elif dtype in ("pending", "unresolved", "proposed"):
+                if text not in pending:
+                    pending.append(text)
             else:
                 open_dec.append(text)
         return {
@@ -427,6 +450,106 @@ class StatsEngine:
             "business_decisions": business,
             "pending_decisions": pending,
             "open_decisions": open_dec
+        }
+
+    def _build_intelligence_summary(self, intel_data: Dict) -> Dict:
+        """Build a structured intelligence summary for the StatsPage Overview and Speaker Analytics tabs."""
+        risks = intel_data.get("risks", [])
+        blockers = intel_data.get("blockers", [])
+        questions = intel_data.get("questions", [])
+        followups = intel_data.get("followups", [])
+        actions = intel_data.get("action_items", [])
+        decisions = intel_data.get("decisions", [])
+        analytics = intel_data.get("analytics", {})
+
+        def _fmt_item(item, label_key="text"):
+            if isinstance(item, dict):
+                return {
+                    "text": item.get("text", item.get(label_key, item.get("task", str(item))))[:200],
+                    "confidence": item.get("confidence", 0.75),
+                    "speaker": item.get("speaker", "UNKNOWN"),
+                    "timestamp": item.get("timestamp", item.get("source_start", None)),
+                    "priority": item.get("priority", None),
+                    "severity": item.get("severity", None),
+                }
+            return {"text": str(item)[:200], "confidence": 0.75, "speaker": "UNKNOWN", "timestamp": None, "priority": None, "severity": None}
+
+        # Build pending_decisions from intel_data.pending_decisions + decisions with UNRESOLVED/PROPOSED/PENDING type
+        pending_decs = []
+        raw_pending = intel_data.get("pending_decisions", [])
+        for idx, p in enumerate(raw_pending):
+            if isinstance(p, dict):
+                topic = p.get("topic", p.get("text", p.get("decision", str(p))))
+                status = p.get("status", "PROPOSED")
+                conf = p.get("confidence", 0.7)
+            else:
+                topic = str(p)
+                status = "PROPOSED"
+                conf = 0.7
+            pending_decs.append({
+                "id": f"pdec_raw_{idx}",
+                "topic": topic[:120],
+                "status": str(status).upper(),
+                "confidence": conf,
+                "needs_human_review": True
+            })
+
+        for idx, d in enumerate(decisions):
+            if isinstance(d, dict):
+                dtype = str(d.get("type", ""))
+                if dtype.upper() in ("UNRESOLVED", "PROPOSED", "PENDING"):
+                    topic = d.get("text", str(d))[:120]
+                    if not any(pd["topic"] == topic for pd in pending_decs):
+                        pending_decs.append({
+                            "id": f"pdec_dec_{idx}",
+                            "topic": topic,
+                            "status": dtype.upper(),
+                            "confidence": d.get("confidence", 0.6),
+                            "needs_human_review": True
+                        })
+
+        # AI Recommendations from top action items + risks
+        ai_recs = []
+        for idx, act in enumerate(actions[:5]):
+            task = act.get("task", str(act)) if isinstance(act, dict) else str(act)
+            priority = act.get("priority", "MEDIUM") if isinstance(act, dict) else "MEDIUM"
+            owner = act.get("owner", "UNKNOWN") if isinstance(act, dict) else "UNKNOWN"
+            conf = act.get("confidence", 0.8) if isinstance(act, dict) else 0.8
+            ai_recs.append({
+                "id": f"rec_action_{idx}",
+                "recommendation": f"Ensure '{task[:80]}' is completed before the next milestone.",
+                "reason": f"Action item assigned to {owner} with {priority} priority extracted from meeting discussion.",
+                "confidence": conf,
+                "needs_human_review": conf < 0.65
+            })
+        for idx, risk in enumerate(risks[:3]):
+            text = risk.get("text", str(risk)) if isinstance(risk, dict) else str(risk)
+            conf = risk.get("confidence", 0.75) if isinstance(risk, dict) else 0.75
+            ai_recs.append({
+                "id": f"rec_risk_{idx}",
+                "recommendation": f"Mitigate risk: {text[:80]}",
+                "reason": "Risk identified during meeting discussion that requires proactive management.",
+                "confidence": conf,
+                "needs_human_review": True
+            })
+
+        return {
+            "risks": [_fmt_item(r) for r in risks[:20]],
+            "blockers": [_fmt_item(b) for b in blockers[:20]],
+            "open_questions": [_fmt_item(q) for q in questions[:20]],
+            "dependencies": [_fmt_item(f) for f in followups[:20]],
+            "pending_decisions": pending_decs[:20],
+            "ai_recommendations": ai_recs[:10],
+            "counts": {
+                "risks": len(risks),
+                "blockers": len(blockers),
+                "open_questions": len(questions),
+                "dependencies": len(followups),
+                "action_items": len(actions),
+                "decisions": len(decisions),
+                "pending_decisions": len(pending_decs)
+            },
+            "analytics": analytics
         }
 
     def _build_topics_entities(self, intel_data: Dict, segments: List[Dict]) -> Dict:
@@ -464,6 +587,7 @@ class StatsEngine:
         project_list = []
         product_list = []
         all_keywords = []
+        seen_entities: set = set()  # Fix: initialize seen_entities before use
 
         # If DBMeetingIntelligence has no entities, pull directly from segment-level entity extractions
         if not entities:
@@ -644,6 +768,9 @@ class StatsEngine:
         memo_data = self._load_memo()
         actions = intel_data.get("action_items", []) or memo_data.get("action_items", [])
         decisions = intel_data.get("decisions", []) or memo_data.get("decisions", [])
+        risks = intel_data.get("risks", [])
+        blockers = intel_data.get("blockers", [])
+        questions = intel_data.get("questions", [])
 
         transcript_quality = round(avg_conf * 100, 1)
         audio_quality = round(min(100, avg_conf * 95 + 5), 1)
@@ -651,9 +778,11 @@ class StatsEngine:
         meeting_completeness = 90.0 if (self.intel or memo_data) else 50.0
 
         prod_score = min(100, max(60.0, (len(actions) * 10 + len(decisions) * 15 + transcript_quality * 0.4)))
+        # Penalise health score for unresolved risks and blockers
+        risk_penalty = min(10.0, len(risks) * 2.0 + len(blockers) * 3.0)
         ai_reliability = round(min(100, transcript_quality * 0.85 + 15), 1)
         effectiveness = round(min(100, (prod_score + speaker_detection + transcript_quality) / 3), 1)
-        overall = round((transcript_quality + audio_quality + speaker_detection + meeting_completeness + prod_score) / 5, 1)
+        overall = round(max(0, (transcript_quality + audio_quality + speaker_detection + meeting_completeness + prod_score) / 5 - risk_penalty), 1)
 
         recommendations = []
         if avg_conf < 0.7:
@@ -664,6 +793,12 @@ class StatsEngine:
             recommendations.append("No action items extracted. Consider re-processing with intelligence engine.")
         if not decisions:
             recommendations.append("No decisions detected. The meeting may benefit from clearer outcome documentation.")
+        if risks:
+            recommendations.append(f"{len(risks)} risk(s) identified — review and create mitigation plans.")
+        if blockers:
+            recommendations.append(f"{len(blockers)} blocker(s) require immediate attention before proceeding.")
+        if questions:
+            recommendations.append(f"{len(questions)} open question(s) remain unresolved from this meeting.")
         if avg_conf >= 0.85:
             recommendations.append("Excellent recording quality.")
         if len(speaker_data) > 1 and avg_conf >= 0.75:
@@ -671,9 +806,9 @@ class StatsEngine:
         if any(isinstance(s.get("speaker_confidence"), (int, float)) and s["speaker_confidence"] < 0.5 for s in segments):
             recommendations.append("Some segments have low confidence. Check audio quality for those regions.")
         if actions:
-            recommendations.append("Action items extracted successfully.")
+            recommendations.append(f"{len(actions)} action item(s) extracted successfully.")
         if decisions:
-            recommendations.append("Decisions documented successfully.")
+            recommendations.append(f"{len(decisions)} decision(s) documented successfully.")
 
         return {
             "overall_score": overall,
@@ -685,6 +820,9 @@ class StatsEngine:
             "ai_reliability": ai_reliability,
             "productivity_score": round(prod_score, 1),
             "meeting_effectiveness": effectiveness,
+            "risks_count": len(risks),
+            "blockers_count": len(blockers),
+            "open_questions_count": len(questions),
             "recommendations": recommendations
         }
 

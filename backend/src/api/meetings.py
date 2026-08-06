@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 
-from src.services.database.db import get_db, DBMeeting, DBTranscriptSegment, DBMemo, DBQAHistory
+from src.services.database.db import get_db, DBMeeting, DBTranscriptSegment, DBMemo, DBQAHistory, DBMeetingIntelligence
 from src.models.schemas import MeetingResponse, ProcessRequest, MeetingTitleUpdate, TranscriptSegmentUpdate
 from src.services.audio.processor import AudioProcessor
 from src.services.transcription import FasterWhisperSTT
@@ -23,7 +23,103 @@ RECORDINGS_DIR = "backend/data/recordings"
 os.makedirs(RECORDINGS_DIR, exist_ok=True)
 
 # Helper function to convert DB model to schema response
-def serialize_meeting(m: DBMeeting) -> dict:
+def _load_intel_from_db(db: Session, meeting_id: str) -> dict:
+    """Load and structure meeting intelligence from DBMeetingIntelligence for frontend consumption."""
+    db_intel = db.query(DBMeetingIntelligence).filter(
+        DBMeetingIntelligence.meeting_id == meeting_id
+    ).first()
+    if not db_intel:
+        return {}
+    try:
+        raw_risks = json.loads(db_intel.risks_json or "[]")
+        raw_blockers = json.loads(db_intel.blockers_json or "[]")
+        raw_questions = json.loads(db_intel.questions_json or "[]")
+        raw_followups = json.loads(db_intel.followups_json or "[]")
+        raw_actions = json.loads(db_intel.action_items_json or "[]")
+        raw_decisions = json.loads(db_intel.decisions_json or "[]")
+        analytics = json.loads(db_intel.analytics_json or "{}")
+
+        def _to_intel_item(item, idx, label):
+            if isinstance(item, dict):
+                text = item.get("text", item.get("task", str(item)))
+                conf = item.get("confidence", 0.75)
+                spk = item.get("speaker", "UNKNOWN")
+                ts = item.get("timestamp", item.get("source_start", None))
+            else:
+                text = str(item)
+                conf = 0.75
+                spk = "UNKNOWN"
+                ts = None
+            ref = [{"segment_id": idx, "timestamp": ts or "00:00"}] if ts else []
+            return {
+                "id": f"{label}_{idx}",
+                label: text,
+                "text": text,
+                "confidence": conf,
+                "speaker": spk,
+                "references": ref,
+                "needs_human_review": conf < 0.65
+            }
+
+        # Build AI recommendations from high-priority action items + risks
+        ai_recs = []
+        for idx, act in enumerate(raw_actions[:5]):
+            task = act.get("task", str(act)) if isinstance(act, dict) else str(act)
+            priority = act.get("priority", "MEDIUM") if isinstance(act, dict) else "MEDIUM"
+            owner = act.get("owner", "UNKNOWN") if isinstance(act, dict) else "UNKNOWN"
+            conf = act.get("confidence", 0.8) if isinstance(act, dict) else 0.8
+            ai_recs.append({
+                "id": f"rec_action_{idx}",
+                "recommendation": f"Ensure '{task[:80]}' is completed before the next milestone.",
+                "reason": f"Action item assigned to {owner} with {priority} priority extracted from meeting discussion.",
+                "related_item": task,
+                "confidence": conf,
+                "needs_human_review": conf < 0.65,
+                "references": []
+            })
+        for idx, risk in enumerate(raw_risks[:3]):
+            text = risk.get("text", str(risk)) if isinstance(risk, dict) else str(risk)
+            conf = risk.get("confidence", 0.75) if isinstance(risk, dict) else 0.75
+            ai_recs.append({
+                "id": f"rec_risk_{idx}",
+                "recommendation": f"Mitigate risk: {text[:80]}",
+                "reason": "Risk identified during meeting discussion that requires proactive management.",
+                "related_decision_or_risk": text,
+                "confidence": conf,
+                "needs_human_review": True,
+                "references": []
+            })
+
+        # Build pending decisions from UNRESOLVED / PROPOSED decisions
+        pending_decs = [
+            {
+                "id": f"pdec_{idx}",
+                "topic": d.get("text", str(d))[:120] if isinstance(d, dict) else str(d)[:120],
+                "status": d.get("type", "UNRESOLVED") if isinstance(d, dict) else "UNRESOLVED",
+                "confidence": d.get("confidence", 0.6) if isinstance(d, dict) else 0.6,
+                "needs_human_review": True
+            }
+            for idx, d in enumerate(raw_decisions)
+            if (isinstance(d, dict) and d.get("type", "") in ("UNRESOLVED", "PROPOSED", "PENDING"))
+            or (isinstance(d, str) and any(w in d.lower() for w in ["pending", "unresolved", "propose"]))
+        ]
+
+        return {
+            "risks": [_to_intel_item(r, i, "risk") for i, r in enumerate(raw_risks)],
+            "blockers": [_to_intel_item(b, i, "blocker") for i, b in enumerate(raw_blockers)],
+            "open_questions": [_to_intel_item(q, i, "question") for i, q in enumerate(raw_questions)],
+            "dependencies": [_to_intel_item(f, i, "dependent_task") for i, f in enumerate(raw_followups)],
+            "missing_information": [],
+            "ai_recommendations": ai_recs,
+            "pending_decisions": pending_decs,
+            "analytics": analytics
+        }
+    except Exception as e:
+        logger.warning(f"Failed to load intelligence for {meeting_id}: {e}")
+        return {}
+
+
+def serialize_meeting(m: DBMeeting, db: Session = None) -> dict:
     segments = []
     for s in m.transcript:
         seg_meta = json.loads(s.metadata_json) if s.metadata_json else {}
@@ -40,7 +136,18 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "speaker_confidence": s.speaker_confidence,
             "metadata": seg_meta
         })
-        
+
+    # Load structured intelligence from DBMeetingIntelligence
+    # Use m._sa_instance_state.session if db not passed (relationship-loaded records)
+    _db = db
+    if _db is None:
+        try:
+            from sqlalchemy.orm import object_session
+            _db = object_session(m)
+        except Exception:
+            _db = None
+    intel_data = _load_intel_from_db(_db, m.meeting_id) if _db else {}
+
     memo_data = None
     if m.memo:
         memo_data = {
@@ -51,7 +158,25 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "key_points": json.loads(m.memo.key_points_json) if m.memo.key_points_json else [],
             "discussion_points": json.loads(m.memo.discussion_points_json) if hasattr(m.memo, 'discussion_points_json') and m.memo.discussion_points_json else [],
             "generated_at": m.memo.generated_at or "",
-            "confidence": m.memo.confidence or 1.0
+            "confidence": m.memo.confidence or 1.0,
+            # Attach full intelligence workspace data
+            "intelligence": {
+                "risks": intel_data.get("risks", []),
+                "blockers": intel_data.get("blockers", []),
+                "open_questions": intel_data.get("open_questions", []),
+                "dependencies": intel_data.get("dependencies", []),
+                "missing_information": intel_data.get("missing_information", []),
+                "pending_decisions": intel_data.get("pending_decisions", [])
+            },
+            "follow_up": {
+                "ai_recommendations": intel_data.get("ai_recommendations", []),
+                "decision_snapshot": {
+                    "meeting_status": "Completed Successfully",
+                    "decision_confidence": intel_data.get("analytics", {}).get("decision_confidence", 0.75),
+                    "execution_readiness": "Medium" if intel_data.get("risks") else "High",
+                    "follow_up_priority": "High" if intel_data.get("risks") else "Medium"
+                }
+            }
         }
         
     qa_history = []
@@ -67,13 +192,20 @@ def serialize_meeting(m: DBMeeting) -> dict:
             "source_snippet": getattr(q, 'source_snippet', "")
         })
 
+    meta = json.loads(m.metadata_json) if m.metadata_json else {}
+    word_count = meta.get("word_count")
+    if word_count is None:
+        word_count = sum(len(s.text.split()) for s in m.transcript if s.text)
+        meta["word_count"] = word_count
+
     return {
         "meeting_id": m.meeting_id,
         "title": m.title,
         "date": m.date,
         "duration": m.duration,
         "audio_path": m.audio_path,
-        "metadata": json.loads(m.metadata_json) if m.metadata_json else {},
+        "metadata": meta,
+        "word_count": word_count,
         "transcript": segments,
         "memo": memo_data,
         "qa_history": qa_history
@@ -82,6 +214,12 @@ def serialize_meeting(m: DBMeeting) -> dict:
 def serialize_meeting_list(m: DBMeeting) -> dict:
     """Lightweight serializer for the meetings list - omits transcript segments and word timings
     so GET /api/meetings returns quickly even with many meetings."""
+    meta = json.loads(m.metadata_json) if m.metadata_json else {}
+    word_count = meta.get("word_count")
+    if word_count is None:
+        word_count = sum(len(s.text.split()) for s in m.transcript if s.text)
+        meta["word_count"] = word_count
+
     memo_data = None
     if m.memo:
         memo_data = {
@@ -101,7 +239,8 @@ def serialize_meeting_list(m: DBMeeting) -> dict:
         "date": m.date,
         "duration": m.duration,
         "audio_path": m.audio_path,
-        "metadata": json.loads(m.metadata_json) if m.metadata_json else {},
+        "metadata": meta,
+        "word_count": word_count,
         "transcript": [],  # Omitted for speed — load on-demand via GET /meetings/{id}
         "memo": memo_data,
         "qa_history": []   # Omitted for speed — load on-demand via GET /meetings/{id}
@@ -109,7 +248,7 @@ def serialize_meeting_list(m: DBMeeting) -> dict:
 
 @router.get("", response_model=List[MeetingResponse])
 def get_meetings(db: Session = Depends(get_db)):
-    # Use lightweight serializer — no transcript segments loaded, so this is fast
+    # Use lightweight serializer â€” no transcript segments loaded, so this is fast
     meetings = db.query(DBMeeting).all()
     return [serialize_meeting_list(m) for m in meetings]
 
@@ -119,7 +258,7 @@ def get_meeting(meeting_id: str, db: Session = Depends(get_db)):
     m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
     if not m:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    return serialize_meeting(m)
+    return serialize_meeting(m, db)
 
 @router.get("/{meeting_id}/audio")
 def get_meeting_audio(meeting_id: str, db: Session = Depends(get_db)):
@@ -185,7 +324,7 @@ def update_meeting_title(meeting_id: str, payload: MeetingTitleUpdate, db: Sessi
     m.title = payload.title
     db.commit()
     db.refresh(m)
-    return serialize_meeting(m)
+    return serialize_meeting(m, db)
 
 @router.post("/upload", response_model=MeetingResponse)
 def upload_meeting_audio(
@@ -249,9 +388,10 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         raise HTTPException(status_code=400, detail="Meeting audio file not found on disk")
         
     try:
+        import asyncio
         # 1. Preprocess audio
         processor = AudioProcessor()
-        processed_path = processor.preprocess_audio(m.audio_path)
+        processed_path = await asyncio.to_thread(processor.preprocess_audio, m.audio_path)
         active_audio_path = processed_path if processed_path else m.audio_path
         
         # 2. Transcribe speech-to-text
@@ -259,10 +399,11 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         vad_filter = request.vadEnabled if request.vadEnabled is not None else None
         stt_lang = request.language
         
-        stt_engine = FasterWhisperSTT(model_size=whisper_model_size)
+        stt_engine = await asyncio.to_thread(FasterWhisperSTT, model_size=whisper_model_size)
         # Log actual vad_filter value being sent to engine
         logger.info(f"Transcription request: model_size={whisper_model_size}, vad_filter={vad_filter}, lang={stt_lang}")
-        transcribe_result = stt_engine.transcribe(
+        transcribe_result = await asyncio.to_thread(
+            stt_engine.transcribe,
             audio_path=active_audio_path,
             language=stt_lang,
             vad_filter=vad_filter
@@ -273,9 +414,9 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         # 3. Speaker Diarization execution (uses float timestamps)
         try:
             from src.services.diarization import DiarizationEngine
-            diar_engine = DiarizationEngine()
+            diar_engine = await asyncio.to_thread(DiarizationEngine)
             logger.info(f"Diarization config: min_speakers={diar_engine.config.min_speakers}, max_speakers={diar_engine.config.max_speakers}, threshold={diar_engine.config.clustering_threshold}")
-            segments = diar_engine.diarize(active_audio_path, raw_segments)
+            segments = await asyncio.to_thread(diar_engine.diarize, active_audio_path, raw_segments)
             unique_speakers = set(s.get("speaker_label", "NONE") for s in segments)
             logger.info(f"Speaker diarization completed. Speakers found: {unique_speakers}")
         except Exception as diar_err:
@@ -285,8 +426,8 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         # 4. Intelligent Transcript Processing execution (uses float timestamps)
         try:
             from src.services.transcript import TranscriptProcessorPipeline
-            pipeline = TranscriptProcessorPipeline()
-            segments, meta = pipeline.process_transcript(meeting_id, segments)
+            pipeline = await asyncio.to_thread(TranscriptProcessorPipeline)
+            segments, meta = await asyncio.to_thread(pipeline.process_transcript, meeting_id, segments)
             logger.info("Intelligent transcript processing completed successfully.")
         except Exception as proc_err:
             logger.warning(f"Intelligent transcript processing failed: {proc_err}. Skipping enhancements.")
@@ -334,8 +475,8 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         try:
             from src.services.intelligence import MeetingAnalyzer
             from src.services.database.db import DBMeetingIntelligence
-            analyzer = MeetingAnalyzer()
-            intel_report = analyzer.analyze(segments, meta.get("topics", []))
+            analyzer = await asyncio.to_thread(MeetingAnalyzer)
+            intel_report = await asyncio.to_thread(analyzer.analyze, segments, meta.get("topics", []))
             
             # Persist structured intelligence
             db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).delete()
@@ -391,7 +532,7 @@ async def process_meeting(meeting_id: str, request: ProcessRequest, db: Session 
         
         db.commit()
         db.refresh(m)
-        return serialize_meeting(m)
+        return serialize_meeting(m, db)
         
     except Exception as e:
         logger.error(f"Process meeting error: {e}")
@@ -405,7 +546,7 @@ def export_meeting(meeting_id: str, format_type: str, db: Session = Depends(get_
     if not m:
         raise HTTPException(status_code=404, detail="Meeting not found")
         
-    data = serialize_meeting(m)
+    data = serialize_meeting(m, db)
     
     # Retrieve intelligence report if available
     intelligence_report = {}
@@ -488,7 +629,7 @@ def export_meetings_batch(payload: dict, db: Session = Depends(get_db)):
             if not m:
                 continue
                 
-            data = serialize_meeting(m)
+            data = serialize_meeting(m, db)
             
             # Retrieve intelligence report if available
             intel_report = {}
@@ -566,7 +707,7 @@ async def update_transcript_segment(
     await regenerate_downstream_assets(m, db)
     
     db.refresh(m)
-    return serialize_meeting(m)
+    return serialize_meeting(m, db)
 
 @router.get("/{meeting_id}/analytics/speakers")
 def get_speaker_analytics(meeting_id: str, db: Session = Depends(get_db)):
@@ -793,7 +934,7 @@ async def force_regenerate_intelligence(meeting_id: str, db: Session = Depends(g
         
     await regenerate_downstream_assets(m, db)
     db.refresh(m)
-    return serialize_meeting(m)
+    return serialize_meeting(m, db)
 
 async def regenerate_downstream_assets(m: DBMeeting, db: Session):
     from src.services.database.db import DBMeetingIntelligence, DBMemo
@@ -826,8 +967,9 @@ async def regenerate_downstream_assets(m: DBMeeting, db: Session):
     
     # 2. Regenerate intelligence
     try:
-        analyzer = MeetingAnalyzer()
-        intel_report = analyzer.analyze(segments, [])
+        import asyncio
+        analyzer = await asyncio.to_thread(MeetingAnalyzer)
+        intel_report = await asyncio.to_thread(analyzer.analyze, segments, [])
         
         db.query(DBMeetingIntelligence).filter(DBMeetingIntelligence.meeting_id == meeting_id).delete()
         db_intel = DBMeetingIntelligence(

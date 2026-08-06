@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { Sparkles, LayoutDashboard, Mic, AlertCircle, RefreshCw, Radio } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { CommandPalette } from './components/CommandPalette';
 import { NotificationCenter } from './components/NotificationCenter';
@@ -36,6 +37,32 @@ import { SettingsProvider } from './context/SettingsContext';
 const QAPage = lazy(() => import('./pages/QAPage').then(m => ({ default: m.QAPage })));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const StatsPage = lazy(() => import('./pages/StatsPage').then(m => ({ default: m.StatsPage })));
+
+const NoMeetingSelected: React.FC<{ setActivePage: (p: string) => void; title?: string }> = ({ setActivePage, title = "No Active Meeting Selected" }) => (
+  <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-transparent min-h-[400px]">
+    <div className="w-16 h-16 rounded-3xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-violet-400 mb-4 shadow-[0_0_30px_rgba(139,92,246,0.2)] animate-pulse">
+      <Sparkles className="w-8 h-8" />
+    </div>
+    <h2 className="text-xl font-bold text-white mb-2">{title}</h2>
+    <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
+      Please select a meeting from the Meeting History or Dashboard, or record audio in Studio Recorder / upload an audio file to view AI analysis.
+    </p>
+    <div className="flex items-center gap-3">
+      <button
+        onClick={() => setActivePage('dashboard')}
+        className="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs transition-all shadow-lg shadow-violet-600/30 flex items-center gap-2"
+      >
+        <LayoutDashboard className="w-4 h-4" /> Go to Dashboard
+      </button>
+      <button
+        onClick={() => setActivePage('recorder')}
+        className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-750 text-slate-200 font-semibold text-xs transition-all flex items-center gap-2"
+      >
+        <Mic className="w-4 h-4 text-sky-400" /> Studio Recorder
+      </button>
+    </div>
+  </div>
+);
 
 const TabSkeleton = () => (
   <div className="flex-1 bg-slate-950 p-8 space-y-6 animate-pulse w-full h-screen overflow-hidden">
@@ -103,6 +130,82 @@ function App() {
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
 
+  // Global Audio File Upload & Background Transcription State
+  const [globalUploading, setGlobalUploading] = useState<boolean>(false);
+  const [globalUploadFileName, setGlobalUploadFileName] = useState<string>('');
+  const [globalUploadError, setGlobalUploadError] = useState<string | null>(null);
+
+  // Global background processing map: { [meeting_id]: { title: string } }
+  const [processingMeetings, setProcessingMeetings] = useState<Record<string, { title: string }>>({});
+
+  const currentMeetingRef = useRef<Meeting | null>(null);
+  useEffect(() => {
+    currentMeetingRef.current = currentMeeting;
+  }, [currentMeeting]);
+
+  const startBackgroundProcessing = async (
+    meetingId: string,
+    options: { modelSize?: string; language?: string; vadEnabled?: boolean; title?: string }
+  ) => {
+    const meetingTitle = options.title || 'Audio File';
+    setProcessingMeetings(prev => ({
+      ...prev,
+      [meetingId]: { title: meetingTitle }
+    }));
+
+    try {
+      const updated = await api.processMeeting(meetingId, {
+        modelSize: options.modelSize,
+        language: options.language,
+        vadEnabled: options.vadEnabled,
+      });
+
+      // Update full meetings list
+      await fetchMeetingsList();
+
+      // If this meeting is currently active, update the view state
+      if (currentMeetingRef.current && currentMeetingRef.current.meeting_id === meetingId) {
+        setCurrentMeeting(updated);
+      }
+    } catch (err: any) {
+      console.error(`Background processing failed for ${meetingId}:`, err);
+      setGlobalUploadError(err.message || 'Background processing failed.');
+    } finally {
+      setProcessingMeetings(prev => {
+        const next = { ...prev };
+        delete next[meetingId];
+        return next;
+      });
+    }
+  };
+
+  const handleGlobalUpload = async (file: File) => {
+    setGlobalUploading(true);
+    setGlobalUploadFileName(file.name);
+    setGlobalUploadError(null);
+
+    try {
+      const uploadTitle = file.name.replace(/\.[^/.]+$/, '');
+      const newMeeting = await api.uploadAudio(file, uploadTitle);
+      await fetchMeetingsList();
+      setCurrentMeeting(newMeeting);
+      setActivePage('transcript');
+
+      // Instantly start background processing in App.tsx (non-blocking)
+      startBackgroundProcessing(newMeeting.meeting_id, {
+        modelSize: modelSize || 'base',
+        language: language === 'auto' ? undefined : language,
+        vadEnabled: vadEnabled || false,
+        title: uploadTitle
+      });
+    } catch (err: any) {
+      console.error('Global upload failed:', err);
+      setGlobalUploadError(err.message || 'Failed to upload audio file.');
+    } finally {
+      setGlobalUploading(false);
+    }
+  };
+
   const fetchMeetingsList = async () => {
     try {
       const data = await api.getMeetings();
@@ -113,12 +216,22 @@ function App() {
       if (currentMeeting) {
         const found = sorted.find(m => m.meeting_id === currentMeeting.meeting_id);
         if (found) setCurrentMeeting(found);
+        else if (sorted.length > 0) setCurrentMeeting(sorted[0]);
+      } else if (sorted.length > 0) {
+        setCurrentMeeting(sorted[0]);
       }
     } catch (err) {
       console.error(err);
       setMeetingsReady(true); // Still mark ready so UI isn't stuck
     }
   };
+
+  // Auto-select latest meeting when list loads or changes if none selected
+  useEffect(() => {
+    if (!currentMeeting && meetings.length > 0) {
+      setCurrentMeeting(meetings[0]);
+    }
+  }, [meetings, currentMeeting]);
 
   useEffect(() => {
     let isMounted = true;
@@ -436,6 +549,8 @@ function App() {
                 onSelectMeeting={handleSelectMeeting}
                 setActivePage={setActivePage}
                 refreshMeetings={fetchMeetingsList}
+                onUploadFile={handleGlobalUpload}
+                globalUploading={globalUploading}
               />
             </motion.div>
           )}
@@ -495,9 +610,9 @@ function App() {
             </motion.div>
           )}
 
-          {activePage === 'transcript' && currentMeeting && (
+          {activePage === 'transcript' && (
             <motion.div
-              key={`transcript-${currentMeeting.meeting_id}`}
+              key={`transcript-${currentMeeting?.meeting_id || 'none'}`}
               initial="initial"
               animate="animate"
               exit="exit"
@@ -505,61 +620,88 @@ function App() {
               transition={{ duration: 0.18, ease: "easeOut" }}
               className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
             >
-              <TranscriptPage 
-                currentMeeting={currentMeeting}
-                onUpdateMeeting={handleUpdateCurrentMeeting}
-              />
-            </motion.div>
-          )}
-
-          {activePage === 'summary' && currentMeeting && (
-            <motion.div
-              key={`summary-${currentMeeting.meeting_id}`}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              variants={pageVariants}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
-            >
-              <SummaryPage 
-                currentMeeting={currentMeeting}
-              />
-            </motion.div>
-          )}
-
-          {activePage === 'stats' && currentMeeting && (
-            <motion.div
-              key={`stats-${currentMeeting.meeting_id}`}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              variants={pageVariants}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
-            >
-              <Suspense fallback={<TabSkeleton />}>
-                <StatsPage currentMeeting={currentMeeting} onUpdateMeeting={handleUpdateCurrentMeeting} />
-              </Suspense>
-            </motion.div>
-          )}
-
-          {activePage === 'qa' && currentMeeting && (
-            <motion.div
-              key={`qa-${currentMeeting.meeting_id}`}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              variants={pageVariants}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
-            >
-              <Suspense fallback={<QASkeleton />}>
-                <QAPage 
+              {currentMeeting ? (
+                <TranscriptPage 
                   currentMeeting={currentMeeting}
                   onUpdateMeeting={handleUpdateCurrentMeeting}
+                  isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
+                  onStartProcessing={(options) => startBackgroundProcessing(currentMeeting.meeting_id, options)}
                 />
-              </Suspense>
+              ) : (
+                <NoMeetingSelected setActivePage={setActivePage} title="No Active Transcript Selected" />
+              )}
+            </motion.div>
+          )}
+
+          {activePage === 'summary' && (
+            <motion.div
+              key={`summary-${currentMeeting?.meeting_id || 'none'}`}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
+            >
+              {currentMeeting ? (
+                <SummaryPage 
+                  currentMeeting={currentMeeting}
+                  isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
+                  setActivePage={setActivePage}
+                />
+              ) : (
+                <NoMeetingSelected setActivePage={setActivePage} title="No Meeting Selected for Memo" />
+              )}
+            </motion.div>
+          )}
+
+          {activePage === 'stats' && (
+            <motion.div
+              key={`stats-${currentMeeting?.meeting_id || 'none'}`}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
+            >
+              {currentMeeting ? (
+                <Suspense fallback={<TabSkeleton />}>
+                  <StatsPage 
+                    currentMeeting={currentMeeting} 
+                    onUpdateMeeting={handleUpdateCurrentMeeting} 
+                    isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
+                    setActivePage={setActivePage}
+                  />
+                </Suspense>
+              ) : (
+                <NoMeetingSelected setActivePage={setActivePage} title="No Meeting Selected for Stats" />
+              )}
+            </motion.div>
+          )}
+
+          {activePage === 'qa' && (
+            <motion.div
+              key={`qa-${currentMeeting?.meeting_id || 'none'}`}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex-1 flex flex-col w-full min-w-0 min-h-0 overflow-hidden"
+            >
+              {currentMeeting ? (
+                <Suspense fallback={<QASkeleton />}>
+                  <QAPage 
+                    currentMeeting={currentMeeting}
+                    onUpdateMeeting={handleUpdateCurrentMeeting}
+                    isProcessing={!!processingMeetings[currentMeeting.meeting_id]}
+                    setActivePage={setActivePage}
+                  />
+                </Suspense>
+              ) : (
+                <NoMeetingSelected setActivePage={setActivePage} title="No Meeting Selected for AI Assistant" />
+              )}
             </motion.div>
           )}
 
@@ -674,6 +816,43 @@ function App() {
           setActivePage('dashboard');
         }}
       />
+
+      {/* Background Audio Transcription Status Floating Banner */}
+      <AnimatePresence>
+        {(globalUploading || Object.keys(processingMeetings).length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-[9999] bg-[#0d0f1a]/95 border border-violet-500/40 backdrop-blur-xl p-4 rounded-2xl shadow-[0_10px_40px_rgba(139,92,246,0.35)] flex items-center gap-4 max-w-sm pointer-events-auto"
+          >
+            <div className="relative flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400">
+                <Sparkles className="w-5 h-5 animate-spin" style={{ animationDuration: '3s' }} />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest flex items-center gap-1">
+                  <Radio className="w-3 h-3 animate-pulse text-violet-400" /> Background AI Pipeline
+                </span>
+              </div>
+              <p className="text-xs font-bold text-white truncate mt-0.5">
+                {globalUploading 
+                  ? (globalUploadFileName || 'Audio File')
+                  : (Object.values(processingMeetings)[0]?.title || 'Processing Meeting')
+                }
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {globalUploading 
+                  ? 'Uploading audio file to backend...'
+                  : 'Transcribing Whisper STT & Speaker Diarization...'
+                }
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

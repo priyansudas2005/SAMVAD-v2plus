@@ -74,7 +74,9 @@ class SpeakerEmbeddingExtractor:
 
         # 4. Zero Crossing Rate & Pitch (Autocorrelation estimate)
         zcr = np.mean(np.abs(np.diff(np.sign(chunk))))
-        corr = np.correlate(chunk, chunk, mode='full')
+        # Limit chunk size to 2048 for pitch correlation to avoid O(N^2) complexity on large chunks
+        pitch_chunk = chunk[:2048] if len(chunk) > 2048 else chunk
+        corr = np.correlate(pitch_chunk, pitch_chunk, mode='full')
         corr = corr[len(corr)//2:]
         min_lag = int(sample_rate / 300) # 300 Hz max pitch
         max_lag = int(sample_rate / 60)  # 60 Hz min pitch

@@ -111,6 +111,8 @@ interface DashboardPageProps {
   onSelectMeeting: (meeting: Meeting) => void;
   setActivePage: (page: string) => void;
   refreshMeetings: () => Promise<void>;
+  onUploadFile?: (file: File) => Promise<void>;
+  globalUploading?: boolean;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -119,9 +121,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onSelectMeeting,
   setActivePage,
   refreshMeetings,
+  onUploadFile,
+  globalUploading = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [localUploading, setLocalUploading] = useState(false);
+  const uploading = localUploading || globalUploading;
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,7 +134,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const totalMeetings = meetings.length;
   const totalDurationMin = meetings.reduce((acc, m) => acc + (m.duration || 0), 0) / 60;
   const totalWords = meetings.reduce((acc, m) => {
-    const segmentWords = m.transcript?.reduce((sum, seg) => sum + seg.text.split(' ').length, 0) || 0;
+    const segmentWords = m.word_count ?? (m.transcript?.reduce((sum, seg) => sum + seg.text.split(' ').length, 0) || 0);
     return acc + segmentWords;
   }, 0);
   const actionItemsCount = meetings.reduce((acc, m) => acc + (m.memo?.action_items?.length || 0), 0);
@@ -179,7 +184,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   };
 
   const uploadFile = async (file: File) => {
-    setUploading(true);
+    if (onUploadFile) {
+      await onUploadFile(file);
+      return;
+    }
+    setLocalUploading(true);
     setError(null);
     try {
       const title = file.name.replace(/\.[^/.]+$/, '');
@@ -190,7 +199,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     } catch (err: any) {
       setError(err.message || 'Failed to upload audio file. Please try again.');
     } finally {
-      setUploading(false);
+      setLocalUploading(false);
     }
   };
 
