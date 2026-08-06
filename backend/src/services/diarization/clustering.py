@@ -45,11 +45,15 @@ class SpeakerClustering:
                 dist_matrix[i, j] = dist
                 dist_matrix[j, i] = dist
 
-        # 2. Agglomerative Clustering Pass using Average Centroid Linkage
+        # 2. Agglomerative Clustering Pass (Complete dendrogram calculation to 1 active cluster)
         labels = list(range(N))
         active_clusters = N
+        merge_history = []
         
-        while active_clusters > self.config.min_speakers:
+        min_sp = getattr(self.config, 'min_speakers', 1)
+        max_sp = getattr(self.config, 'max_speakers', 8)
+
+        while active_clusters > 1:
             # Recompute cluster centroids
             unique_c = list(set(labels))
             centroids = {}
@@ -74,11 +78,15 @@ class SpeakerClustering:
                         min_dist = dist
                         best_pair = (id_a, id_b)
 
-            # Stop merging if distance threshold is crossed or max clusters met
-            threshold = getattr(self.config, 'clustering_threshold', 0.28)
-            if min_dist > threshold or best_pair == (-1, -1) or active_clusters <= self.config.min_speakers:
+            if best_pair == (-1, -1):
                 break
                 
+            merge_history.append({
+                "active_before": active_clusters,
+                "distance": min_dist,
+                "labels_snapshot": list(labels)
+            })
+
             # Merge clusters
             target_label, source_label = min(best_pair), max(best_pair)
             for idx in range(N):
@@ -86,10 +94,34 @@ class SpeakerClustering:
                     labels[idx] = target_label
             active_clusters -= 1
 
-        # 3. Normalize Labels to sequential integers starting at 0 (SPEAKER_00, SPEAKER_01, etc.)
-        unique_labels = sorted(list(set(labels)))
-        label_map = {old: new for new, old in enumerate(unique_labels)}
-        final_labels = [label_map[l] for l in labels]
+        # 3. Dynamic Threshold Identification using Maximum Distance Jump
+        jumps = []
+        for idx in range(1, len(merge_history)):
+            diff = merge_history[idx]["distance"] - merge_history[idx-1]["distance"]
+            jumps.append((diff, merge_history[idx]["active_before"], merge_history[idx]["distance"]))
+
+        eligible_jumps = [j for j in jumps if (min_sp + 1) <= j[1] <= max_sp]
         
-        logger.info(f"Speaker clustering complete. Identified {len(unique_labels)} distinct speaker clusters.")
-        return final_labels
+        optimal_speakers = 1
+        if eligible_jumps:
+            best_jump = max(eligible_jumps, key=lambda x: x[0])
+            # If the jump distance is extremely small, classify as 1 speaker
+            if best_jump[2] < 0.05:
+                optimal_speakers = 1
+            else:
+                optimal_speakers = best_jump[1]
+                
+        logger.info(f"Dynamic optimal speaker count detected: {optimal_speakers}")
+        
+        if optimal_speakers == 1:
+            return [0] * N
+
+        # Retrieve the snapshot matching optimal active count
+        for h in merge_history:
+            if h["active_before"] == optimal_speakers:
+                snapshot = h["labels_snapshot"]
+                unique_labels = sorted(list(set(snapshot)))
+                label_map = {old: new for new, old in enumerate(unique_labels)}
+                return [label_map[l] for l in snapshot]
+
+        return [0] * N
