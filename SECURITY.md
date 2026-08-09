@@ -60,7 +60,7 @@ If you discover a security vulnerability or potential privacy risk, please help 
 1. **Do NOT open a public GitHub issue.** Public issues invite immediate exploit attempts before a patch can be deployed.
 2. Submit your report directly via **GitHub Private Security Advisory** under the repository's "Security" tab.
 3. If you prefer email, send a detailed vulnerability brief to:
-   * **`priyansu.das@example.com`**
+   * **`priyansu20053@gmail.com`**
 
 ### What to Include
 * A detailed description of the vulnerability and its potential impact.
