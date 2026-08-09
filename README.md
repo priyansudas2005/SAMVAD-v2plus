@@ -130,9 +130,113 @@ graph TD
 
 ## ⚡ Quick Start & Installation
 
-### Option A: Running with Docker Compose (Recommended)
+### Option A: Running Pre-built Images from Docker Hub (Fastest & Easiest)
 
-Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine v24+.
+You can run SAMVAD v2.0 directly without cloning the repository or building images locally by pulling the pre-built images from Docker Hub.
+
+1. **Create a local folder** on your machine and create a file named `docker-compose.yml` with the following content:
+   ```yaml
+   services:
+     backend:
+       image: krishu07/samvad-backend:2.0
+       container_name: samvad-backend
+       restart: unless-stopped
+       environment:
+         OMP_NUM_THREADS: "4"
+         MKL_NUM_THREADS: "4"
+         OPENBLAS_NUM_THREADS: "4"
+         VECLIB_MAXIMUM_THREADS: "4"
+         NUMEXPR_NUM_THREADS: "4"
+         SAMVAD_DB_DIR: "/app/data/database"
+       volumes:
+         - samvad-db:/app/data/database
+         - samvad-recordings:/app/data/recordings
+         - samvad-models:/app/models
+       expose:
+         - "8000"
+       networks:
+         - samvad-net
+       security_opt:
+         - no-new-privileges:true
+       cap_drop:
+         - ALL
+       deploy:
+         resources:
+           limits:
+             cpus: '4.0'
+             memory: 4096M
+           reservations:
+             memory: 1024M
+       healthcheck:
+         test:
+           - "CMD"
+           - "python"
+           - "-c"
+           - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+         interval: 30s
+         timeout: 10s
+         start_period: 15s
+         retries: 3
+       logging:
+         driver: "json-file"
+         options:
+           max-size: "20m"
+           max-file: "5"
+
+     frontend:
+       image: krishu07/samvad-frontend:2.0
+       container_name: samvad-frontend
+       restart: unless-stopped
+       ports:
+         - "3000:3000"
+       depends_on:
+         backend:
+           condition: service_healthy
+       networks:
+         - samvad-net
+       security_opt:
+         - no-new-privileges:true
+       cap_drop:
+         - ALL
+       cap_add:
+         - NET_BIND_SERVICE
+         - CHOWN
+         - SETUID
+         - SETGID
+       deploy:
+         resources:
+           limits:
+             cpus: '1.0'
+             memory: 256M
+           reservations:
+             memory: 64M
+
+   networks:
+     samvad-net:
+       driver: bridge
+
+   volumes:
+     samvad-db:
+     samvad-recordings:
+     samvad-models:
+   ```
+
+2. **Boot the Container Stack**:
+   Open a terminal in the folder containing `docker-compose.yml` and run:
+   ```bash
+   docker compose up -d
+   ```
+   Docker will automatically pull the pre-built images from Docker Hub and start the services.
+
+3. **Access Applications**:
+   - 🌐 **React Web Client**: `http://localhost:3000`
+   - 📑 **FastAPI OpenAPI Docs**: `http://localhost:8000/docs`
+
+---
+
+### Option B: Running with Local Build (Docker Compose)
+
+If you have cloned the source code repository and want to build the containers locally:
 
 1. **Clone & Navigate**:
    ```bash
