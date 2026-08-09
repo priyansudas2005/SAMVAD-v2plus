@@ -6,6 +6,7 @@ Handles GPU/CPU auto-detection, fallback architectures, and offline model manage
 import torch
 from pathlib import Path
 from typing import Optional, Dict
+import threading
 from faster_whisper import WhisperModel
 
 from .exceptions import ModelLoadError
@@ -21,6 +22,7 @@ class ModelLoader:
     """
     
     _cached_models: Dict[str, WhisperModel] = {}
+    _lock = threading.Lock()
 
     @classmethod
     def load_model(cls, config: STTConfig) -> WhisperModel:
@@ -40,18 +42,19 @@ class ModelLoader:
 
         cache_key = f"{config.model_size}_{device}_{compute_type}"
         
-        if cache_key in cls._cached_models:
-            logger.info(f"Model found in cache: {cache_key}")
-            return cls._cached_models[cache_key]
+        with cls._lock:
+            if cache_key in cls._cached_models:
+                logger.info(f"Model found in cache: {cache_key}")
+                return cls._cached_models[cache_key]
 
-        # 1. Primary Load Attempt
-        try:
-            logger.info(f"Attempting to load model '{config.model_size}' on {device} ({compute_type})")
-            model = cls._instantiate_model(config.model_size, device, compute_type, config.models_dir)
-            cls._cached_models[cache_key] = model
-            return model
-        except Exception as e:
-            logger.warning(f"Failed loading model on {device} with {compute_type}: {e}. Retrying fallback...")
+            # 1. Primary Load Attempt
+            try:
+                logger.info(f"Attempting to load model '{config.model_size}' on {device} ({compute_type})")
+                model = cls._instantiate_model(config.model_size, device, compute_type, config.models_dir)
+                cls._cached_models[cache_key] = model
+                return model
+            except Exception as e:
+                logger.warning(f"Failed loading model on {device} with {compute_type}: {e}. Retrying fallback...")
 
         # 2. Secondary Fallback: CPU Load
         if device == "cuda":

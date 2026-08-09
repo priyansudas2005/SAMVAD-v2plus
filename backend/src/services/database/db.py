@@ -2,7 +2,8 @@ import os
 import json
 from datetime import datetime
 from typing import Generator
-from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey, Text, text
+from sqlalchemy import create_engine, Column, String, Float, Integer, ForeignKey, Text, text, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from src.utils.logger import logger
 
@@ -16,8 +17,16 @@ SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False, "timeout": 30}
+    connect_args={"check_same_thread": False, "timeout": 30},
+    pool_pre_ping=True
 )
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.close()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
