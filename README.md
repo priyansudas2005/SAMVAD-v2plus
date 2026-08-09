@@ -63,6 +63,37 @@
 
 ---
 
+## 🖥️ User Interface Showcase
+
+Here is a visual overview of the SAMVAD v2.0 offline client interface:
+
+### 📊 Dashboard Workspace
+<p align="center">
+  <img src="docs/assets/dashboard.png" alt="SAMVAD v2.0 Dashboard" width="100%" />
+</p>
+
+### 🎙️ DAW Studio Audio Recorder
+<p align="center">
+  <img src="docs/assets/studio_recorder.png" alt="SAMVAD v2.0 Studio Audio Recorder" width="100%" />
+</p>
+
+### 📁 Meeting Intelligence Registry (History)
+<p align="center">
+  <img src="docs/assets/meeting_history.png" alt="SAMVAD v2.0 Meeting Registry" width="100%" />
+</p>
+
+### ⚡ Whisper Offline Transcription Pipeline
+<p align="center">
+  <img src="docs/assets/whisper_pipeline.png" alt="SAMVAD v2.0 Transcription Pipeline" width="100%" />
+</p>
+
+### ⚙️ Studio Control Center (Settings)
+<p align="center">
+  <img src="docs/assets/settings_page.png" alt="SAMVAD v2.0 Settings Page" width="100%" />
+</p>
+
+---
+
 ## 🏗️ System Architecture & Dataflow
 
 ### 📐 High-Level Component Topology
