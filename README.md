@@ -77,6 +77,26 @@ Here is a visual overview of the SAMVAD v2.0 offline client interface:
   <img src="docs/assets/studio_recorder.png" alt="SAMVAD v2.0 Studio Audio Recorder" width="100%" />
 </p>
 
+### 📝 Offline Transcription & Speaker Diarization
+<p align="center">
+  <img src="docs/assets/transcript_view.png" alt="SAMVAD v2.0 Transcript View" width="100%" />
+</p>
+
+### 📄 Executive Meeting Brief (Memo)
+<p align="center">
+  <img src="docs/assets/meeting_memo.png" alt="SAMVAD v2.0 Meeting Brief" width="100%" />
+</p>
+
+### 📈 Conversational Analytics & Quality Telemetry
+<p align="center">
+  <img src="docs/assets/meeting_analytics.png" alt="SAMVAD v2.0 Analytics" width="100%" />
+</p>
+
+### 🔮 Grounded Local AI Assistant (RAG)
+<p align="center">
+  <img src="docs/assets/ai_assistant.png" alt="SAMVAD v2.0 AI Assistant" width="100%" />
+</p>
+
 ### 📁 Meeting Intelligence Registry (History)
 <p align="center">
   <img src="docs/assets/meeting_history.png" alt="SAMVAD v2.0 Meeting Registry" width="100%" />
