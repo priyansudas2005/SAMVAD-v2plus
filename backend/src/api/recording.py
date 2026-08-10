@@ -21,6 +21,7 @@ Endpoints:
 All endpoints are completely optional — the recording subsystem works without
 them.  The router is registered in app.py only if it imports successfully.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -39,12 +40,13 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/audio", tags=["audio"])
 
 # Broadcast interval for WebSocket / SSE frames (seconds)
-_STREAM_INTERVAL = 0.1   # 10 Hz
+_STREAM_INTERVAL = 0.1  # 10 Hz
 
 
 # ---------------------------------------------------------------------------
 # REST — Device listing
 # ---------------------------------------------------------------------------
+
 
 @router.get("/devices")
 def list_audio_devices() -> Dict[str, Any]:
@@ -72,6 +74,7 @@ def list_audio_devices() -> Dict[str, Any]:
 # REST — Recording status
 # ---------------------------------------------------------------------------
 
+
 @router.get("/recording/{session_id}/status")
 def get_recording_status(session_id: str) -> Dict[str, Any]:
     """
@@ -91,6 +94,7 @@ def get_recording_status(session_id: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # WebSocket — Live level streaming
 # ---------------------------------------------------------------------------
+
 
 @router.websocket("/ws/level/{session_id}")
 async def ws_level(websocket: WebSocket, session_id: str) -> None:
@@ -134,6 +138,7 @@ async def ws_level(websocket: WebSocket, session_id: str) -> None:
 # SSE — Live level streaming (fallback)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/stream/level/{session_id}")
 async def sse_level(session_id: str) -> StreamingResponse:
     """
@@ -144,6 +149,7 @@ async def sse_level(session_id: str) -> StreamingResponse:
 
     The stream closes automatically when the recording session ends.
     """
+
     async def _event_generator():
         while True:
             monitor = get_monitor(session_id)
@@ -162,7 +168,7 @@ async def sse_level(session_id: str) -> StreamingResponse:
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",   # prevent nginx buffering
+            "X-Accel-Buffering": "no",  # prevent nginx buffering
             "Connection": "keep-alive",
         },
     )

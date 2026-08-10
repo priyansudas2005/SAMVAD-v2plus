@@ -12,6 +12,7 @@ The sidecar and the database row are written atomically in sequence.
 If the database write fails the sidecar is still preserved, because
 portability and backup are the sidecar's primary purpose.
 """
+
 from __future__ import annotations
 
 import json
@@ -139,8 +140,7 @@ class RecordingStore:
 
             db = SessionLocal()
             try:
-                db.execute(
-                    """
+                db.execute("""
                     CREATE TABLE IF NOT EXISTS recording_metadata (
                         id              INTEGER PRIMARY KEY AUTOINCREMENT,
                         session_id      TEXT    NOT NULL UNIQUE,
@@ -158,8 +158,7 @@ class RecordingStore:
                         wav_path        TEXT,
                         samvad_version  TEXT
                     )
-                    """
-                )
+                    """)
 
                 db.execute(
                     """
@@ -192,4 +191,5 @@ class RecordingStore:
             logger.error(f"Failed to write recording_metadata row: {exc}")
             if raise_on_error:
                 from .recorder_exceptions import MetadataStorageError
+
                 raise MetadataStorageError(str(exc)) from exc

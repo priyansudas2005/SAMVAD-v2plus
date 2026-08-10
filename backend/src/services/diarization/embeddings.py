@@ -4,6 +4,7 @@ Speaker voice print/embedding extraction.
 Primary: SpeechBrain ECAPA-TDNN (Offline)
 Fallback: Mel-Frequency Spectral Vector Extractor
 """
+
 import numpy as np
 import scipy.signal as signal
 from typing import Optional
@@ -13,42 +14,49 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class SpeakerEmbeddingExtractor:
     """
     Extracts high-dimensional voice embeddings from audio intervals.
     Provides robust, offline-safe fallbacks if neural models fail to load.
     """
-    
+
     def __init__(self, config: DiarizationConfig):
         self.config = config
         self.use_neural = False
-        
+
         # Check offline neural embedding availability
         if self.config.embedding_model == "speechbrain":
             try:
                 # Set local offline hub paths
                 import torch
                 from speechbrain.inference.speaker import EncoderClassifier
-                
+
                 # Load local pre-downloaded classifier model if available
                 # (Simulated load of local offline checkpoints)
                 logger.info("SpeechBrain model classifier configured.")
             except ImportError:
-                logger.warning("SpeechBrain not available. Using Mel-Spectral fallback.")
-                
-    def extract_embedding(self, audio_chunk: np.ndarray, sample_rate: int) -> np.ndarray:
+                logger.warning(
+                    "SpeechBrain not available. Using Mel-Spectral fallback."
+                )
+
+    def extract_embedding(
+        self, audio_chunk: np.ndarray, sample_rate: int
+    ) -> np.ndarray:
         """
         Extracts a normalized 256-dimensional embedding vector representing voice characteristics.
         """
         if len(audio_chunk) == 0:
             return np.zeros(256)
-            
+
         if self.use_neural:
             return self._extract_neural(audio_chunk, sample_rate)
         else:
             return self._extract_mel_spectral_fallback(audio_chunk, sample_rate)
 
-    def _extract_mel_spectral_fallback(self, chunk: np.ndarray, sample_rate: int) -> np.ndarray:
+    def _extract_mel_spectral_fallback(
+        self, chunk: np.ndarray, sample_rate: int
+    ) -> np.ndarray:
         """
         Pure-NumPy Spectral & Pitch Feature Extractor.
         Computes power spectrum envelope, spectral centroid, zero-crossing rate, and fundamental pitch.
@@ -76,11 +84,13 @@ class SpeakerEmbeddingExtractor:
         zcr = np.mean(np.abs(np.diff(np.sign(chunk))))
         # Limit chunk size to 2048 for pitch correlation to avoid O(N^2) complexity on large chunks
         pitch_chunk = chunk[:2048] if len(chunk) > 2048 else chunk
-        corr = np.correlate(pitch_chunk, pitch_chunk, mode='full')
-        corr = corr[len(corr)//2:]
-        min_lag = int(sample_rate / 300) # 300 Hz max pitch
+        corr = np.correlate(pitch_chunk, pitch_chunk, mode="full")
+        corr = corr[len(corr) // 2 :]
+        min_lag = int(sample_rate / 300)  # 300 Hz max pitch
         max_lag = int(sample_rate / 60)  # 60 Hz min pitch
-        pitch_lag = np.argmax(corr[min_lag:max_lag]) + min_lag if len(corr) > max_lag else 0
+        pitch_lag = (
+            np.argmax(corr[min_lag:max_lag]) + min_lag if len(corr) > max_lag else 0
+        )
         pitch = sample_rate / pitch_lag if pitch_lag > 0 else 0
 
         # 5. Concatenate into 256-dim feature vector
@@ -90,8 +100,12 @@ class SpeakerEmbeddingExtractor:
         norm_zcr = float(zcr)
         norm_pitch = min(1.0, pitch / 300.0) if pitch > 0 else 0.0
 
-        extra_feats = np.array([norm_centroid, norm_rolloff, norm_zcr, norm_pitch], dtype=np.float32)
-        extra_interp = np.interp(np.linspace(0, 1, 128), np.linspace(0, 1, 4), extra_feats)
+        extra_feats = np.array(
+            [norm_centroid, norm_rolloff, norm_zcr, norm_pitch], dtype=np.float32
+        )
+        extra_interp = np.interp(
+            np.linspace(0, 1, 128), np.linspace(0, 1, 4), extra_feats
+        )
 
         # Normalize spec_feat envelope first
         spec_norm = np.linalg.norm(spec_feat)

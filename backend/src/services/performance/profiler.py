@@ -3,12 +3,14 @@ profiler.py
 Production-grade system profiling for SAMVAD V2.0.
 Tracks latencies, cache ratios, memory limits, and dumps reports.
 """
+
 import time
 import os
 import json
 import threading
 from pathlib import Path
 from typing import Dict, Any
+
 
 class PerformanceProfiler:
     """
@@ -30,7 +32,9 @@ class PerformanceProfiler:
 
     def build_report(self, meeting_id: str) -> Dict[str, Any]:
         """Assembles a performance profiling report."""
-        import psutil; process = psutil.Process(os.getpid())
+        import psutil
+
+        process = psutil.Process(os.getpid())
         ram_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         report = {
@@ -38,18 +42,16 @@ class PerformanceProfiler:
             "system_stats": {
                 "ram_usage_mb": round(ram_usage_mb, 2),
                 "cpu_count": psutil.cpu_count(),
-                "timestamp": time.time()
+                "timestamp": time.time(),
             },
-            "durations": {
-                k: round(v, 4) for k, v in self.durations.items()
-            }
+            "durations": {k: round(v, 4) for k, v in self.durations.items()},
         }
 
         # Save sidecar file
         output_dir = Path("backend/data/database/benchmarks")
         output_dir.mkdir(parents=True, exist_ok=True)
         report_path = output_dir / f"performance_report_{meeting_id}.json"
-        
+
         try:
             with open(report_path, "w") as f:
                 json.dump(report, f, indent=4)

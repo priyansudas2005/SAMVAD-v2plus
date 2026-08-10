@@ -3,6 +3,7 @@ base.py
 Abstract base class for all SAMVAD V2.0 export formats with template,
 metadata, and configuration support.
 """
+
 import uuid
 import hashlib
 from abc import ABC, abstractmethod
@@ -27,7 +28,9 @@ def get_template(template_name: str = None) -> Dict[str, Any]:
     return templates.get(name, templates.get("Standard Meeting", {}))
 
 
-def build_export_metadata(meeting_title: str, date_str: str, meeting_id: str = None) -> Dict[str, Any]:
+def build_export_metadata(
+    meeting_title: str, date_str: str, meeting_id: str = None
+) -> Dict[str, Any]:
     raw = f"{meeting_title}{date_str}{uuid.uuid4()}"
     return {
         "export_uuid": str(uuid.uuid4()),
@@ -38,7 +41,7 @@ def build_export_metadata(meeting_title: str, date_str: str, meeting_id: str = N
         "meeting_date": date_str,
         "meeting_id": meeting_id or "",
         "checksum": hashlib.sha256(raw.encode()).hexdigest()[:16],
-        "offline_verification": "Approved"
+        "offline_verification": "Approved",
     }
 
 
@@ -52,7 +55,12 @@ def pick_speaker_color(speaker_label: str) -> str:
 class BaseExporter(ABC):
 
     @abstractmethod
-    def export(self, meeting_title: str, date_str: str, segments: list,
-               memo: Dict[str, Any] = None,
-               intelligence: Dict[str, Any] = None) -> Any:
+    def export(
+        self,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: Dict[str, Any] = None,
+        intelligence: Dict[str, Any] = None,
+    ) -> Any:
         pass

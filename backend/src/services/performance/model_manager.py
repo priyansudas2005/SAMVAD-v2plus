@@ -3,6 +3,7 @@ model_manager.py
 Thread-safe singleton model loader and lifecycle manager for SAMVAD V2.0.
 Supports lazy loading, idle unloading, and pre-loading warmups.
 """
+
 import time
 import threading
 from typing import Dict, Any, Callable
@@ -11,11 +12,13 @@ from src.utils.config import load_config
 
 logger = get_logger(__name__)
 
+
 class ModelLifecycleManager:
     """
     Manages lifespans of resource-heavy offline AI models (Whisper, Diarization, Embeddings, QA).
     Unloads models dynamically after inactivity to free system RAM and GPU VRAM.
     """
+
     _instance = None
     _lock = threading.Lock()
 
@@ -31,8 +34,12 @@ class ModelLifecycleManager:
         self.last_used: Dict[str, float] = {}
         self.loaders: Dict[str, Callable[[], Any]] = {}
         self.locks: Dict[str, threading.Lock] = {}
-        self.idle_timeout = load_config().get("performance", {}).get("model_idle_timeout", 300)
-        self.auto_unload = load_config().get("performance", {}).get("auto_unload_models", True)
+        self.idle_timeout = (
+            load_config().get("performance", {}).get("model_idle_timeout", 300)
+        )
+        self.auto_unload = (
+            load_config().get("performance", {}).get("auto_unload_models", True)
+        )
 
     def register_loader(self, model_name: str, loader_fn: Callable[[], Any]) -> None:
         """Registers a function to load the model on demand."""
@@ -65,15 +72,18 @@ class ModelLifecycleManager:
             # If lock is held, model is currently in use
             if name in self.locks and self.locks[name].locked():
                 continue
-                
+
             idle_time = now - self.last_used.get(name, now)
             if idle_time > self.idle_timeout:
-                logger.info(f"Model '{name}' was idle for {idle_time:.0f}s. Unloading to free memory.")
+                logger.info(
+                    f"Model '{name}' was idle for {idle_time:.0f}s. Unloading to free memory."
+                )
                 with self.locks[name]:
                     if name in self.models:
                         del self.models[name]
                         # Run gc where possible
                         import gc
+
                         gc.collect()
 
     def get_health(self) -> Dict[str, Any]:
@@ -81,7 +91,11 @@ class ModelLifecycleManager:
         return {
             name: {
                 "loaded": name in self.models,
-                "last_used_s_ago": round(time.time() - self.last_used[name], 1) if name in self.last_used else None
+                "last_used_s_ago": (
+                    round(time.time() - self.last_used[name], 1)
+                    if name in self.last_used
+                    else None
+                ),
             }
             for name in self.loaders
         }

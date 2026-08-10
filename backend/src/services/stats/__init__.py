@@ -7,11 +7,25 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 
-from src.services.database.db import DBMeeting, DBMeetingIntelligence, DBTranscriptSegment, DBMemo
+from src.services.database.db import (
+    DBMeeting,
+    DBMeetingIntelligence,
+    DBTranscriptSegment,
+    DBMemo,
+)
 
-logger = __import__('logging').getLogger(__name__)
+logger = __import__("logging").getLogger(__name__)
 
-SPEAKER_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#f97316"]
+SPEAKER_COLORS = [
+    "#8b5cf6",
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
+    "#ef4444",
+    "#ec4899",
+    "#14b8a6",
+    "#f97316",
+]
 
 
 def safe_json_load(json_str: Optional[str], default_val: Any) -> Any:
@@ -33,11 +47,16 @@ class StatsEngine:
     def __init__(self, meeting_id: str, db: Session):
         self.meeting_id = meeting_id
         self.db = db
-        self.meeting: DBMeeting = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+        self.meeting: DBMeeting = (
+            db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
+        )
         if not self.meeting:
             raise ValueError("Meeting not found")
-        self.intel: Optional[DBMeetingIntelligence] = db.query(DBMeetingIntelligence).filter(
-            DBMeetingIntelligence.meeting_id == meeting_id).first()
+        self.intel: Optional[DBMeetingIntelligence] = (
+            db.query(DBMeetingIntelligence)
+            .filter(DBMeetingIntelligence.meeting_id == meeting_id)
+            .first()
+        )
         self.segments: List[DBTranscriptSegment] = self.meeting.transcript or []
 
     def compute(self) -> dict:
@@ -65,7 +84,9 @@ class StatsEngine:
             "overall_meeting_score": 0.0,
             "snapshot_kpis": {},
             "speaker_statistics": self._build_speaker_stats(speaker_data, seg_dicts),
-            "speaker_contributions": self._build_contributions(speaker_data, intel_data),
+            "speaker_contributions": self._build_contributions(
+                speaker_data, intel_data
+            ),
             "important_statements": self._build_important_statements(seg_dicts),
             "meeting_highlights": self._build_highlights(intel_data, memo_data),
             "action_item_breakdown": self._build_action_breakdown(intel_data),
@@ -73,10 +94,12 @@ class StatsEngine:
             "intelligence_summary": self._build_intelligence_summary(intel_data),
             "topics_entities": self._build_topics_entities(intel_data, seg_dicts),
             "audio_diagnostics": self._build_audio_diagnostics(),
-            "transcription_diagnostics": self._build_transcription_diagnostics(seg_dicts),
+            "transcription_diagnostics": self._build_transcription_diagnostics(
+                seg_dicts
+            ),
             "processing_pipeline": self._build_pipeline(),
             "meeting_health": self._build_health(seg_dicts, speaker_data, intel_data),
-            "smart_insights": self._build_insights(speaker_data, intel_data, seg_dicts)
+            "smart_insights": self._build_insights(speaker_data, intel_data, seg_dicts),
         }
 
     def _segments_to_dicts(self) -> List[Dict[str, Any]]:
@@ -84,41 +107,59 @@ class StatsEngine:
         for s in self.segments:
             meta = safe_json_load(s.metadata_json, {})
             words = safe_json_load(s.words_json, [])
-            result.append({
-                "id": s.id,
-                "start": s.start,
-                "end": s.end,
-                "start_seconds": s.start_seconds or 0.0,
-                "end_seconds": s.end_seconds or 0.0,
-                "text": s.text,
-                "words": words,
-                "speaker_label": s.speaker_label or "UNKNOWN",
-                "speaker_confidence": s.speaker_confidence or 1.0,
-                "entities": meta.get("entities", []),
-                "action_items": meta.get("action_items", []),
-                "decisions": meta.get("decisions", []),
-                "questions": meta.get("questions", []),
-                "keywords": meta.get("keywords", [])
-            })
+            result.append(
+                {
+                    "id": s.id,
+                    "start": s.start,
+                    "end": s.end,
+                    "start_seconds": s.start_seconds or 0.0,
+                    "end_seconds": s.end_seconds or 0.0,
+                    "text": s.text,
+                    "words": words,
+                    "speaker_label": s.speaker_label or "UNKNOWN",
+                    "speaker_confidence": s.speaker_confidence or 1.0,
+                    "entities": meta.get("entities", []),
+                    "action_items": meta.get("action_items", []),
+                    "decisions": meta.get("decisions", []),
+                    "questions": meta.get("questions", []),
+                    "keywords": meta.get("keywords", []),
+                }
+            )
         return result
 
     def _load_intel(self) -> dict:
         if not self.intel:
             return {}
         return {
-            "action_items": safe_json_load(getattr(self.intel, "action_items_json", None), []),
-            "decisions": safe_json_load(getattr(self.intel, "decisions_json", None), []),
-            "pending_decisions": safe_json_load(getattr(self.intel, "pending_decisions_json", None), []),
+            "action_items": safe_json_load(
+                getattr(self.intel, "action_items_json", None), []
+            ),
+            "decisions": safe_json_load(
+                getattr(self.intel, "decisions_json", None), []
+            ),
+            "pending_decisions": safe_json_load(
+                getattr(self.intel, "pending_decisions_json", None), []
+            ),
             "risks": safe_json_load(getattr(self.intel, "risks_json", None), []),
             "blockers": safe_json_load(getattr(self.intel, "blockers_json", None), []),
-            "followups": safe_json_load(getattr(self.intel, "followups_json", None), []),
-            "questions": safe_json_load(getattr(self.intel, "questions_json", None), []),
-            "sentiment_shifts": safe_json_load(getattr(self.intel, "sentiment_shifts_json", None), []),
-            "recommendations": safe_json_load(getattr(self.intel, "recommendations_json", None), []),
+            "followups": safe_json_load(
+                getattr(self.intel, "followups_json", None), []
+            ),
+            "questions": safe_json_load(
+                getattr(self.intel, "questions_json", None), []
+            ),
+            "sentiment_shifts": safe_json_load(
+                getattr(self.intel, "sentiment_shifts_json", None), []
+            ),
+            "recommendations": safe_json_load(
+                getattr(self.intel, "recommendations_json", None), []
+            ),
             "entities": safe_json_load(getattr(self.intel, "entities_json", None), {}),
             "topics": safe_json_load(getattr(self.intel, "topics_json", None), []),
             "timeline": safe_json_load(getattr(self.intel, "timeline_json", None), {}),
-            "analytics": safe_json_load(getattr(self.intel, "analytics_json", None), {})
+            "analytics": safe_json_load(
+                getattr(self.intel, "analytics_json", None), {}
+            ),
         }
 
     def _load_memo(self) -> dict:
@@ -130,7 +171,7 @@ class StatsEngine:
             "action_items": safe_json_load(m.action_items_json, []),
             "decisions": safe_json_load(m.decisions_json, []),
             "key_points": safe_json_load(m.key_points_json, []),
-            "discussion_points": safe_json_load(m.discussion_points_json, [])
+            "discussion_points": safe_json_load(m.discussion_points_json, []),
         }
 
     def _build_speaker_data(self, segments: List[Dict]) -> Dict[str, Dict]:
@@ -157,7 +198,7 @@ class StatsEngine:
                     "keywords": [],
                     "interruptions_made": 0,
                     "times_interrupted": 0,
-                    "silence_duration": 0.0
+                    "silence_duration": 0.0,
                 }
             d = data[spk]
             d["total_speaking_time"] += dur
@@ -192,17 +233,29 @@ class StatsEngine:
 
         # Compute participation percentages
         for spk, d in data.items():
-            d["participation_percentage"] = round((d["total_speaking_time"] / max(total_dur, 0.001)) * 100, 1)
-            d["avg_confidence"] = round(sum(d["confidences"]) / len(d["confidences"]), 4) if d["confidences"] else 1.0
+            d["participation_percentage"] = round(
+                (d["total_speaking_time"] / max(total_dur, 0.001)) * 100, 1
+            )
+            d["avg_confidence"] = (
+                round(sum(d["confidences"]) / len(d["confidences"]), 4)
+                if d["confidences"]
+                else 1.0
+            )
             wpm = round(d["word_count"] / max(d["total_speaking_time"] / 60, 0.01))
             d["avg_speaking_speed_wpm"] = wpm
 
         return data
 
-    def _build_speaker_stats(self, speaker_data: Dict, segments: List[Dict]) -> List[Dict]:
+    def _build_speaker_stats(
+        self, speaker_data: Dict, segments: List[Dict]
+    ) -> List[Dict]:
         result = []
         colors = SPEAKER_COLORS
-        sorted_speakers = sorted(speaker_data.items(), key=lambda x: x[1]["total_speaking_time"], reverse=True)
+        sorted_speakers = sorted(
+            speaker_data.items(),
+            key=lambda x: x[1]["total_speaking_time"],
+            reverse=True,
+        )
 
         for idx, (spk, d) in enumerate(sorted_speakers):
             timestamps = sorted(d["timestamps"], key=lambda x: x[0])
@@ -216,37 +269,49 @@ class StatsEngine:
                 h, m = divmod(m, 60)
                 return f"{h:02d}:{m:02d}:{s:02d}"
 
-            result.append({
-                "speaker": spk,
-                "color": colors[idx % len(colors)],
-                "avatar": "",
-                "total_speaking_time": round(d["total_speaking_time"], 2),
-                "participation_percentage": d["participation_percentage"],
-                "turns": d["turns"],
-                "total_words": d["word_count"],
-                "avg_confidence": d["avg_confidence"],
-                "avg_speaking_speed_wpm": d["avg_speaking_speed_wpm"],
-                "longest_speaking_segment": round(d["longest_speech"], 2),
-                "interruptions_made": d["interruptions_made"],
-                "times_interrupted": d["times_interrupted"],
-                "silence_duration": round(d["silence_duration"], 2),
-                "first_appearance": fmt_ts(first_ts),
-                "last_appearance": fmt_ts(last_ts),
-                "contribution_summary": [],
-                "important_statements": []
-            })
+            result.append(
+                {
+                    "speaker": spk,
+                    "color": colors[idx % len(colors)],
+                    "avatar": "",
+                    "total_speaking_time": round(d["total_speaking_time"], 2),
+                    "participation_percentage": d["participation_percentage"],
+                    "turns": d["turns"],
+                    "total_words": d["word_count"],
+                    "avg_confidence": d["avg_confidence"],
+                    "avg_speaking_speed_wpm": d["avg_speaking_speed_wpm"],
+                    "longest_speaking_segment": round(d["longest_speech"], 2),
+                    "interruptions_made": d["interruptions_made"],
+                    "times_interrupted": d["times_interrupted"],
+                    "silence_duration": round(d["silence_duration"], 2),
+                    "first_appearance": fmt_ts(first_ts),
+                    "last_appearance": fmt_ts(last_ts),
+                    "contribution_summary": [],
+                    "important_statements": [],
+                }
+            )
         return result
 
     def _build_contributions(self, speaker_data: Dict, intel_data: Dict) -> List[Dict]:
         colors = SPEAKER_COLORS
         result = []
-        for idx, (spk, d) in enumerate(sorted(speaker_data.items(), key=lambda x: x[1]["total_speaking_time"], reverse=True)):
+        for idx, (spk, d) in enumerate(
+            sorted(
+                speaker_data.items(),
+                key=lambda x: x[1]["total_speaking_time"],
+                reverse=True,
+            )
+        ):
             contributions = []
             # Derive contributions from detected actions, decisions, questions
             if d.get("decisions"):
-                contributions.append(f"Contributed to {len(d['decisions'])} decision(s)")
+                contributions.append(
+                    f"Contributed to {len(d['decisions'])} decision(s)"
+                )
             if d.get("action_items"):
-                contributions.append(f"Generated {len(d['action_items'])} action item(s)")
+                contributions.append(
+                    f"Generated {len(d['action_items'])} action item(s)"
+                )
             if d.get("questions"):
                 contributions.append(f"Raised {len(d['questions'])} question(s)")
             if d["participation_percentage"] > 50:
@@ -259,11 +324,13 @@ class StatsEngine:
                 contributions.append("Delivered detailed explanations")
             if d["interruptions_made"] > 3:
                 contributions.append("Frequently interjected with clarifications")
-            result.append({
-                "speaker": spk,
-                "color": colors[idx % len(colors)],
-                "contributions": contributions[:5]
-            })
+            result.append(
+                {
+                    "speaker": spk,
+                    "color": colors[idx % len(colors)],
+                    "contributions": contributions[:5],
+                }
+            )
         return result
 
     def _build_important_statements(self, segments: List[Dict]) -> List[Dict]:
@@ -285,30 +352,45 @@ class StatsEngine:
                 score += 15
             if "?" in text:
                 score += 10
-            if any(kw in text.lower() for kw in ["decid", "agree", "import", "critic", "deadline", "blocker", "risk"]):
+            if any(
+                kw in text.lower()
+                for kw in [
+                    "decid",
+                    "agree",
+                    "import",
+                    "critic",
+                    "deadline",
+                    "blocker",
+                    "risk",
+                ]
+            ):
                 score += 25
             topic = "General"
             entities = seg.get("entities", [])
             if entities:
                 topic = entities[0]
-            statements.append({
-                "speaker": spk,
-                "color": colors[speaker_color_idx[spk] % len(colors)],
-                "timestamp": seg["start"] or "",
-                "start_seconds": seg["start_seconds"],
-                "confidence": seg["speaker_confidence"],
-                "statement": text[:200],
-                "topic": topic,
-                "segment_id": seg.get("id", 0),
-                "_score": score
-            })
+            statements.append(
+                {
+                    "speaker": spk,
+                    "color": colors[speaker_color_idx[spk] % len(colors)],
+                    "timestamp": seg["start"] or "",
+                    "start_seconds": seg["start_seconds"],
+                    "confidence": seg["speaker_confidence"],
+                    "statement": text[:200],
+                    "topic": topic,
+                    "segment_id": seg.get("id", 0),
+                    "_score": score,
+                }
+            )
         statements.sort(key=lambda x: x["_score"], reverse=True)
         for s in statements:
             del s["_score"]
         return statements[:20]
 
     def _build_highlights(self, intel_data: Dict, memo_data: Dict) -> Dict:
-        actions = intel_data.get("action_items", []) or memo_data.get("action_items", [])
+        actions = intel_data.get("action_items", []) or memo_data.get(
+            "action_items", []
+        )
         decisions = intel_data.get("decisions", []) or memo_data.get("decisions", [])
         risks = intel_data.get("risks", [])
         blockers = intel_data.get("blockers", [])
@@ -318,27 +400,68 @@ class StatsEngine:
         # Segment-level fallback extractions if intelligence lists are unpopulated
         segments = self._segments_to_dicts()
         if not actions:
-            extracted_actions = [s["text"] for s in segments if any(k in s["text"].lower() for k in ["will ", "need to", "action", "task", "follow up", "assign"])]
+            extracted_actions = [
+                s["text"]
+                for s in segments
+                if any(
+                    k in s["text"].lower()
+                    for k in [
+                        "will ",
+                        "need to",
+                        "action",
+                        "task",
+                        "follow up",
+                        "assign",
+                    ]
+                )
+            ]
             if extracted_actions:
                 actions = extracted_actions
         if not decisions:
-            extracted_decisions = [s["text"] for s in segments if any(k in s["text"].lower() for k in ["agree", "decid", "conclude", "approved", "confirm"])]
+            extracted_decisions = [
+                s["text"]
+                for s in segments
+                if any(
+                    k in s["text"].lower()
+                    for k in ["agree", "decid", "conclude", "approved", "confirm"]
+                )
+            ]
             if extracted_decisions:
                 decisions = extracted_decisions
 
         biggest_decision = None
         if decisions:
-            high_impact = [d for d in decisions if isinstance(d, dict) and d.get("type") in ("major", "technical")]
-            biggest_decision = (high_impact[0] if high_impact else decisions[0]).get("text", str(decisions[0])) if isinstance(decisions[0], dict) else str(decisions[0])
+            high_impact = [
+                d
+                for d in decisions
+                if isinstance(d, dict) and d.get("type") in ("major", "technical")
+            ]
+            biggest_decision = (
+                (high_impact[0] if high_impact else decisions[0]).get(
+                    "text", str(decisions[0])
+                )
+                if isinstance(decisions[0], dict)
+                else str(decisions[0])
+            )
 
         most_important_ai = None
         if actions:
-            high_pri = [a for a in actions if isinstance(a, dict) and a.get("priority") in ("HIGH", "CRITICAL")]
-            most_important_ai = (high_pri[0] if high_pri else actions[0]).get("task", str(actions[0])) if isinstance(actions[0], dict) else str(actions[0])
+            high_pri = [
+                a
+                for a in actions
+                if isinstance(a, dict) and a.get("priority") in ("HIGH", "CRITICAL")
+            ]
+            most_important_ai = (
+                (high_pri[0] if high_pri else actions[0]).get("task", str(actions[0]))
+                if isinstance(actions[0], dict)
+                else str(actions[0])
+            )
 
         def _extract_text(item: Any) -> str:
             if isinstance(item, dict):
-                return item.get("text", item.get("task", item.get("description", str(item))))
+                return item.get(
+                    "text", item.get("task", item.get("description", str(item)))
+                )
             return str(item)
 
         biggest_risk = _extract_text(risks[0]) if risks else None
@@ -347,7 +470,9 @@ class StatsEngine:
 
         key_deadline = None
         if actions:
-            with_deadline = [a for a in actions if isinstance(a, dict) and a.get("deadline")]
+            with_deadline = [
+                a for a in actions if isinstance(a, dict) and a.get("deadline")
+            ]
             if with_deadline:
                 key_deadline = with_deadline[0].get("deadline")
 
@@ -373,7 +498,7 @@ class StatsEngine:
             "followups_count": len(followups),
             "key_deadline": key_deadline,
             "critical_discussion": critical_discussion,
-            "meeting_outcome": meeting_outcome
+            "meeting_outcome": meeting_outcome,
         }
 
     def _build_action_breakdown(self, intel_data: Dict) -> Dict:
@@ -406,7 +531,7 @@ class StatsEngine:
             "completed": completed,
             "pending": pending,
             "overdue": overdue,
-            "items": actions[:50]
+            "items": actions[:50],
         }
 
     def _build_decision_summary(self, intel_data: Dict) -> Dict:
@@ -445,11 +570,19 @@ class StatsEngine:
             else:
                 open_dec.append(text)
         return {
-            "major_decisions": major or [(d.get("text", str(d)) if isinstance(d, dict) else str(d)) for d in decisions[:3]] if decisions else [],
+            "major_decisions": (
+                major
+                or [
+                    (d.get("text", str(d)) if isinstance(d, dict) else str(d))
+                    for d in decisions[:3]
+                ]
+                if decisions
+                else []
+            ),
             "technical_decisions": technical,
             "business_decisions": business,
             "pending_decisions": pending,
-            "open_decisions": open_dec
+            "open_decisions": open_dec,
         }
 
     def _build_intelligence_summary(self, intel_data: Dict) -> Dict:
@@ -465,14 +598,23 @@ class StatsEngine:
         def _fmt_item(item, label_key="text"):
             if isinstance(item, dict):
                 return {
-                    "text": item.get("text", item.get(label_key, item.get("task", str(item))))[:200],
+                    "text": item.get(
+                        "text", item.get(label_key, item.get("task", str(item)))
+                    )[:200],
                     "confidence": item.get("confidence", 0.75),
                     "speaker": item.get("speaker", "UNKNOWN"),
                     "timestamp": item.get("timestamp", item.get("source_start", None)),
                     "priority": item.get("priority", None),
                     "severity": item.get("severity", None),
                 }
-            return {"text": str(item)[:200], "confidence": 0.75, "speaker": "UNKNOWN", "timestamp": None, "priority": None, "severity": None}
+            return {
+                "text": str(item)[:200],
+                "confidence": 0.75,
+                "speaker": "UNKNOWN",
+                "timestamp": None,
+                "priority": None,
+                "severity": None,
+            }
 
         # Build pending_decisions from intel_data.pending_decisions + decisions with UNRESOLVED/PROPOSED/PENDING type
         pending_decs = []
@@ -486,13 +628,15 @@ class StatsEngine:
                 topic = str(p)
                 status = "PROPOSED"
                 conf = 0.7
-            pending_decs.append({
-                "id": f"pdec_raw_{idx}",
-                "topic": topic[:120],
-                "status": str(status).upper(),
-                "confidence": conf,
-                "needs_human_review": True
-            })
+            pending_decs.append(
+                {
+                    "id": f"pdec_raw_{idx}",
+                    "topic": topic[:120],
+                    "status": str(status).upper(),
+                    "confidence": conf,
+                    "needs_human_review": True,
+                }
+            )
 
         for idx, d in enumerate(decisions):
             if isinstance(d, dict):
@@ -500,38 +644,46 @@ class StatsEngine:
                 if dtype.upper() in ("UNRESOLVED", "PROPOSED", "PENDING"):
                     topic = d.get("text", str(d))[:120]
                     if not any(pd["topic"] == topic for pd in pending_decs):
-                        pending_decs.append({
-                            "id": f"pdec_dec_{idx}",
-                            "topic": topic,
-                            "status": dtype.upper(),
-                            "confidence": d.get("confidence", 0.6),
-                            "needs_human_review": True
-                        })
+                        pending_decs.append(
+                            {
+                                "id": f"pdec_dec_{idx}",
+                                "topic": topic,
+                                "status": dtype.upper(),
+                                "confidence": d.get("confidence", 0.6),
+                                "needs_human_review": True,
+                            }
+                        )
 
         # AI Recommendations from top action items + risks
         ai_recs = []
         for idx, act in enumerate(actions[:5]):
             task = act.get("task", str(act)) if isinstance(act, dict) else str(act)
-            priority = act.get("priority", "MEDIUM") if isinstance(act, dict) else "MEDIUM"
+            priority = (
+                act.get("priority", "MEDIUM") if isinstance(act, dict) else "MEDIUM"
+            )
             owner = act.get("owner", "UNKNOWN") if isinstance(act, dict) else "UNKNOWN"
             conf = act.get("confidence", 0.8) if isinstance(act, dict) else 0.8
-            ai_recs.append({
-                "id": f"rec_action_{idx}",
-                "recommendation": f"Ensure '{task[:80]}' is completed before the next milestone.",
-                "reason": f"Action item assigned to {owner} with {priority} priority extracted from meeting discussion.",
-                "confidence": conf,
-                "needs_human_review": conf < 0.65
-            })
+            ai_recs.append(
+                {
+                    "id": f"rec_action_{idx}",
+                    "recommendation": f"Ensure '{task[:80]}' is completed before the next milestone.",
+                    "reason": f"Action item assigned to {owner} with {priority} priority extracted from meeting discussion.",
+                    "confidence": conf,
+                    "needs_human_review": conf < 0.65,
+                }
+            )
         for idx, risk in enumerate(risks[:3]):
             text = risk.get("text", str(risk)) if isinstance(risk, dict) else str(risk)
             conf = risk.get("confidence", 0.75) if isinstance(risk, dict) else 0.75
-            ai_recs.append({
-                "id": f"rec_risk_{idx}",
-                "recommendation": f"Mitigate risk: {text[:80]}",
-                "reason": "Risk identified during meeting discussion that requires proactive management.",
-                "confidence": conf,
-                "needs_human_review": True
-            })
+            ai_recs.append(
+                {
+                    "id": f"rec_risk_{idx}",
+                    "recommendation": f"Mitigate risk: {text[:80]}",
+                    "reason": "Risk identified during meeting discussion that requires proactive management.",
+                    "confidence": conf,
+                    "needs_human_review": True,
+                }
+            )
 
         return {
             "risks": [_fmt_item(r) for r in risks[:20]],
@@ -547,9 +699,9 @@ class StatsEngine:
                 "dependencies": len(followups),
                 "action_items": len(actions),
                 "decisions": len(decisions),
-                "pending_decisions": len(pending_decs)
+                "pending_decisions": len(pending_decs),
             },
-            "analytics": analytics
+            "analytics": analytics,
         }
 
     def _build_topics_entities(self, intel_data: Dict, segments: List[Dict]) -> Dict:
@@ -568,7 +720,17 @@ class StatsEngine:
                         else:
                             name = str(t)
                             conf = 1
-                        topic_list.append({"name": name, "type": "topic", "frequency": int(conf * 100) if isinstance(conf, (int, float)) else 1})
+                        topic_list.append(
+                            {
+                                "name": name,
+                                "type": "topic",
+                                "frequency": (
+                                    int(conf * 100)
+                                    if isinstance(conf, (int, float))
+                                    else 1
+                                ),
+                            }
+                        )
         elif isinstance(topics_raw, list):
             for t in topics_raw:
                 if isinstance(t, dict):
@@ -577,7 +739,15 @@ class StatsEngine:
                 else:
                     name = str(t)
                     conf = 1
-                topic_list.append({"name": name, "type": "topic", "frequency": int(conf * 100) if isinstance(conf, (int, float)) else 1})
+                topic_list.append(
+                    {
+                        "name": name,
+                        "type": "topic",
+                        "frequency": (
+                            int(conf * 100) if isinstance(conf, (int, float)) else 1
+                        ),
+                    }
+                )
 
         tech_list = []
         people_list = []
@@ -645,15 +815,29 @@ class StatsEngine:
         all_keywords = [kw for kw, _ in kw_counter.most_common(20)]
 
         return {
-            "topics": sorted(topic_list, key=lambda x: x["frequency"], reverse=True)[:15],
-            "technologies": sorted(tech_list, key=lambda x: x["frequency"], reverse=True)[:10],
-            "people": sorted(people_list, key=lambda x: x["frequency"], reverse=True)[:10],
-            "organizations": sorted(org_list, key=lambda x: x["frequency"], reverse=True)[:10],
+            "topics": sorted(topic_list, key=lambda x: x["frequency"], reverse=True)[
+                :15
+            ],
+            "technologies": sorted(
+                tech_list, key=lambda x: x["frequency"], reverse=True
+            )[:10],
+            "people": sorted(people_list, key=lambda x: x["frequency"], reverse=True)[
+                :10
+            ],
+            "organizations": sorted(
+                org_list, key=lambda x: x["frequency"], reverse=True
+            )[:10],
             "dates": sorted(date_list, key=lambda x: x["frequency"], reverse=True)[:10],
-            "deadlines": sorted(deadline_list, key=lambda x: x["frequency"], reverse=True)[:10],
-            "projects": sorted(project_list, key=lambda x: x["frequency"], reverse=True)[:10],
-            "products": sorted(product_list, key=lambda x: x["frequency"], reverse=True)[:10],
-            "keywords": all_keywords
+            "deadlines": sorted(
+                deadline_list, key=lambda x: x["frequency"], reverse=True
+            )[:10],
+            "projects": sorted(
+                project_list, key=lambda x: x["frequency"], reverse=True
+            )[:10],
+            "products": sorted(
+                product_list, key=lambda x: x["frequency"], reverse=True
+            )[:10],
+            "keywords": all_keywords,
         }
 
     def _build_audio_diagnostics(self) -> Dict:
@@ -661,15 +845,25 @@ class StatsEngine:
         segments = self._segments_to_dicts()
         if not segments:
             return {
-                "average_loudness_db": None, "peak_level_db": None, "rms_db": None,
-                "noise_level_db": None, "speech_coverage_percent": None,
-                "silence_percent": None, "echo_detected": False, "clipping_count": 0,
-                "audio_enhancement_applied": False, "estimated_snr_db": None
+                "average_loudness_db": None,
+                "peak_level_db": None,
+                "rms_db": None,
+                "noise_level_db": None,
+                "speech_coverage_percent": None,
+                "silence_percent": None,
+                "echo_detected": False,
+                "clipping_count": 0,
+                "audio_enhancement_applied": False,
+                "estimated_snr_db": None,
             }
 
-        total_dur = max(0.001, sum(s["end_seconds"] - s["start_seconds"] for s in segments))
+        total_dur = max(
+            0.001, sum(s["end_seconds"] - s["start_seconds"] for s in segments)
+        )
         meeting_dur = self.meeting.duration or total_dur
-        speech_coverage = min(100.0, (total_dur / meeting_dur) * 100) if meeting_dur > 0 else 0
+        speech_coverage = (
+            min(100.0, (total_dur / meeting_dur) * 100) if meeting_dur > 0 else 0
+        )
         silence_percent = max(0.0, 100.0 - speech_coverage)
 
         # Estimate SNR from confidence data
@@ -687,7 +881,7 @@ class StatsEngine:
             "echo_detected": False,
             "clipping_count": 0,
             "audio_enhancement_applied": True,
-            "estimated_snr_db": round(est_snr, 1)
+            "estimated_snr_db": round(est_snr, 1),
         }
 
     def _build_transcription_diagnostics(self, segments: List[Dict]) -> Dict:
@@ -718,14 +912,16 @@ class StatsEngine:
         low_conf_regions = []
         for seg in segments:
             if seg["speaker_confidence"] < 0.5:
-                low_conf_regions.append({
-                    "segment_id": seg.get("id", 0),
-                    "speaker": seg["speaker_label"],
-                    "timestamp": seg["start"] or "",
-                    "start_seconds": seg["start_seconds"],
-                    "confidence": seg["speaker_confidence"],
-                    "text": seg["text"][:100]
-                })
+                low_conf_regions.append(
+                    {
+                        "segment_id": seg.get("id", 0),
+                        "speaker": seg["speaker_label"],
+                        "timestamp": seg["start"] or "",
+                        "start_seconds": seg["start_seconds"],
+                        "confidence": seg["speaker_confidence"],
+                        "text": seg["text"][:100],
+                    }
+                )
 
         return {
             "average_confidence": round(avg_conf, 4),
@@ -737,36 +933,96 @@ class StatsEngine:
             "total_speaker_changes": speaker_changes,
             "word_error_rate": round(1.0 - avg_conf, 4),
             "character_error_rate": round(1.0 - avg_conf, 4),
-            "low_confidence_regions": low_conf_regions[:20]
+            "low_confidence_regions": low_conf_regions[:20],
         }
 
     def _build_pipeline(self) -> Dict:
         stages = [
-            {"name": "Recording", "status": "completed", "start_time": self.meeting.date, "finish_time": self.meeting.date, "duration_ms": 0.0},
-            {"name": "Audio Enhancement", "status": "completed" if True else "pending", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Speech Detection", "status": "completed", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Whisper Transcription", "status": "completed", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Speaker Diarization", "status": "completed", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Transcript Processing", "status": "completed", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Meeting Intelligence", "status": "completed" if self.intel else "pending", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Embedding Generation", "status": "completed" if self.meeting.qa_history else "pending", "start_time": None, "finish_time": None, "duration_ms": 0.0},
-            {"name": "Q&A Ready", "status": "completed" if self.meeting.qa_history else "pending", "start_time": None, "finish_time": None, "duration_ms": 0.0}
+            {
+                "name": "Recording",
+                "status": "completed",
+                "start_time": self.meeting.date,
+                "finish_time": self.meeting.date,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Audio Enhancement",
+                "status": "completed" if True else "pending",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Speech Detection",
+                "status": "completed",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Whisper Transcription",
+                "status": "completed",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Speaker Diarization",
+                "status": "completed",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Transcript Processing",
+                "status": "completed",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Meeting Intelligence",
+                "status": "completed" if self.intel else "pending",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Embedding Generation",
+                "status": "completed" if self.meeting.qa_history else "pending",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
+            {
+                "name": "Q&A Ready",
+                "status": "completed" if self.meeting.qa_history else "pending",
+                "start_time": None,
+                "finish_time": None,
+                "duration_ms": 0.0,
+            },
         ]
         if self.intel and self.intel.analysis_time_s:
             for i in range(2, 9):
                 if i <= 7:
-                    stages[i]["duration_ms"] = round(self.intel.analysis_time_s * 1000 / 7, 1)
+                    stages[i]["duration_ms"] = round(
+                        self.intel.analysis_time_s * 1000 / 7, 1
+                    )
                 stages[i]["start_time"] = self.meeting.date
                 stages[i]["finish_time"] = self.meeting.date
 
         return {"stages": stages}
 
-    def _build_health(self, segments: List[Dict], speaker_data: Dict, intel_data: Dict) -> Dict:
+    def _build_health(
+        self, segments: List[Dict], speaker_data: Dict, intel_data: Dict
+    ) -> Dict:
         confs = [s["speaker_confidence"] for s in segments if s["speaker_confidence"]]
         avg_conf = sum(confs) / len(confs) if confs else 1.0
 
         memo_data = self._load_memo()
-        actions = intel_data.get("action_items", []) or memo_data.get("action_items", [])
+        actions = intel_data.get("action_items", []) or memo_data.get(
+            "action_items", []
+        )
         decisions = intel_data.get("decisions", []) or memo_data.get("decisions", [])
         risks = intel_data.get("risks", [])
         blockers = intel_data.get("blockers", [])
@@ -774,41 +1030,91 @@ class StatsEngine:
 
         transcript_quality = round(avg_conf * 100, 1)
         audio_quality = round(min(100, avg_conf * 95 + 5), 1)
-        speaker_detection = round(min(100, avg_conf * 90 + 10), 1) if len(speaker_data) > 1 else round(avg_conf * 75, 1)
+        speaker_detection = (
+            round(min(100, avg_conf * 90 + 10), 1)
+            if len(speaker_data) > 1
+            else round(avg_conf * 75, 1)
+        )
         meeting_completeness = 90.0 if (self.intel or memo_data) else 50.0
 
-        prod_score = min(100, max(60.0, (len(actions) * 10 + len(decisions) * 15 + transcript_quality * 0.4)))
+        prod_score = min(
+            100,
+            max(
+                60.0,
+                (len(actions) * 10 + len(decisions) * 15 + transcript_quality * 0.4),
+            ),
+        )
         # Penalise health score for unresolved risks and blockers
         risk_penalty = min(10.0, len(risks) * 2.0 + len(blockers) * 3.0)
         ai_reliability = round(min(100, transcript_quality * 0.85 + 15), 1)
-        effectiveness = round(min(100, (prod_score + speaker_detection + transcript_quality) / 3), 1)
-        overall = round(max(0, (transcript_quality + audio_quality + speaker_detection + meeting_completeness + prod_score) / 5 - risk_penalty), 1)
+        effectiveness = round(
+            min(100, (prod_score + speaker_detection + transcript_quality) / 3), 1
+        )
+        overall = round(
+            max(
+                0,
+                (
+                    transcript_quality
+                    + audio_quality
+                    + speaker_detection
+                    + meeting_completeness
+                    + prod_score
+                )
+                / 5
+                - risk_penalty,
+            ),
+            1,
+        )
 
         recommendations = []
         if avg_conf < 0.7:
-            recommendations.append("Low transcript confidence detected. Consider using a larger Whisper model.")
+            recommendations.append(
+                "Low transcript confidence detected. Consider using a larger Whisper model."
+            )
         if len(speaker_data) <= 1:
-            recommendations.append("Only one speaker detected. Diarization may need improvement.")
+            recommendations.append(
+                "Only one speaker detected. Diarization may need improvement."
+            )
         if not actions:
-            recommendations.append("No action items extracted. Consider re-processing with intelligence engine.")
+            recommendations.append(
+                "No action items extracted. Consider re-processing with intelligence engine."
+            )
         if not decisions:
-            recommendations.append("No decisions detected. The meeting may benefit from clearer outcome documentation.")
+            recommendations.append(
+                "No decisions detected. The meeting may benefit from clearer outcome documentation."
+            )
         if risks:
-            recommendations.append(f"{len(risks)} risk(s) identified — review and create mitigation plans.")
+            recommendations.append(
+                f"{len(risks)} risk(s) identified — review and create mitigation plans."
+            )
         if blockers:
-            recommendations.append(f"{len(blockers)} blocker(s) require immediate attention before proceeding.")
+            recommendations.append(
+                f"{len(blockers)} blocker(s) require immediate attention before proceeding."
+            )
         if questions:
-            recommendations.append(f"{len(questions)} open question(s) remain unresolved from this meeting.")
+            recommendations.append(
+                f"{len(questions)} open question(s) remain unresolved from this meeting."
+            )
         if avg_conf >= 0.85:
             recommendations.append("Excellent recording quality.")
         if len(speaker_data) > 1 and avg_conf >= 0.75:
             recommendations.append("Speaker separation is reliable.")
-        if any(isinstance(s.get("speaker_confidence"), (int, float)) and s["speaker_confidence"] < 0.5 for s in segments):
-            recommendations.append("Some segments have low confidence. Check audio quality for those regions.")
+        if any(
+            isinstance(s.get("speaker_confidence"), (int, float))
+            and s["speaker_confidence"] < 0.5
+            for s in segments
+        ):
+            recommendations.append(
+                "Some segments have low confidence. Check audio quality for those regions."
+            )
         if actions:
-            recommendations.append(f"{len(actions)} action item(s) extracted successfully.")
+            recommendations.append(
+                f"{len(actions)} action item(s) extracted successfully."
+            )
         if decisions:
-            recommendations.append(f"{len(decisions)} decision(s) documented successfully.")
+            recommendations.append(
+                f"{len(decisions)} decision(s) documented successfully."
+            )
 
         return {
             "overall_score": overall,
@@ -823,14 +1129,20 @@ class StatsEngine:
             "risks_count": len(risks),
             "blockers_count": len(blockers),
             "open_questions_count": len(questions),
-            "recommendations": recommendations
+            "recommendations": recommendations,
         }
 
-    def _build_insights(self, speaker_data: Dict, intel_data: Dict, segments: List[Dict]) -> Dict:
+    def _build_insights(
+        self, speaker_data: Dict, intel_data: Dict, segments: List[Dict]
+    ) -> Dict:
         if not speaker_data:
             return {}
 
-        sorted_by_time = sorted(speaker_data.items(), key=lambda x: x[1]["total_speaking_time"], reverse=True)
+        sorted_by_time = sorted(
+            speaker_data.items(),
+            key=lambda x: x[1]["total_speaking_time"],
+            reverse=True,
+        )
         most_active = sorted_by_time[0][0] if sorted_by_time else None
         least_active = sorted_by_time[-1][0] if len(sorted_by_time) > 1 else None
 
@@ -842,7 +1154,9 @@ class StatsEngine:
         topics_raw = intel_data.get("topics", [])
         if isinstance(topics_raw, list) and topics_raw:
             if isinstance(topics_raw[0], dict):
-                most_topic = topics_raw[0].get("topic", topics_raw[0].get("text", "N/A"))
+                most_topic = topics_raw[0].get(
+                    "topic", topics_raw[0].get("text", "N/A")
+                )
             else:
                 most_topic = str(topics_raw[0])
         elif isinstance(topics_raw, dict):
@@ -852,7 +1166,11 @@ class StatsEngine:
                 if isinstance(sublist, list):
                     flat.extend(sublist)
             if flat:
-                most_topic = flat[0].get("topic", flat[0].get("text", str(flat[0]))) if isinstance(flat[0], dict) else str(flat[0])
+                most_topic = (
+                    flat[0].get("topic", flat[0].get("text", str(flat[0])))
+                    if isinstance(flat[0], dict)
+                    else str(flat[0])
+                )
             else:
                 most_topic = None
         else:
@@ -866,8 +1184,16 @@ class StatsEngine:
             tech_entities = []
         most_tech = None
         if tech_entities:
-            sorted_tech = sorted(tech_entities, key=lambda x: x.get("frequency", 1) if isinstance(x, dict) else 1, reverse=True)
-            most_tech = sorted_tech[0].get("text", str(sorted_tech[0])) if isinstance(sorted_tech[0], dict) else str(sorted_tech[0])
+            sorted_tech = sorted(
+                tech_entities,
+                key=lambda x: x.get("frequency", 1) if isinstance(x, dict) else 1,
+                reverse=True,
+            )
+            most_tech = (
+                sorted_tech[0].get("text", str(sorted_tech[0]))
+                if isinstance(sorted_tech[0], dict)
+                else str(sorted_tech[0])
+            )
 
         # Most questions
         q_per_spk = {spk: len(d["questions"]) for spk, d in speaker_data.items()}
@@ -885,14 +1211,22 @@ class StatsEngine:
         longest_disc = None
         all_topics = intel_data.get("topics", [])
         if isinstance(all_topics, list) and all_topics:
-            longest_disc = all_topics[0].get("topic", str(all_topics[0])) if isinstance(all_topics[0], dict) else str(all_topics[0])
+            longest_disc = (
+                all_topics[0].get("topic", str(all_topics[0]))
+                if isinstance(all_topics[0], dict)
+                else str(all_topics[0])
+            )
         elif isinstance(all_topics, dict):
             flat = []
             for sublist in all_topics.values():
                 if isinstance(sublist, list):
                     flat.extend(sublist)
             if flat:
-                longest_disc = flat[0].get("topic", str(flat[0])) if isinstance(flat[0], dict) else str(flat[0])
+                longest_disc = (
+                    flat[0].get("topic", str(flat[0]))
+                    if isinstance(flat[0], dict)
+                    else str(flat[0])
+                )
 
         return {
             "most_active_speaker": most_active,
@@ -904,13 +1238,13 @@ class StatsEngine:
             "most_questions_asked": most_questions,
             "most_decisions_made": most_decisions,
             "most_tasks_assigned": most_tasks,
-            "estimated_meeting_productivity": f"{self._build_health(self._segments_to_dicts(), speaker_data, intel_data)['productivity_score']:.0f}/100"
+            "estimated_meeting_productivity": f"{self._build_health(self._segments_to_dicts(), speaker_data, intel_data)['productivity_score']:.0f}/100",
         }
 
     def _count_sentences(self, segments: List[Dict]) -> int:
         count = 0
         for seg in segments:
-            count += len(re.split(r'[.!?]+', seg["text"].strip())) - 1
+            count += len(re.split(r"[.!?]+", seg["text"].strip())) - 1
             if seg["text"].strip():
                 count = max(count, 1)
         return count

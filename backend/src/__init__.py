@@ -2,6 +2,7 @@
 SAMVAD - Offline Meeting Assistant
 A comprehensive meeting assistant with speech-to-text, memo generation, and Q&A
 """
+
 __version__ = "1.0.0"
 __author__ = "Priyansu Das"
 
@@ -18,5 +19,5 @@ __all__ = [
     "TimestampGenerator",
     "TranscriptDatabase",
     "MemoGenerator",
-    "QuestionAnswering"
+    "QuestionAnswering",
 ]

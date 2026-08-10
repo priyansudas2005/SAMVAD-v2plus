@@ -18,6 +18,7 @@ Features:
   - Low-volume warning (RMS < low_volume_threshold).
   - Thread-safe status snapshot via get_status().
 """
+
 from __future__ import annotations
 
 import math
@@ -187,7 +188,7 @@ class AudioMonitor:
         else:
             data = frame.astype(np.float32)
 
-        rms = float(np.sqrt(np.mean(data ** 2)))
+        rms = float(np.sqrt(np.mean(data**2)))
         level_db = _rms_to_dbfs(rms)
         is_clip = rms >= self._clip_thresh
         is_quiet = rms < self._low_vol_thresh and rms > 0.0

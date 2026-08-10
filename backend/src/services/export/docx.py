@@ -3,12 +3,15 @@ docx.py
 Microsoft Word DOCX exporter for SAMVAD V2.0.
 Uses python-docx to generate proper .docx files with formatting.
 """
+
 import io
 from typing import Dict, Any
+
 try:
     from docx import Document
     from docx.shared import Pt, Inches, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
+
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
@@ -33,20 +36,27 @@ def _add_bold_paragraph(doc, label, text):
 
 class DocxExporter(BaseExporter):
 
-    def export(self, meeting_title: str, date_str: str, segments: list,
-               memo: Dict[str, Any] = None,
-               intelligence: Dict[str, Any] = None) -> bytes:
+    def export(
+        self,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: Dict[str, Any] = None,
+        intelligence: Dict[str, Any] = None,
+    ) -> bytes:
         if not DOCX_AVAILABLE:
             lines = [f"# {meeting_title}", f"Date: {date_str}", ""]
-            for seg in (segments or []):
-                lines.append(f"[{seg.get('speaker_label', 'SPEAKER')}] {seg.get('text', '')}")
+            for seg in segments or []:
+                lines.append(
+                    f"[{seg.get('speaker_label', 'SPEAKER')}] {seg.get('text', '')}"
+                )
             return "\n".join(lines).encode("utf-8")
 
         doc = Document()
 
-        style = doc.styles['Normal']
+        style = doc.styles["Normal"]
         font = style.font
-        font.name = 'Calibri'
+        font.name = "Calibri"
         font.size = Pt(11)
 
         _add_heading(doc, meeting_title, level=0)
@@ -62,13 +72,13 @@ class DocxExporter(BaseExporter):
             if kp:
                 _add_heading(doc, "Key Highlights", level=2)
                 for point in kp:
-                    doc.add_paragraph(point, style='List Bullet')
+                    doc.add_paragraph(point, style="List Bullet")
 
             dp = memo.get("discussion_points", [])
             if dp:
                 _add_heading(doc, "Discussion Points", level=2)
                 for point in dp:
-                    doc.add_paragraph(point, style='List Bullet')
+                    doc.add_paragraph(point, style="List Bullet")
 
         if intelligence:
             doc.add_page_break()
@@ -78,20 +88,20 @@ class DocxExporter(BaseExporter):
             if actions:
                 _add_heading(doc, "Tasks & Action Items", level=2)
                 table = doc.add_table(rows=1, cols=5)
-                table.style = 'Light Grid Accent 1'
+                table.style = "Light Grid Accent 1"
                 hdr = table.rows[0].cells
-                hdr[0].text = 'Task'
-                hdr[1].text = 'Assignee'
-                hdr[2].text = 'Priority'
-                hdr[3].text = 'Deadline'
-                hdr[4].text = 'Status'
+                hdr[0].text = "Task"
+                hdr[1].text = "Assignee"
+                hdr[2].text = "Priority"
+                hdr[3].text = "Deadline"
+                hdr[4].text = "Status"
                 for item in actions:
                     row = table.add_row().cells
-                    row[0].text = item.get('task', '')
-                    row[1].text = item.get('owner', 'UNKNOWN')
-                    row[2].text = item.get('priority', 'MEDIUM')
-                    row[3].text = item.get('deadline', 'NONE')
-                    row[4].text = item.get('status', 'TODO')
+                    row[0].text = item.get("task", "")
+                    row[1].text = item.get("owner", "UNKNOWN")
+                    row[2].text = item.get("priority", "MEDIUM")
+                    row[3].text = item.get("deadline", "NONE")
+                    row[4].text = item.get("status", "TODO")
 
             decisions = intelligence.get("decisions", [])
             if decisions:
@@ -99,7 +109,11 @@ class DocxExporter(BaseExporter):
                 for dec in decisions:
                     text = dec.get("text") if isinstance(dec, dict) else str(dec)
                     dec_type = dec.get("type", "FINAL") if isinstance(dec, dict) else ""
-                    speakers = dec.get("supporting_speakers", []) if isinstance(dec, dict) else []
+                    speakers = (
+                        dec.get("supporting_speakers", [])
+                        if isinstance(dec, dict)
+                        else []
+                    )
                     suffix = f" [{dec_type}]" if dec_type else ""
                     if speakers:
                         suffix += f" (by {', '.join(speakers[:3])})"
@@ -110,7 +124,7 @@ class DocxExporter(BaseExporter):
                 _add_heading(doc, "Risks Identified", level=2)
                 for r in risks:
                     text = r.get("text") if isinstance(r, dict) else str(r)
-                    doc.add_paragraph(f"Risk: {text}", style='List Bullet')
+                    doc.add_paragraph(f"Risk: {text}", style="List Bullet")
 
         doc.add_page_break()
         _add_heading(doc, "Detailed Transcript", level=1)
@@ -125,7 +139,7 @@ class DocxExporter(BaseExporter):
             run2 = p.add_run(f"{speaker}: ")
             run2.bold = True
             run2.font.size = Pt(10)
-            p.add_run(seg.get('text', ''))
+            p.add_run(seg.get("text", ""))
 
         buf = io.BytesIO()
         doc.save(buf)

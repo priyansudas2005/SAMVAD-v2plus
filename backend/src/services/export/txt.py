@@ -2,6 +2,7 @@
 txt.py
 Plain text exporter for SAMVAD V2.0.
 """
+
 from typing import Dict, Any
 from .base import BaseExporter
 
@@ -11,7 +12,14 @@ class TxtExporter(BaseExporter):
     Exports meeting metadata, summaries, action items, and transcripts to a plain text file.
     """
 
-    def export(self, meeting_title: str, date_str: str, segments: list, memo: Dict[str, Any] = None, intelligence: Dict[str, Any] = None) -> bytes:
+    def export(
+        self,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: Dict[str, Any] = None,
+        intelligence: Dict[str, Any] = None,
+    ) -> bytes:
         output = []
         output.append(f"=== MEETING RECORD: {meeting_title} ===")
         output.append(f"Date: {date_str}")
@@ -47,7 +55,9 @@ class TxtExporter(BaseExporter):
                     priority = item.get("priority", "MEDIUM")
                     deadline = item.get("deadline", "NONE")
                     output.append(f"- [ ] Task: {item.get('task')}")
-                    output.append(f"      Assignee: {owner} | Priority: {priority} | Deadline: {deadline}")
+                    output.append(
+                        f"      Assignee: {owner} | Priority: {priority} | Deadline: {deadline}"
+                    )
                 output.append("\n")
 
             decisions = intelligence.get("decisions", [])
@@ -56,7 +66,11 @@ class TxtExporter(BaseExporter):
                 for dec in decisions:
                     text = dec.get("text") if isinstance(dec, dict) else str(dec)
                     dec_type = dec.get("type", "FINAL") if isinstance(dec, dict) else ""
-                    speakers = dec.get("supporting_speakers", []) if isinstance(dec, dict) else []
+                    speakers = (
+                        dec.get("supporting_speakers", [])
+                        if isinstance(dec, dict)
+                        else []
+                    )
                     suffix = f" [{dec_type}]" if dec_type else ""
                     if speakers:
                         suffix += f" (by {', '.join(speakers[:3])})"

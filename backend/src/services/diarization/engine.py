@@ -3,6 +3,7 @@ engine.py
 Offline Speaker Diarization Subsystem Orchestrator.
 Segments audio, extracts vectors, clusters speakers, and aligns to Whisper transcripts.
 """
+
 import time
 import soundfile as sf
 import numpy as np
@@ -22,11 +23,12 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class DiarizationEngine:
     """
     Main entry point for speaker partition processing.
     """
-    
+
     def __init__(self):
         self.config = DiarizationConfig()
         self.segmenter = SpeechSegmenter()
@@ -35,9 +37,7 @@ class DiarizationEngine:
         self.identifier = SpeakerIdentifier(self.config)
 
     def diarize(
-        self,
-        audio_path: str,
-        transcript_segments: List[Dict[str, Any]]
+        self, audio_path: str, transcript_segments: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
         Processes voice print segments from WAV and attributes speaker identities
@@ -46,10 +46,10 @@ class DiarizationEngine:
         if not self.config.enabled:
             logger.info("Speaker diarization is disabled via configuration.")
             return transcript_segments
-            
+
         try:
             start_total = time.time()
-            
+
             # Load audio file
             audio, sr = sf.read(audio_path)
             if len(audio.shape) > 1:
@@ -65,16 +65,18 @@ class DiarizationEngine:
             start_emb = time.time()
             embeddings = []
             valid_regions = []
-            
+
             for reg in regions:
-                chunk = audio[reg["start_sample"]:reg["end_sample"]]
+                chunk = audio[reg["start_sample"] : reg["end_sample"]]
                 try:
                     emb = self.extractor.extract_embedding(chunk, sr)
                     embeddings.append(emb)
                     valid_regions.append(reg)
                 except Exception as e:
-                    logger.warning(f"Failed to extract embedding for interval {reg['start']}-{reg['end']}: {e}")
-                    
+                    logger.warning(
+                        f"Failed to extract embedding for interval {reg['start']}-{reg['end']}: {e}"
+                    )
+
             emb_elapsed = time.time() - start_emb
 
             if not embeddings:
@@ -89,13 +91,15 @@ class DiarizationEngine:
             # 4. Refine centroids & Identify enrolled names (Phases 5 & 8)
             centroids = SpeakerTracker.calculate_centroids(embeddings, labels)
             speaker_name_map = {}
-            
+
             for label, centroid in centroids.items():
                 match = self.identifier.identify_speaker(centroid)
                 if match:
                     name, sim = match
                     speaker_name_map[label] = name
-                    logger.info(f"Identified SPEAKER_{label:02d} as {name} (similarity: {sim:.2f})")
+                    logger.info(
+                        f"Identified SPEAKER_{label:02d} as {name} (similarity: {sim:.2f})"
+                    )
                 else:
                     speaker_name_map[label] = f"SPEAKER_{label:02d}"
 
@@ -103,12 +107,14 @@ class DiarizationEngine:
             timeline = []
             for i, reg in enumerate(valid_regions):
                 label = labels[i]
-                timeline.append({
-                    "start": reg["start"],
-                    "end": reg["end"],
-                    "speaker_label": speaker_name_map[label],
-                    "confidence": 1.0  # fallback confidence
-                })
+                timeline.append(
+                    {
+                        "start": reg["start"],
+                        "end": reg["end"],
+                        "speaker_label": speaker_name_map[label],
+                        "confidence": 1.0,  # fallback confidence
+                    }
+                )
 
             # 6. Flag Overlapping speech intervals (Phase 9)
             timeline = OverlapDetector.detect_overlaps(timeline)
@@ -125,7 +131,7 @@ class DiarizationEngine:
                 total_time=total_elapsed,
                 num_speakers=num_speakers,
                 clustering_time=cls_elapsed,
-                embedding_time=emb_elapsed
+                embedding_time=emb_elapsed,
             )
 
             return aligned_segments

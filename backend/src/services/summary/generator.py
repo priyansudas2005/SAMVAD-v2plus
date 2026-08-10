@@ -2,6 +2,7 @@
 Memo Generation Module
 Automatically generates meeting summaries, action items, decisions, and key points offline.
 """
+
 import re
 import json
 import httpx
@@ -33,14 +34,14 @@ def _extract_json_from_text(text: str) -> Optional[dict]:
     except json.JSONDecodeError:
         pass
 
-    m = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
+    m = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
     if m:
         try:
             return json.loads(m.group(1).strip())
         except json.JSONDecodeError:
             pass
 
-    m = re.search(r'\{.*\}', text, re.DOTALL)
+    m = re.search(r"\{.*\}", text, re.DOTALL)
     if m:
         try:
             return json.loads(m.group(0))
@@ -48,7 +49,13 @@ def _extract_json_from_text(text: str) -> Optional[dict]:
             pass
 
     result = {}
-    for key in ["summary", "action_items", "decisions", "key_points", "discussion_points"]:
+    for key in [
+        "summary",
+        "action_items",
+        "decisions",
+        "key_points",
+        "discussion_points",
+    ]:
         m = re.search(rf'"{key}"\s*:\s*(".*?"|\[.*?\])', text, re.DOTALL)
         if m:
             raw = m.group(1)
@@ -62,12 +69,16 @@ def _extract_json_from_text(text: str) -> Optional[dict]:
     return None
 
 
-def _summarize_chunked(tokenizer, model, text: str, max_length: int, min_length: int, device: str) -> str:
+def _summarize_chunked(
+    tokenizer, model, text: str, max_length: int, min_length: int, device: str
+) -> str:
     """Summarize long text by splitting into chunks and combining summaries."""
     words = text.split()
     if len(words) <= 800:
         truncated = text[:8000]
-        inputs = tokenizer(truncated, max_length=1024, truncation=True, return_tensors="pt")
+        inputs = tokenizer(
+            truncated, max_length=1024, truncation=True, return_tensors="pt"
+        )
         if device == "cuda":
             inputs = {k: v.to("cuda") for k, v in inputs.items()}
         with torch.no_grad():
@@ -77,13 +88,13 @@ def _summarize_chunked(tokenizer, model, text: str, max_length: int, min_length:
                 min_length=min_length,
                 length_penalty=2.0,
                 num_beams=4,
-                early_stopping=True
+                early_stopping=True,
             )
         return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
     chunks = []
     for i in range(0, len(words), 800):
-        chunk = " ".join(words[i:i + 800])[:4000]
+        chunk = " ".join(words[i : i + 800])[:4000]
         inputs = tokenizer(chunk, max_length=1024, truncation=True, return_tensors="pt")
         if device == "cuda":
             inputs = {k: v.to("cuda") for k, v in inputs.items()}
@@ -94,7 +105,7 @@ def _summarize_chunked(tokenizer, model, text: str, max_length: int, min_length:
                 min_length=min(min_length, 30),
                 length_penalty=1.5,
                 num_beams=3,
-                early_stopping=True
+                early_stopping=True,
             )
         chunks.append(tokenizer.decode(summary_ids[0], skip_special_tokens=True))
 
@@ -109,7 +120,7 @@ def _summarize_chunked(tokenizer, model, text: str, max_length: int, min_length:
             min_length=min_length,
             length_penalty=2.0,
             num_beams=4,
-            early_stopping=True
+            early_stopping=True,
         )
     return tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
@@ -156,7 +167,9 @@ def _build_discussion_points(intelligence: Dict[str, Any]) -> List[str]:
     return points
 
 
-def _format_action_items(intelligence: Dict[str, Any], max_items: int = 10) -> List[str]:
+def _format_action_items(
+    intelligence: Dict[str, Any], max_items: int = 10
+) -> List[str]:
     """Format action items from intelligence data with owner/priority/deadline."""
     items = intelligence.get("action_items", [])
     if not items:
@@ -166,11 +179,15 @@ def _format_action_items(intelligence: Dict[str, Any], max_items: int = 10) -> L
     for item in items[:max_items]:
         task = item.get("task", str(item)) if isinstance(item, dict) else str(item)
         owner = item.get("owner", "UNKNOWN") if isinstance(item, dict) else "UNKNOWN"
-        priority = item.get("priority", "MEDIUM") if isinstance(item, dict) else "MEDIUM"
+        priority = (
+            item.get("priority", "MEDIUM") if isinstance(item, dict) else "MEDIUM"
+        )
         deadline = item.get("deadline", "NONE") if isinstance(item, dict) else "NONE"
 
         if deadline != "NONE":
-            formatted.append(f"[{priority}] {task} (Assignee: {owner}, Deadline: {deadline})")
+            formatted.append(
+                f"[{priority}] {task} (Assignee: {owner}, Deadline: {deadline})"
+            )
         else:
             formatted.append(f"[{priority}] {task} (Assignee: {owner})")
     return formatted
@@ -198,7 +215,13 @@ def _format_decisions(intelligence: Dict[str, Any], max_items: int = 10) -> List
 def _prioritize_action_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Sort action items by priority (HIGH > MEDIUM > LOW) then by confidence."""
     priority_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "UNKNOWN": 3}
-    return sorted(items, key=lambda x: (priority_order.get(x.get("priority", "MEDIUM"), 1), -x.get("confidence", 0)))
+    return sorted(
+        items,
+        key=lambda x: (
+            priority_order.get(x.get("priority", "MEDIUM"), 1),
+            -x.get("confidence", 0),
+        ),
+    )
 
 
 class MemoGenerator:
@@ -215,7 +238,9 @@ class MemoGenerator:
         self.tokenizer = None
         self.model = None
         self.model_loaded = False
-        logger.info(f"MemoGenerator initialized with model: {self.model_name} on {self.device}")
+        logger.info(
+            f"MemoGenerator initialized with model: {self.model_name} on {self.device}"
+        )
 
     def _load_model(self) -> bool:
         if not self.model_loaded:
@@ -231,12 +256,15 @@ class MemoGenerator:
                 self.model_loaded = True
                 logger.info("Summarization model loaded successfully.")
             except Exception as e:
-                logger.error(f"Failed to load summarization model: {e}. Using rule-based fallback.")
+                logger.error(
+                    f"Failed to load summarization model: {e}. Using rule-based fallback."
+                )
                 self.model_loaded = False
         return self.model_loaded
 
-    async def generate_memo(self, meeting_id: str, transcript: str,
-                            intelligence: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def generate_memo(
+        self, meeting_id: str, transcript: str, intelligence: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         if not transcript or len(transcript.strip()) < 10:
             return {
                 "meeting_id": meeting_id,
@@ -246,7 +274,7 @@ class MemoGenerator:
                 "key_points": [],
                 "discussion_points": [],
                 "generated_at": datetime.now().isoformat(),
-                "confidence": 0.0
+                "confidence": 0.0,
             }
 
         logger.info(f"Generating memo for meeting {meeting_id}...")
@@ -254,18 +282,27 @@ class MemoGenerator:
         intelligence = intelligence or {}
 
         from src.services.database.db import SessionLocal, DBSetting
+
         db = SessionLocal()
-        ollama_setting = db.query(DBSetting).filter(DBSetting.key == "ollama_url").first()
-        ollama_url = ollama_setting.value if ollama_setting else "http://localhost:11434"
+        ollama_setting = (
+            db.query(DBSetting).filter(DBSetting.key == "ollama_url").first()
+        )
+        ollama_url = (
+            ollama_setting.value if ollama_setting else "http://localhost:11434"
+        )
         db.close()
 
         ollama_run = await check_ollama_available(ollama_url)
         if ollama_run:
-            result = await self._ollama_generate(meeting_id, transcript, intelligence, ollama_url)
+            result = await self._ollama_generate(
+                meeting_id, transcript, intelligence, ollama_url
+            )
             if result:
                 logger.info(f"Ollama memo generation succeeded for {meeting_id}")
                 return result
-            logger.warning(f"Ollama response wasn't usable, falling back to local model.")
+            logger.warning(
+                f"Ollama response wasn't usable, falling back to local model."
+            )
 
         summary = self._huggingface_summarize(transcript)
 
@@ -280,28 +317,43 @@ class MemoGenerator:
             decisions = self._extract_decisions(transcript)
 
         word_count = len(transcript.split())
-        speaker_count = len(intelligence.get("timeline", {}).get("speaker_activity", {}))
+        speaker_count = len(
+            intelligence.get("timeline", {}).get("speaker_activity", {})
+        )
         if speaker_count == 0:
-            speaker_count = len(set(
-                s.get("speaker_label", "") for s in intelligence.get("timeline", {}).get("phases", [{}])[0].get("speakers", [])
-            )) if intelligence.get("timeline", {}).get("phases") else 1
+            speaker_count = (
+                len(
+                    set(
+                        s.get("speaker_label", "")
+                        for s in intelligence.get("timeline", {})
+                        .get("phases", [{}])[0]
+                        .get("speakers", [])
+                    )
+                )
+                if intelligence.get("timeline", {}).get("phases")
+                else 1
+            )
 
         confidence = min(0.95, 0.5 + (word_count / 500) * 0.1)
 
         return {
             "meeting_id": meeting_id,
             "summary": summary or "Meeting transcript analyzed.",
-            "action_items": action_items[:self.max_action_items],
+            "action_items": action_items[: self.max_action_items],
             "decisions": decisions[:5],
-            "key_points": key_points[:self.max_key_points],
-            "discussion_points": discussion_points[:self.max_discussion_points],
+            "key_points": key_points[: self.max_key_points],
+            "discussion_points": discussion_points[: self.max_discussion_points],
             "generated_at": datetime.now().isoformat(),
-            "confidence": confidence
+            "confidence": confidence,
         }
 
-    async def _ollama_generate(self, meeting_id: str, transcript: str,
-                                intelligence: Dict[str, Any],
-                                ollama_url: str) -> Optional[Dict[str, Any]]:
+    async def _ollama_generate(
+        self,
+        meeting_id: str,
+        transcript: str,
+        intelligence: Dict[str, Any],
+        ollama_url: str,
+    ) -> Optional[Dict[str, Any]]:
         timeline = intelligence.get("timeline", {})
         phases = timeline.get("phases", [])
         speaker_activity = timeline.get("speaker_activity", {})
@@ -312,14 +364,21 @@ class MemoGenerator:
         if phases:
             phase_lines = []
             for p in phases:
-                phase_lines.append(f"  - {p.get('name', 'Discussion')} ({p.get('duration', 0)/60:.0f} min): {p.get('dominant_topic', 'General')}")
+                phase_lines.append(
+                    f"  - {p.get('name', 'Discussion')} ({p.get('duration', 0)/60:.0f} min): {p.get('dominant_topic', 'General')}"
+                )
             phase_desc = "Meeting phases:\n" + "\n".join(phase_lines)
 
         speaker_desc = ""
         if speaker_activity:
-            spk_lines = [f"  - {spk}: {info.get('total_duration_s', 0)/60:.1f} min, {info.get('segment_count', 0)} segments"
-                        for spk, info in sorted(speaker_activity.items(),
-                                                key=lambda x: x[1].get('total_duration_s', 0), reverse=True)]
+            spk_lines = [
+                f"  - {spk}: {info.get('total_duration_s', 0)/60:.1f} min, {info.get('segment_count', 0)} segments"
+                for spk, info in sorted(
+                    speaker_activity.items(),
+                    key=lambda x: x[1].get("total_duration_s", 0),
+                    reverse=True,
+                )
+            ]
             speaker_desc = "Speakers:\n" + "\n".join(spk_lines)
 
         topic_desc = ""
@@ -334,14 +393,20 @@ class MemoGenerator:
 
         analytics_summary = ""
         if analytics:
-            productivity = analytics.get("productivity_score", analytics.get("overall_productivity", ""))
-            engagement = analytics.get("engagement_score", analytics.get("overall_engagement", ""))
+            productivity = analytics.get(
+                "productivity_score", analytics.get("overall_productivity", "")
+            )
+            engagement = analytics.get(
+                "engagement_score", analytics.get("overall_engagement", "")
+            )
             if productivity:
                 analytics_summary = f"Productivity: {productivity}"
             if engagement:
                 analytics_summary += f" | Engagement: {engagement}"
 
-        context_block = "\n".join(filter(None, [phase_desc, speaker_desc, topic_desc, analytics_summary]))
+        context_block = "\n".join(
+            filter(None, [phase_desc, speaker_desc, topic_desc, analytics_summary])
+        )
 
         prompt = f"""You are an AI meeting assistant. Analyze the following meeting transcript and extract:
 
@@ -381,7 +446,7 @@ Transcript:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 ollama_res = await client.post(
                     f"{ollama_url}/api/generate",
-                    json={"model": model_name, "prompt": prompt, "stream": False}
+                    json={"model": model_name, "prompt": prompt, "stream": False},
                 )
                 res_data = ollama_res.json()
                 response_text = res_data.get("response", "")
@@ -390,19 +455,25 @@ Transcript:
             if parsed and isinstance(parsed, dict) and parsed.get("summary"):
                 action_items = parsed.get("action_items", [])
                 if not action_items:
-                    action_items = _format_action_items(intelligence, self.max_action_items)
+                    action_items = _format_action_items(
+                        intelligence, self.max_action_items
+                    )
 
                 return {
                     "meeting_id": meeting_id,
                     "summary": parsed.get("summary", "No summary generated."),
-                    "action_items": action_items[:self.max_action_items],
+                    "action_items": action_items[: self.max_action_items],
                     "decisions": parsed.get("decisions", [])[:5],
-                    "key_points": parsed.get("key_points", [])[:self.max_key_points],
-                    "discussion_points": parsed.get("discussion_points", _build_discussion_points(intelligence))[:self.max_discussion_points],
+                    "key_points": parsed.get("key_points", [])[: self.max_key_points],
+                    "discussion_points": parsed.get(
+                        "discussion_points", _build_discussion_points(intelligence)
+                    )[: self.max_discussion_points],
                     "generated_at": datetime.now().isoformat(),
-                    "confidence": 0.95
+                    "confidence": 0.95,
                 }
-            logger.warning(f"Could not parse JSON from Ollama response. Raw: {response_text[:200]}...")
+            logger.warning(
+                f"Could not parse JSON from Ollama response. Raw: {response_text[:200]}..."
+            )
             return None
         except Exception as e:
             logger.error(f"Ollama query failed: {e}")
@@ -413,25 +484,59 @@ Transcript:
             return self._fallback_summary(transcript)
         try:
             return _summarize_chunked(
-                self.tokenizer, self.model, transcript,
-                self.summary_max_length, self.summary_min_length, self.device
+                self.tokenizer,
+                self.model,
+                transcript,
+                self.summary_max_length,
+                self.summary_min_length,
+                self.device,
             )
         except Exception as e:
             logger.error(f"HF inference failed: {e}")
             return self._fallback_summary(transcript)
 
     def _fallback_summary(self, text: str) -> str:
-        sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+        sentences = re.split(r"(?<=[.!?])\s+", text.strip())
         if not sentences:
             return text[:500]
 
         # Score sentences by relevance (position, length, keyword signals)
         scored = []
-        keywords = ["decision", "agree", "conclude", "approve", "launch", "deploy", "deadline",
-                     "important", "critical", "blocker", "risk", "release", "goal", "target",
-                     "next step", "action", "assign", "responsible", "schedule", "plan",
-                     "problem", "issue", "solution", "fix", "update", "change", "migrate",
-                     "implement", "build", "create", "setup", "configure", "integrate"]
+        keywords = [
+            "decision",
+            "agree",
+            "conclude",
+            "approve",
+            "launch",
+            "deploy",
+            "deadline",
+            "important",
+            "critical",
+            "blocker",
+            "risk",
+            "release",
+            "goal",
+            "target",
+            "next step",
+            "action",
+            "assign",
+            "responsible",
+            "schedule",
+            "plan",
+            "problem",
+            "issue",
+            "solution",
+            "fix",
+            "update",
+            "change",
+            "migrate",
+            "implement",
+            "build",
+            "create",
+            "setup",
+            "configure",
+            "integrate",
+        ]
         for i, s in enumerate(sentences):
             clean = s.strip()
             if len(clean.split()) < 5:
@@ -471,7 +576,7 @@ Transcript:
         return " ".join(taken) if taken else text[:500]
 
     def _extract_action_items(self, text: str) -> List[str]:
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        sentences = re.split(r"(?<=[.!?])\s+", text)
         patterns = [
             r"\b(?:will|shall|must|need to|has to|have to|going to|plan to|scheduled to)\b",
             r"\b(?:assigned?|responsible|tasked|delegated|owner)\b",
@@ -482,41 +587,53 @@ Transcript:
         items = []
         for s in sentences:
             clean = s.strip()
-            if not clean or clean.endswith('?') or len(clean.split()) < 4 or len(clean.split()) > 50:
+            if (
+                not clean
+                or clean.endswith("?")
+                or len(clean.split()) < 4
+                or len(clean.split()) > 50
+            ):
                 continue
             for pat in patterns:
                 if re.search(pat, clean, re.IGNORECASE):
-                    cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean).strip()
-                    cleaned = re.sub(r'^[-\*\d\.\s]+', '', cleaned).strip()
+                    cleaned = re.sub(r"^\[.*?\]\s*\w+:\s*", "", clean).strip()
+                    cleaned = re.sub(r"^[-\*\d\.\s]+", "", cleaned).strip()
                     if cleaned and len(cleaned) > 15 and cleaned not in items:
                         items.append(cleaned)
                     break
         return items
 
     def _extract_decisions(self, text: str) -> List[str]:
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        sentences = re.split(r"(?<=[.!?])\s+", text)
         patterns = [
             r"\b(?:decided|agreed|approved|consensus|settled on|resolution|concluded|voted|chose|selected|finalized|confirmed|established|determined|resolved|ratified|endorsed)\b",
             r"\b(?:we will use|we chose|we selected|we decided|we agreed|we opted|we picked|we settled)\b",
             r"\b(?:decision is|plan is|goal is|target is|objective is)\b",
             r"\b(?:going forward|moving forward|from now on|effective immediately)\b",
-            r"\b(?:greenlit|signed off|rubber.?stamped|given the go.?ahead|got approval)\b"
+            r"\b(?:greenlit|signed off|rubber.?stamped|given the go.?ahead|got approval)\b",
         ]
         decisions = []
         for s in sentences:
             clean = s.strip()
-            if not clean or clean.endswith('?') or len(clean.split()) < 5 or len(clean.split()) > 50:
+            if (
+                not clean
+                or clean.endswith("?")
+                or len(clean.split()) < 5
+                or len(clean.split()) > 50
+            ):
                 continue
             for pat in patterns:
                 if re.search(pat, clean, re.IGNORECASE):
-                    cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean).strip()
-                    cleaned = re.sub(r'^[-\*\d\.\s]+', '', cleaned).strip()
+                    cleaned = re.sub(r"^\[.*?\]\s*\w+:\s*", "", clean).strip()
+                    cleaned = re.sub(r"^[-\*\d\.\s]+", "", cleaned).strip()
                     if cleaned and len(cleaned) > 15 and cleaned not in decisions:
                         decisions.append(cleaned)
                     break
         return decisions
 
-    def _extract_key_points(self, text: str, intelligence: Dict[str, Any] = None) -> List[str]:
+    def _extract_key_points(
+        self, text: str, intelligence: Dict[str, Any] = None
+    ) -> List[str]:
         """Extract key highlights. Falls back from intelligence data > regex."""
         points = []
 
@@ -544,20 +661,20 @@ Transcript:
                 points.append(f"{prefix}{q_text[:200]}")
 
         if not points:
-            sentences = re.split(r'(?<=[.!?])\s+', text)
+            sentences = re.split(r"(?<=[.!?])\s+", text)
             patterns = [
                 r"\b(important|key|crucial|essential|focus|goal|target|takeaway|main point|primary|significant)\b",
                 r"\b(problem is|issue is|challenge|opportunity|concern|priority|highlight)\b",
-                r"\b(the main|the key|the primary|the biggest|the most important)\b"
+                r"\b(the main|the key|the primary|the biggest|the most important)\b",
             ]
             for s in sentences:
                 clean = s.strip()
-                if not clean or clean.endswith('?') or len(clean.split()) < 5:
+                if not clean or clean.endswith("?") or len(clean.split()) < 5:
                     continue
                 for pat in patterns:
                     if re.search(pat, clean, re.IGNORECASE):
-                        cleaned = re.sub(r'^\[.*?\]\s*\w+:\s*', '', clean)
-                        cleaned = re.sub(r'^[-\*\d\.\s]+', '', cleaned).strip()
+                        cleaned = re.sub(r"^\[.*?\]\s*\w+:\s*", "", clean)
+                        cleaned = re.sub(r"^[-\*\d\.\s]+", "", cleaned).strip()
                         if cleaned and len(cleaned) > 15 and cleaned not in points:
                             points.append(cleaned)
                         break

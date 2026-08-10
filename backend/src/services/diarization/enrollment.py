@@ -2,6 +2,7 @@
 enrollment.py
 Manages speaker voice enrollment profiles locally on disk.
 """
+
 import os
 import json
 import numpy as np
@@ -13,11 +14,12 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class SpeakerEnrollmentManager:
     """
     Enrolls and stores named speaker voice prints offline.
     """
-    
+
     def __init__(self, config: DiarizationConfig):
         self.config = config
         self.db_path = Path("backend/data/database/speaker_profiles.json")
@@ -50,4 +52,7 @@ class SpeakerEnrollmentManager:
 
     def get_enrolled_profiles(self) -> Dict[str, np.ndarray]:
         """Returns profiles mapped as named numpy embedding vectors."""
-        return {name: np.array(vec, dtype=np.float32) for name, vec in self._profiles.items()}
+        return {
+            name: np.array(vec, dtype=np.float32)
+            for name, vec in self._profiles.items()
+        }

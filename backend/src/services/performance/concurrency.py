@@ -3,6 +3,7 @@ concurrency.py
 ThreadPool and ProcessPool managers implementing concurrency for CPU/IO tasks.
 Handles parallelization of audio stages, extractions, and document rendering.
 """
+
 import concurrent.futures
 from typing import List, Callable, Any, TypeVar
 
@@ -11,13 +12,15 @@ from src.utils.config import load_config
 
 logger = get_logger(__name__)
 
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
+
 
 class ConcurrencyManager:
     """
     Manages global thread pools and process pools for parallel execution of CPU/IO tasks.
     """
+
     _instance = None
     _lock = threading_lock = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
@@ -30,13 +33,12 @@ class ConcurrencyManager:
     def _init_pools(self) -> None:
         cfg = load_config()
         con_cfg = cfg.get("performance", {}).get("concurrency", {})
-        
+
         self.thread_workers = con_cfg.get("thread_pool_size", 4)
         self.process_workers = con_cfg.get("process_pool_size", 2)
-        
+
         self.thread_executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=self.thread_workers,
-            thread_name_prefix="samvad_thread_pool"
+            max_workers=self.thread_workers, thread_name_prefix="samvad_thread_pool"
         )
         # Process executor is lazily allocated to save startup memory on light systems
         self.process_executor = None
@@ -53,7 +55,7 @@ class ConcurrencyManager:
         """Runs a function over multiple items in parallel using ThreadPoolExecutor."""
         if not items:
             return []
-        
+
         futures = [self.thread_executor.submit(fn, item) for item in items]
         concurrent.futures.wait(futures)
         return [f.result() for f in futures]
@@ -62,7 +64,7 @@ class ConcurrencyManager:
         """Runs a function over multiple items in parallel using ProcessPoolExecutor."""
         if not items:
             return []
-        
+
         executor = self.get_process_executor()
         futures = [executor.submit(fn, item) for item in items]
         concurrent.futures.wait(futures)

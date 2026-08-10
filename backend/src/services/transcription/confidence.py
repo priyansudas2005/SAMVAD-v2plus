@@ -2,7 +2,9 @@
 confidence.py
 Calculates segment, word, and meeting-level transcription confidence metrics.
 """
+
 from typing import List, Dict, Any
+
 
 class ConfidenceAnalyzer:
     """
@@ -37,11 +39,15 @@ class ConfidenceAnalyzer:
         heatmap = []
         for idx, seg in enumerate(segments):
             conf = seg.get("confidence", 1.0)
-            heatmap.append({
-                "segment_index": idx,
-                "start": seg.get("start", 0.0),
-                "end": seg.get("end", 0.0),
-                "confidence": round(conf, 2),
-                "status": "low" if conf < 0.70 else "medium" if conf < 0.85 else "high"
-            })
+            heatmap.append(
+                {
+                    "segment_index": idx,
+                    "start": seg.get("start", 0.0),
+                    "end": seg.get("end", 0.0),
+                    "confidence": round(conf, 2),
+                    "status": (
+                        "low" if conf < 0.70 else "medium" if conf < 0.85 else "high"
+                    ),
+                }
+            )
         return heatmap

@@ -4,16 +4,19 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class QAConfig:
     def __init__(self):
         self.config = load_config()
         self._validate_and_sanitize()
-        
+
     def _validate_and_sanitize(self):
         # 1. QA model type checks
         model = self.config.get("qa.model", "deepset/roberta-base-squad2")
         if not isinstance(model, str) or not model.strip():
-            logger.warning("Invalid qa.model config, using fallback deepset/roberta-base-squad2")
+            logger.warning(
+                "Invalid qa.model config, using fallback deepset/roberta-base-squad2"
+            )
             self.model = "deepset/roberta-base-squad2"
         else:
             self.model = model.strip()
@@ -28,7 +31,9 @@ class QAConfig:
         # 3. max_context_length validation
         max_len = self.config.get("qa.max_context_length", 512)
         if not isinstance(max_len, int) or max_len <= 0 or max_len > 2048:
-            logger.warning(f"Invalid qa.max_context_length: {max_len}, defaulting to 512")
+            logger.warning(
+                f"Invalid qa.max_context_length: {max_len}, defaulting to 512"
+            )
             self.max_context_length = 512
         else:
             self.max_context_length = max_len
@@ -36,7 +41,9 @@ class QAConfig:
         # 4. confidence_threshold validation
         conf_t = self.config.get("qa.confidence_threshold", 0.01)
         if not isinstance(conf_t, (int, float)) or not (0.0 <= conf_t <= 1.0):
-            logger.warning(f"Invalid confidence_threshold: {conf_t}, defaulting to 0.01")
+            logger.warning(
+                f"Invalid confidence_threshold: {conf_t}, defaulting to 0.01"
+            )
             self.confidence_threshold = 0.01
         else:
             self.confidence_threshold = float(conf_t)
@@ -75,5 +82,7 @@ class QAConfig:
 
         # 9. Ollama settings
         self.ollama_enabled = bool(self.config.get("qa.ollama.enabled", False))
-        self.ollama_url = str(self.config.get("qa.ollama.url", "http://localhost:11434"))
+        self.ollama_url = str(
+            self.config.get("qa.ollama.url", "http://localhost:11434")
+        )
         self.ollama_model = str(self.config.get("qa.ollama.model", "llama3"))

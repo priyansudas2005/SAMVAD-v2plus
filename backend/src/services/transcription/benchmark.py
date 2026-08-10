@@ -2,6 +2,7 @@
 benchmark.py
 Calculates WER, CER, RTF, and resource utilization for transcription runs.
 """
+
 import time
 import json
 import numpy as np
@@ -11,6 +12,7 @@ from typing import Dict, Any, List, Optional
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 class TranscriptionBenchmarker:
     """
@@ -24,26 +26,26 @@ class TranscriptionBenchmarker:
         """
         ref_words = ref.lower().split()
         hyp_words = hyp.lower().split()
-        
+
         r_len = len(ref_words)
         h_len = len(hyp_words)
-        
+
         dp = np.zeros((r_len + 1, h_len + 1), dtype=int)
-        
+
         for i in range(r_len + 1):
             dp[i, 0] = i
         for j in range(h_len + 1):
             dp[0, j] = j
-            
+
         for i in range(1, r_len + 1):
             for j in range(1, h_len + 1):
                 if ref_words[i - 1] == hyp_words[j - 1]:
                     dp[i, j] = dp[i - 1, j - 1]
                 else:
                     dp[i, j] = min(
-                        dp[i - 1, j] + 1,    # deletion
-                        dp[i, j - 1] + 1,    # insertion
-                        dp[i - 1, j - 1] + 1  # substitution
+                        dp[i - 1, j] + 1,  # deletion
+                        dp[i, j - 1] + 1,  # insertion
+                        dp[i - 1, j - 1] + 1,  # substitution
                     )
         return int(dp[r_len, h_len])
 
@@ -54,7 +56,7 @@ class TranscriptionBenchmarker:
         ref_words = reference.split()
         if not ref_words:
             return 1.0 if hypothesis else 0.0
-            
+
         dist = self.calculate_levenshtein(reference, hypothesis)
         return float(dist / len(ref_words))
 
@@ -64,24 +66,26 @@ class TranscriptionBenchmarker:
         """
         if not reference:
             return 1.0 if hypothesis else 0.0
-            
+
         # Character-level Levenshtein distance
         r_len = len(reference)
         h_len = len(hypothesis)
-        
+
         dp = np.zeros((r_len + 1, h_len + 1), dtype=int)
         for i in range(r_len + 1):
             dp[i, 0] = i
         for j in range(h_len + 1):
             dp[0, j] = j
-            
+
         for i in range(1, r_len + 1):
             for j in range(1, h_len + 1):
                 if reference[i - 1] == hypothesis[j - 1]:
                     dp[i, j] = dp[i - 1, j - 1]
                 else:
-                    dp[i, j] = min(dp[i - 1, j] + 1, dp[i, j - 1] + 1, dp[i - 1, j - 1] + 1)
-                    
+                    dp[i, j] = min(
+                        dp[i - 1, j] + 1, dp[i, j - 1] + 1, dp[i - 1, j - 1] + 1
+                    )
+
         return float(dp[r_len, h_len] / r_len)
 
     def generate_report(
@@ -92,11 +96,11 @@ class TranscriptionBenchmarker:
         model_size: str,
         avg_confidence: float,
         reference_text: Optional[str] = None,
-        hypothesis_text: Optional[str] = None
+        hypothesis_text: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generates the transcription benchmark JSON report."""
         rtf = latency / duration if duration > 0 else 0.0
-        
+
         wer = 0.0
         cer = 0.0
         if reference_text and hypothesis_text:
@@ -109,13 +113,13 @@ class TranscriptionBenchmarker:
             "performance": {
                 "latency_s": round(latency, 3),
                 "duration_s": round(duration, 2),
-                "real_time_factor_rtf": round(rtf, 4)
+                "real_time_factor_rtf": round(rtf, 4),
             },
             "quality": {
                 "average_confidence": round(avg_confidence, 4),
                 "word_error_rate_wer": round(wer, 4),
-                "character_error_rate_cer": round(cer, 4)
-            }
+                "character_error_rate_cer": round(cer, 4),
+            },
         }
 
         # Write to JSON
@@ -126,5 +130,5 @@ class TranscriptionBenchmarker:
             logger.info(f"Transcription benchmark saved at: {json_path}")
         except Exception as e:
             logger.error(f"Failed to save transcription benchmark: {e}")
-            
+
         return report

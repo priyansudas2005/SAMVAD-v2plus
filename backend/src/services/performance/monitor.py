@@ -3,10 +3,12 @@ monitor.py
 Intelligent resource and health monitor for SAMVAD V2.0.
 Provides real-time system performance telemetry.
 """
+
 import os
 from typing import Dict, Any
 
 from .model_manager import ModelLifecycleManager
+
 
 class ResourceMonitor:
     """
@@ -18,7 +20,9 @@ class ResourceMonitor:
         """
         Gathers system memory, cpu loads, active models, and disk sizes.
         """
-        import psutil; process = psutil.Process(os.getpid())
+        import psutil
+
+        process = psutil.Process(os.getpid())
         ram_usage_mb = process.memory_info().rss / (1024 * 1024)
 
         # Basic SQLite size estimation
@@ -36,19 +40,19 @@ class ResourceMonitor:
             "process": {
                 "pid": os.getpid(),
                 "ram_usage_mb": round(ram_usage_mb, 2),
-                "cpu_percent": psutil.cpu_percent(interval=None)
+                "cpu_percent": psutil.cpu_percent(interval=None),
             },
             "system": {
                 "total_ram_gb": round(psutil.virtual_memory().total / (1024**3), 2),
-                "available_ram_gb": round(psutil.virtual_memory().available / (1024**3), 2),
-                "cpu_count": psutil.cpu_count()
+                "available_ram_gb": round(
+                    psutil.virtual_memory().available / (1024**3), 2
+                ),
+                "cpu_count": psutil.cpu_count(),
             },
-            "database": {
-                "db_size_mb": round(db_size_mb, 2)
-            },
+            "database": {"db_size_mb": round(db_size_mb, 2)},
             "models": {
                 "registered": len(health),
                 "loaded_count": len(loaded_models),
-                "loaded_list": loaded_models
-            }
+                "loaded_list": loaded_models,
+            },
         }

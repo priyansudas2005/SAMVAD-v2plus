@@ -3,6 +3,7 @@ processor.py
 SAMVAD V2.0 Modular Audio Enhancement Pipeline Orchestrator.
 Dynamically constructs processing stages, executes fallbacks, and outputs benchmarks.
 """
+
 import os
 import time
 import numpy as np
@@ -26,17 +27,18 @@ from .benchmark import AudioBenchmarker
 
 logger = get_logger(__name__)
 
+
 class AudioProcessor:
     """
     Constructs and executes the audio enhancement pipeline.
     Ensures safe offline fallbacks and measures performance benchmarks.
     """
-    
+
     def __init__(self, target_sample_rate: int = 16000):
         self.target_sample_rate = target_sample_rate
         self.config_data = load_config()
         self.benchmarker = AudioBenchmarker()
-        
+
         # Build enhancement stage list dynamically from configuration
         self.pipeline = self._build_pipeline()
 
@@ -46,7 +48,7 @@ class AudioProcessor:
         """
         pipeline = []
         enh_cfg = self.config_data.get("audio_enhancement", {})
-        
+
         if not enh_cfg.get("enabled", True):
             logger.info("Audio enhancement pipeline is disabled via configuration.")
             return []
@@ -56,17 +58,22 @@ class AudioProcessor:
         # 1. Volume Normalization
         vol_cfg = stages.get("volume_normalization", {})
         if vol_cfg.get("enabled", True):
-            pipeline.append(("volume_normalizer", VolumeNormalizer(
-                mode=vol_cfg.get("mode", "peak"),
-                target_db=vol_cfg.get("target_db", -20.0)
-            )))
+            pipeline.append(
+                (
+                    "volume_normalizer",
+                    VolumeNormalizer(
+                        mode=vol_cfg.get("mode", "peak"),
+                        target_db=vol_cfg.get("target_db", -20.0),
+                    ),
+                )
+            )
 
         # 2. Noise Reduction
         noise_cfg = stages.get("noise_reduction", {})
         if noise_cfg.get("enabled", True):
-            pipeline.append(("noise_reducer", NoiseReducer(
-                method=noise_cfg.get("method", "auto")
-            )))
+            pipeline.append(
+                ("noise_reducer", NoiseReducer(method=noise_cfg.get("method", "auto")))
+            )
 
         # 3. Echo Cancellation
         echo_cfg = stages.get("echo_cancellation", {})
@@ -79,27 +86,42 @@ class AudioProcessor:
             pipeline.append(("dereverberator", Dereverberator()))
 
         # 5. Equalizer
-        eq_cfg = stages.get("speech_enhancement", {}) # Maps to speech_enhancement config
+        eq_cfg = stages.get(
+            "speech_enhancement", {}
+        )  # Maps to speech_enhancement config
         if eq_cfg.get("enabled", True):
-            pipeline.append(("speech_equalizer", SpeechEqualizer(
-                low_cut=eq_cfg.get("highpass_cutoff", 80.0)
-            )))
+            pipeline.append(
+                (
+                    "speech_equalizer",
+                    SpeechEqualizer(low_cut=eq_cfg.get("highpass_cutoff", 80.0)),
+                )
+            )
 
         # 6. Dynamic Compression
         comp_cfg = stages.get("compression", {})
         if comp_cfg.get("enabled", True):
-            pipeline.append(("dynamic_compressor", DynamicCompressor(
-                threshold_db=comp_cfg.get("threshold_db", -12.0),
-                ratio=comp_cfg.get("ratio", 4.0)
-            )))
+            pipeline.append(
+                (
+                    "dynamic_compressor",
+                    DynamicCompressor(
+                        threshold_db=comp_cfg.get("threshold_db", -12.0),
+                        ratio=comp_cfg.get("ratio", 4.0),
+                    ),
+                )
+            )
 
         # 7. Silence Trimming
         trim_cfg = stages.get("silence_trimming", {})
         if trim_cfg.get("enabled", True):
-            pipeline.append(("silence_trimmer", SilenceTrimmer(
-                keep_silence_ms=trim_cfg.get("keep_silence_ms", 300),
-                threshold=trim_cfg.get("threshold", 0.5)
-            )))
+            pipeline.append(
+                (
+                    "silence_trimmer",
+                    SilenceTrimmer(
+                        keep_silence_ms=trim_cfg.get("keep_silence_ms", 300),
+                        threshold=trim_cfg.get("threshold", 0.5),
+                    ),
+                )
+            )
 
         # 8. Final Loudness Normalization
         pipeline.append(("final_normalizer", LoudnessNormalizer(target_db=-20.0)))
@@ -119,7 +141,7 @@ class AudioProcessor:
 
             # Read raw audio
             audio, sr = sf.read(audio_path)
-            
+
             # Convert to mono
             if len(audio.shape) > 1:
                 audio = np.mean(audio, axis=1)
@@ -135,6 +157,7 @@ class AudioProcessor:
             # Record baseline metrics
             snr_before = self.benchmarker.compute_snr(audio)
             import psutil
+
             process = psutil.Process()
             cpu_before = process.cpu_percent()
             ram_before = process.memory_info().rss / (1024 * 1024)
@@ -161,7 +184,9 @@ class AudioProcessor:
             output_duration = len(enhanced_audio) / sr
 
             # Output processed WAV
-            output_path = str(Path(audio_path).parent / f"{Path(audio_path).stem}_processed.wav")
+            output_path = str(
+                Path(audio_path).parent / f"{Path(audio_path).stem}_processed.wav"
+            )
             sf.write(output_path, enhanced_audio, self.target_sample_rate)
 
             # Generate benchmark.json (Phase 6)
@@ -173,7 +198,7 @@ class AudioProcessor:
                 cpu_usage=max(cpu_before, cpu_after),
                 ram_usage=ram_after - ram_before,
                 snr_before=snr_before,
-                snr_after=snr_after
+                snr_after=snr_after,
             )
 
             logger.info(f"Successfully preprocessed {audio_path} -> {output_path}")
@@ -183,9 +208,12 @@ class AudioProcessor:
             logger.error(f"Preprocessing failed: {e}")
             return None
 
-    def _resample_audio(self, audio: np.ndarray, original_sr: int, target_sr: int) -> np.ndarray:
+    def _resample_audio(
+        self, audio: np.ndarray, original_sr: int, target_sr: int
+    ) -> np.ndarray:
         try:
             import scipy.signal as signal
+
             num_samples = int(len(audio) * target_sr / original_sr)
             resampled = signal.resample(audio, num_samples)
             return resampled.astype(np.float32)
