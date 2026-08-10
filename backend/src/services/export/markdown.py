@@ -2,6 +2,7 @@
 markdown.py
 Markdown exporter for SAMVAD V2.0.
 """
+
 from typing import Dict, Any
 from .base import BaseExporter
 
@@ -11,7 +12,14 @@ class MarkdownExporter(BaseExporter):
     Exports meeting metadata, summaries, action items, and transcripts into a GitHub-Flavored Markdown file.
     """
 
-    def export(self, meeting_title: str, date_str: str, segments: list, memo: Dict[str, Any] = None, intelligence: Dict[str, Any] = None) -> bytes:
+    def export(
+        self,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: Dict[str, Any] = None,
+        intelligence: Dict[str, Any] = None,
+    ) -> bytes:
         output = []
         output.append(f"# Meeting Memo: {meeting_title}")
         output.append(f"**Date:** {date_str}  ")
@@ -46,7 +54,9 @@ class MarkdownExporter(BaseExporter):
                     owner = item.get("owner", "UNKNOWN")
                     priority = item.get("priority", "MEDIUM")
                     deadline = item.get("deadline", "NONE")
-                    output.append(f"- [ ] **Task:** {item.get('task')} (Assignee: *{owner}* | Priority: *{priority}* | Deadline: *{deadline}*)")
+                    output.append(
+                        f"- [ ] **Task:** {item.get('task')} (Assignee: *{owner}* | Priority: *{priority}* | Deadline: *{deadline}*)"
+                    )
                 output.append("\n")
 
             decisions = intelligence.get("decisions", [])
@@ -55,7 +65,11 @@ class MarkdownExporter(BaseExporter):
                 for dec in decisions:
                     text = dec.get("text") if isinstance(dec, dict) else str(dec)
                     dec_type = dec.get("type", "FINAL") if isinstance(dec, dict) else ""
-                    speakers = dec.get("supporting_speakers", []) if isinstance(dec, dict) else []
+                    speakers = (
+                        dec.get("supporting_speakers", [])
+                        if isinstance(dec, dict)
+                        else []
+                    )
                     suffix = f" [{dec_type}]" if dec_type else ""
                     if speakers:
                         suffix += f" (by {', '.join(speakers[:3])})"
@@ -74,7 +88,9 @@ class MarkdownExporter(BaseExporter):
         output.append("\n")
         for seg in segments:
             speaker = seg.get("speaker_label", f"Speaker {seg.get('id', 1)}")
-            output.append(f"**[{seg.get('start', '00:00')} - {seg.get('end', '00:00')}]**  ")
+            output.append(
+                f"**[{seg.get('start', '00:00')} - {seg.get('end', '00:00')}]**  "
+            )
             output.append(f"*{speaker}:* {seg.get('text', '')}  ")
             output.append("")
 

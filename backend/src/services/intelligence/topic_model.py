@@ -2,8 +2,10 @@
 topic_model.py
 Lightweight offline topic clustering for SAMVAD V2.0 meeting transcripts.
 """
+
 from typing import List, Dict, Any
 from collections import defaultdict, Counter
+
 
 class TopicModeler:
     """
@@ -31,7 +33,7 @@ class TopicModeler:
 
         # 2. Extract top topics based on mention counts
         sorted_words = word_counts.most_common(10)
-        
+
         primary_topics = []
         secondary_topics = []
         emerging_topics = []
@@ -43,7 +45,9 @@ class TopicModeler:
 
             # Calculate dominant speaker
             speakers = [s.get("speaker_label", "UNKNOWN") for s in topic_segs]
-            dominant_speaker = Counter(speakers).most_common(1)[0][0] if speakers else "UNKNOWN"
+            dominant_speaker = (
+                Counter(speakers).most_common(1)[0][0] if speakers else "UNKNOWN"
+            )
 
             # Calculate duration and timeline
             def to_float(val) -> float:
@@ -53,7 +57,11 @@ class TopicModeler:
                     parts = val.split(":")
                     try:
                         if len(parts) == 3:
-                            return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+                            return (
+                                float(parts[0]) * 3600
+                                + float(parts[1]) * 60
+                                + float(parts[2])
+                            )
                         elif len(parts) == 2:
                             return float(parts[0]) * 60 + float(parts[1])
                         return float(val)
@@ -61,13 +69,35 @@ class TopicModeler:
                         return 0.0
                 return 0.0
 
-            start_time = min(to_float(s.get("start_seconds") if s.get("start_seconds") is not None else s.get("start", 0.0)) for s in topic_segs)
-            end_time = max(to_float(s.get("end_seconds") if s.get("end_seconds") is not None else s.get("end", 0.0)) for s in topic_segs)
+            start_time = min(
+                to_float(
+                    s.get("start_seconds")
+                    if s.get("start_seconds") is not None
+                    else s.get("start", 0.0)
+                )
+                for s in topic_segs
+            )
+            end_time = max(
+                to_float(
+                    s.get("end_seconds")
+                    if s.get("end_seconds") is not None
+                    else s.get("end", 0.0)
+                )
+                for s in topic_segs
+            )
             duration = max(0.0, end_time - start_time)
             timeline = [
                 (
-                    to_float(s.get("start_seconds") if s.get("start_seconds") is not None else s.get("start", 0.0)),
-                    to_float(s.get("end_seconds") if s.get("end_seconds") is not None else s.get("end", 0.0))
+                    to_float(
+                        s.get("start_seconds")
+                        if s.get("start_seconds") is not None
+                        else s.get("start", 0.0)
+                    ),
+                    to_float(
+                        s.get("end_seconds")
+                        if s.get("end_seconds") is not None
+                        else s.get("end", 0.0)
+                    ),
                 )
                 for s in topic_segs
             ]
@@ -78,7 +108,7 @@ class TopicModeler:
                 "duration_s": round(duration, 2),
                 "dominant_speaker": dominant_speaker,
                 "timeline": timeline,
-                "keywords": [word]
+                "keywords": [word],
             }
 
             if rank < 3:
@@ -91,5 +121,5 @@ class TopicModeler:
         return {
             "primary": primary_topics,
             "secondary": secondary_topics,
-            "emerging": emerging_topics
+            "emerging": emerging_topics,
         }

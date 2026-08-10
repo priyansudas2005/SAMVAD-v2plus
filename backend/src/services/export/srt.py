@@ -2,15 +2,24 @@
 srt.py
 SRT Subtitle exporter for SAMVAD V2.0.
 """
+
 from typing import Dict, Any
 from .base import BaseExporter
+
 
 class SrtExporter(BaseExporter):
     """
     Converts segment timestamps into standardized SRT format lines.
     """
 
-    def export(self, meeting_title: str, date_str: str, segments: list, memo: Dict[str, Any] = None, intelligence: Dict[str, Any] = None) -> bytes:
+    def export(
+        self,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: Dict[str, Any] = None,
+        intelligence: Dict[str, Any] = None,
+    ) -> bytes:
         output = []
         for idx, seg in enumerate(segments, 1):
             start_sec = seg.get("start_seconds", 0.0)
@@ -25,7 +34,7 @@ class SrtExporter(BaseExporter):
 
             output.append(str(idx))
             output.append(f"{fmt_time(start_sec)} --> {fmt_time(end_sec)}")
-            
+
             speaker = seg.get("speaker_label", "")
             text = seg.get("text", "")
             if speaker:

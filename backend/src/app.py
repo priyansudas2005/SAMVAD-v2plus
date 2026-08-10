@@ -5,14 +5,15 @@ import sys
 # Defaults to 4. Override by setting *_NUM_THREADS in your .env file
 # (or docker-compose.yml environment:) before the container starts.
 _DEFAULT_THREADS = "4"
-os.environ.setdefault("OMP_NUM_THREADS",        _DEFAULT_THREADS)
-os.environ.setdefault("MKL_NUM_THREADS",        _DEFAULT_THREADS)
-os.environ.setdefault("OPENBLAS_NUM_THREADS",   _DEFAULT_THREADS)
+os.environ.setdefault("OMP_NUM_THREADS", _DEFAULT_THREADS)
+os.environ.setdefault("MKL_NUM_THREADS", _DEFAULT_THREADS)
+os.environ.setdefault("OPENBLAS_NUM_THREADS", _DEFAULT_THREADS)
 os.environ.setdefault("VECLIB_MAXIMUM_THREADS", _DEFAULT_THREADS)
-os.environ.setdefault("NUMEXPR_NUM_THREADS",    _DEFAULT_THREADS)
+os.environ.setdefault("NUMEXPR_NUM_THREADS", _DEFAULT_THREADS)
 
 try:
     import torch
+
     torch.set_num_threads(int(os.environ["OMP_NUM_THREADS"]))
 except ImportError:
     # PyTorch not loaded in minimal mode
@@ -39,7 +40,7 @@ init_db()
 app = FastAPI(
     title="SAMVAD V2.0 API Server",
     description="Secure Offline Meeting Assistant REST backend",
-    version="2.0.0"
+    version="2.0.0",
 )
 
 # CORS middleware for development mapping
@@ -62,6 +63,7 @@ app.include_router(stats.router, prefix="/api/v1")
 # Registered with try/except so a missing sounddevice does not crash startup
 try:
     from src.api import recording as recording_api
+
     app.include_router(recording_api.router)
     logger.info("Recording API router registered (/api/v1/audio)")
 except Exception as _rec_err:
@@ -70,13 +72,17 @@ except Exception as _rec_err:
 # Mount recordings static folder so browser can stream play WAV audio
 RECORDINGS_DIR = Path("backend/data/recordings")
 RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/static/recordings", StaticFiles(directory=str(RECORDINGS_DIR)), name="recordings")
+app.mount(
+    "/static/recordings", StaticFiles(directory=str(RECORDINGS_DIR)), name="recordings"
+)
+
 
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "SAMVAD V2.0 Offline API"}
 
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
 
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

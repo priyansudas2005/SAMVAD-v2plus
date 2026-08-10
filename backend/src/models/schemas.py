@@ -1,11 +1,13 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 
+
 class WordTimestampSchema(BaseModel):
     word: str
     start: float
     end: float
     probability: float
+
 
 class TranscriptSegmentSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -22,6 +24,7 @@ class TranscriptSegmentSchema(BaseModel):
     speaker_confidence: Optional[float] = 1.0
     metadata: Optional[Dict[str, Any]] = {}
 
+
 class MemoSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -33,6 +36,7 @@ class MemoSchema(BaseModel):
     discussion_points: List[str] = []
     generated_at: str = ""
     confidence: float = 1.0
+
 
 class QAHistorySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -46,11 +50,14 @@ class QAHistorySchema(BaseModel):
     was_helpful: Optional[int] = None
     source_snippet: Optional[str] = None
 
+
 class QAHistoryCreate(BaseModel):
     question: str
 
+
 class QAFeedbackSchema(BaseModel):
     was_helpful: Optional[bool] = None
+
 
 class MeetingResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -66,8 +73,10 @@ class MeetingResponse(BaseModel):
     memo: Optional[MemoSchema] = None
     qa_history: Optional[List[QAHistorySchema]] = []
 
+
 class MeetingTitleUpdate(BaseModel):
     title: str
+
 
 class SystemSettingsSchema(BaseModel):
     model_size: str
@@ -77,23 +86,28 @@ class SystemSettingsSchema(BaseModel):
     db_path: Optional[str] = ""
     native_audio_available: Optional[bool] = True
 
+
 class ProcessRequest(BaseModel):
     modelSize: Optional[str] = None
     language: Optional[str] = None
     vadEnabled: Optional[bool] = None
 
+
 class KeywordStat(BaseModel):
     text: str
     value: int
+
 
 class TimelineStat(BaseModel):
     date: str
     duration: float
     words: int
 
+
 class ModelStat(BaseModel):
     name: str
     value: int
+
 
 class AnalyticsSummarySchema(BaseModel):
     meetings_count: int
@@ -104,11 +118,14 @@ class AnalyticsSummarySchema(BaseModel):
     keywords: List[KeywordStat] = []
     model_distribution: List[ModelStat] = []
 
+
 class TranscriptSegmentUpdate(BaseModel):
     text: str
     speaker_label: Optional[str] = None
 
+
 # --- Stats Module Schemas ---
+
 
 class SpeakerStatSchema(BaseModel):
     speaker: str = ""
@@ -129,10 +146,12 @@ class SpeakerStatSchema(BaseModel):
     contribution_summary: List[str] = []
     important_statements: List[Dict[str, Any]] = []
 
+
 class SpeakerContributionSchema(BaseModel):
     speaker: str = ""
     color: str = "#8b5cf6"
     contributions: List[str] = []
+
 
 class ImportantStatementSchema(BaseModel):
     speaker: str = ""
@@ -144,6 +163,7 @@ class ImportantStatementSchema(BaseModel):
     topic: str = ""
     segment_id: int = 0
 
+
 class MeetingHighlightsSchema(BaseModel):
     biggest_decision: Optional[str] = None
     most_important_action_item: Optional[str] = None
@@ -152,6 +172,7 @@ class MeetingHighlightsSchema(BaseModel):
     key_deadline: Optional[str] = None
     critical_discussion: Optional[str] = None
     meeting_outcome: Optional[str] = None
+
 
 class ActionItemBreakdownSchema(BaseModel):
     total: int = 0
@@ -163,6 +184,7 @@ class ActionItemBreakdownSchema(BaseModel):
     overdue: int = 0
     items: List[Dict[str, Any]] = []
 
+
 class DecisionSummarySchema(BaseModel):
     major_decisions: List[str] = []
     technical_decisions: List[str] = []
@@ -170,10 +192,12 @@ class DecisionSummarySchema(BaseModel):
     pending_decisions: List[str] = []
     open_decisions: List[str] = []
 
+
 class TopicEntitySchema(BaseModel):
     name: str
     type: str
     frequency: int
+
 
 class TopicsEntitiesSchema(BaseModel):
     topics: List[TopicEntitySchema] = []
@@ -185,6 +209,7 @@ class TopicsEntitiesSchema(BaseModel):
     projects: List[TopicEntitySchema] = []
     products: List[TopicEntitySchema] = []
     keywords: List[str] = []
+
 
 class AudioDiagnosticsSchema(BaseModel):
     average_loudness_db: Optional[float] = None
@@ -198,6 +223,7 @@ class AudioDiagnosticsSchema(BaseModel):
     audio_enhancement_applied: bool = False
     estimated_snr_db: Optional[float] = None
 
+
 class TranscriptionDiagnosticsSchema(BaseModel):
     average_confidence: float = 0.0
     highest_confidence: float = 0.0
@@ -210,6 +236,7 @@ class TranscriptionDiagnosticsSchema(BaseModel):
     character_error_rate: Optional[float] = None
     low_confidence_regions: List[Dict[str, Any]] = []
 
+
 class PipelineStageSchema(BaseModel):
     name: str = ""
     status: str = "pending"
@@ -217,8 +244,10 @@ class PipelineStageSchema(BaseModel):
     finish_time: Optional[str] = None
     duration_ms: Optional[float] = None
 
+
 class ProcessingPipelineSchema(BaseModel):
     stages: List[PipelineStageSchema] = []
+
 
 class MeetingHealthSchema(BaseModel):
     overall_score: float = 0.0
@@ -232,6 +261,7 @@ class MeetingHealthSchema(BaseModel):
     meeting_effectiveness: float = 0.0
     recommendations: List[str] = []
 
+
 class SmartInsightsSchema(BaseModel):
     most_active_speaker: Optional[str] = None
     least_active_speaker: Optional[str] = None
@@ -243,6 +273,7 @@ class SmartInsightsSchema(BaseModel):
     most_decisions_made: Optional[str] = None
     most_tasks_assigned: Optional[str] = None
     estimated_meeting_productivity: Optional[str] = None
+
 
 class MeetingStatsResponse(BaseModel):
     meeting_id: str
@@ -270,7 +301,9 @@ class MeetingStatsResponse(BaseModel):
     decision_summary: DecisionSummarySchema = DecisionSummarySchema()
     topics_entities: TopicsEntitiesSchema = TopicsEntitiesSchema()
     audio_diagnostics: AudioDiagnosticsSchema = AudioDiagnosticsSchema()
-    transcription_diagnostics: TranscriptionDiagnosticsSchema = TranscriptionDiagnosticsSchema()
+    transcription_diagnostics: TranscriptionDiagnosticsSchema = (
+        TranscriptionDiagnosticsSchema()
+    )
     processing_pipeline: ProcessingPipelineSchema = ProcessingPipelineSchema()
     meeting_health: MeetingHealthSchema = MeetingHealthSchema()
     smart_insights: SmartInsightsSchema = SmartInsightsSchema()

@@ -7,6 +7,7 @@ from src.utils.logger import logger
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
+
 @router.get("", response_model=SystemSettingsSchema)
 def get_system_settings(db: Session = Depends(get_db)):
     # Read rows
@@ -22,8 +23,9 @@ def get_system_settings(db: Session = Depends(get_db)):
         "vad_enabled": (vad.value.lower() == "true") if vad else False,
         "ollama_url": ollama.value if ollama else "http://localhost:11434",
         "db_path": db_path.value if db_path else "",
-        "native_audio_available": SOUNDDEVICE_AVAILABLE
+        "native_audio_available": SOUNDDEVICE_AVAILABLE,
     }
+
 
 @router.post("", response_model=SystemSettingsSchema)
 def save_system_settings(payload: SystemSettingsSchema, db: Session = Depends(get_db)):
@@ -34,18 +36,20 @@ def save_system_settings(payload: SystemSettingsSchema, db: Session = Depends(ge
             "default_language": payload.default_language,
             "vad_enabled": "true" if payload.vad_enabled else "false",
             "ollama_url": payload.ollama_url or "http://localhost:11434",
-            "db_path": payload.db_path or ""
+            "db_path": payload.db_path or "",
         }
-        
+
         for k, v in settings_dict.items():
             record = db.query(DBSetting).filter(DBSetting.key == k).first()
             if record:
                 record.value = v
             else:
                 db.add(DBSetting(key=k, value=v))
-                
+
         db.commit()
         return get_system_settings(db)
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to save configurations: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save configurations: {str(e)}"
+        )

@@ -1,5 +1,6 @@
 import re
 
+
 class IntentDetector:
     QUESTION_PATTERNS = {
         "action_items": [
@@ -9,14 +10,14 @@ class IntentDetector:
             "what needs to be done",
             "todo",
             "todo list",
-            "task"
+            "task",
         ],
         "decisions": [
             "what was decided",
             "what decisions were made",
             "what was agreed",
             "decision",
-            "decided"
+            "decided",
         ],
         "summary": [
             "what was discussed",
@@ -24,8 +25,8 @@ class IntentDetector:
             "overview",
             "main points",
             "highlights",
-            "summary"
-        ]
+            "summary",
+        ],
     }
 
     def detect_intent(self, query: str) -> str:

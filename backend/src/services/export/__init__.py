@@ -27,7 +27,7 @@ EXPORTERS = {
     "docx": DocxExporter(),
     "html": HtmlExporter(),
     "csv": CsvExporter(),
-    "xlsx": XlsxExporter()
+    "xlsx": XlsxExporter(),
 }
 
 
@@ -46,22 +46,33 @@ class ExportEngine:
         return exporter
 
     @staticmethod
-    def export(fmt: str, meeting_title: str, date_str: str, segments: list,
-               memo: dict = None, intelligence: dict = None,
-               meeting_id: str = None) -> bytes:
+    def export(
+        fmt: str,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: dict = None,
+        intelligence: dict = None,
+        meeting_id: str = None,
+    ) -> bytes:
         from .benchmark import ExportIntelligenceBenchmarker
+
         start_time = time.time()
         fmt_clean = fmt.lower().strip().replace(".", "")
         exporter = ExportEngine.get_exporter(fmt_clean)
         content = exporter.export(meeting_title, date_str, segments, memo, intelligence)
 
-        mid = meeting_id or (segments[0].get("meeting_id") if segments else None) or "unknown"
+        mid = (
+            meeting_id
+            or (segments[0].get("meeting_id") if segments else None)
+            or "unknown"
+        )
         try:
             ExportIntelligenceBenchmarker.run_benchmark(
                 meeting_id=mid,
                 fmt=fmt_clean,
                 start_time=start_time,
-                content_size_bytes=len(content)
+                content_size_bytes=len(content),
             )
         except Exception:
             pass
@@ -72,14 +83,16 @@ class ExportEngine:
         """Get the actual format that will be produced (handles fallbacks like pdf->html)."""
         fmt_clean = fmt.lower().strip().replace(".", "")
         exporter = ExportEngine.get_exporter(fmt_clean)
-        if hasattr(exporter, 'get_actual_format'):
+        if hasattr(exporter, "get_actual_format"):
             return exporter.get_actual_format()
         return fmt_clean
 
     @staticmethod
-    def batch_export(meetings: List[Tuple[str, str, str, list, dict, dict, Optional[str]]],
-                     fmt: str,
-                     single_zip: bool = True) -> bytes:
+    def batch_export(
+        meetings: List[Tuple[str, str, str, list, dict, dict, Optional[str]]],
+        fmt: str,
+        single_zip: bool = True,
+    ) -> bytes:
         fmt_clean = fmt.lower().strip().replace(".", "")
         exporter = ExportEngine.get_exporter(fmt_clean)
 
@@ -87,7 +100,9 @@ class ExportEngine:
             if len(meetings) == 1:
                 t, d, s, m, i, mid = meetings[0][:6]
                 return exporter.export(t, d, s, m, i)
-            raise ValueError("Multiple meetings require single_zip=True to be exported together")
+            raise ValueError(
+                "Multiple meetings require single_zip=True to be exported together"
+            )
 
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -99,8 +114,12 @@ class ExportEngine:
                 intel_val = meeting[4] if len(meeting) > 4 else None
                 mid = meeting[5] if len(meeting) > 5 else None
 
-                content = exporter.export(title, date_str, segments, memo_val, intel_val)
-                safe_name = "".join(c if c.isalnum() or c in " _-" else "_" for c in title)
+                content = exporter.export(
+                    title, date_str, segments, memo_val, intel_val
+                )
+                safe_name = "".join(
+                    c if c.isalnum() or c in " _-" else "_" for c in title
+                )
                 fname = f"{safe_name}_{date_str.replace('/', '-')}.{fmt_clean}"
                 zf.writestr(fname, content)
 

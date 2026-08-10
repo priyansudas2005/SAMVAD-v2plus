@@ -6,6 +6,7 @@ Loads values from config.yaml (audio: section) and exposes typed,
 validated attributes.  Designed for dependency injection — tests can
 construct RecorderConfig directly without touching the filesystem.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -51,6 +52,7 @@ class RecorderConfig:
         clip_threshold: RMS fraction above which the monitor flags clipping.
                      Range [0, 1].  0.95 means 95% of full scale.
     """
+
     sample_rate: int = 16000
     bit_depth: int = 16
     channels: int = 1
@@ -108,4 +110,5 @@ class RecorderConfig:
     def load(cls) -> "RecorderConfig":
         """Load from config.yaml using the project-standard loader."""
         from src.utils.config import load_config
+
         return cls.from_config_dict(load_config())

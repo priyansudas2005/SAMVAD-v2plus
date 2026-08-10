@@ -24,11 +24,15 @@ def get_meeting_stats(meeting_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Stats computation failed for {meeting_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Stats computation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Stats computation failed: {str(e)}"
+        )
 
 
 @router.get("/{meeting_id}/stats/export/{format_type}")
-def export_meeting_stats(meeting_id: str, format_type: str, db: Session = Depends(get_db)):
+def export_meeting_stats(
+    meeting_id: str, format_type: str, db: Session = Depends(get_db)
+):
     m = db.query(DBMeeting).filter(DBMeeting.meeting_id == meeting_id).first()
     if not m:
         raise HTTPException(status_code=404, detail="Meeting not found")
@@ -37,7 +41,9 @@ def export_meeting_stats(meeting_id: str, format_type: str, db: Session = Depend
         engine = StatsEngine(meeting_id, db)
         stats = engine.compute()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Stats computation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Stats computation failed: {str(e)}"
+        )
 
     fmt = format_type.lower().strip()
 
@@ -51,12 +57,16 @@ def export_meeting_stats(meeting_id: str, format_type: str, db: Session = Depend
         media_type = "text/plain"
         ext = "txt"
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported stats export format: {format_type}")
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported stats export format: {format_type}"
+        )
 
     return Response(
         content=content,
         media_type=media_type,
-        headers={"Content-Disposition": f"attachment; filename=stats_{meeting_id}.{ext}"}
+        headers={
+            "Content-Disposition": f"attachment; filename=stats_{meeting_id}.{ext}"
+        },
     )
 
 

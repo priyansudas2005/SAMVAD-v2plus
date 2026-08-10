@@ -3,6 +3,7 @@ meeting_analyzer.py
 Meeting Intelligence Engine orchestrator.
 Consolidates segment-level extractions into advanced meeting analytics and knowledge graphs.
 """
+
 import time
 from typing import List, Dict, Any
 
@@ -18,6 +19,7 @@ from .benchmark import MeetingIntelligenceBenchmarker
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 class MeetingAnalyzer:
     """
@@ -36,15 +38,13 @@ class MeetingAnalyzer:
         self.graph_builder = MeetingKnowledgeGraph()
 
     def analyze(
-        self,
-        segments: List[Dict[str, Any]],
-        topics: List[Dict[str, Any]]
+        self, segments: List[Dict[str, Any]], topics: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
         Runs the full intelligence analysis pipeline and benchmarks performance.
         """
         start_time = time.time()
-        
+
         if not segments:
             # Empty response to avoid crashes
             return {
@@ -59,7 +59,7 @@ class MeetingAnalyzer:
                 "timeline": {"phases": [], "speaker_activity": {}, "duration_s": 0.0},
                 "analytics": {},
                 "knowledge_graph": {"nodes": [], "edges": []},
-                "analysis_time_s": 0.0
+                "analysis_time_s": 0.0,
             }
 
         # 1. Topic modeling (clustering)
@@ -76,11 +76,13 @@ class MeetingAnalyzer:
         questions = []
         for seg in segments:
             for q in seg.get("questions", []):
-                questions.append({
-                    "text": q,
-                    "speaker": seg.get("speaker_label", "UNKNOWN"),
-                    "timestamp": seg.get("start", 0.0)
-                })
+                questions.append(
+                    {
+                        "text": q,
+                        "speaker": seg.get("speaker_label", "UNKNOWN"),
+                        "timestamp": seg.get("start", 0.0),
+                    }
+                )
 
         # 4. Entity extraction
         entities = self.entity_extractor.consolidate_entities(segments)
@@ -99,7 +101,7 @@ class MeetingAnalyzer:
         )
 
         elapsed = time.time() - start_time
-        
+
         report = {
             "action_items": action_items,
             "decisions": decisions,
@@ -112,7 +114,7 @@ class MeetingAnalyzer:
             "timeline": timeline,
             "analytics": analytics,
             "knowledge_graph": knowledge_graph,
-            "analysis_time_s": round(elapsed, 4)
+            "analysis_time_s": round(elapsed, 4),
         }
 
         # Save benchmark performance metrics (Phase 11)
@@ -120,8 +122,10 @@ class MeetingAnalyzer:
             meeting_id=segments[0].get("meeting_id", "temp_meeting"),
             start_time=start_time,
             num_segments=len(segments),
-            report=report
+            report=report,
         )
 
-        logger.info(f"Meeting intelligence upgrade pipeline completed in {elapsed:.3f}s.")
+        logger.info(
+            f"Meeting intelligence upgrade pipeline completed in {elapsed:.3f}s."
+        )
         return report

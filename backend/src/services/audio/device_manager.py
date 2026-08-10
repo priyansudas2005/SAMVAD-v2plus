@@ -11,6 +11,7 @@ Responsibilities:
   - Verify bit depth support and return the best supported depth with a
     fallback to 16-bit when necessary.
 """
+
 from __future__ import annotations
 
 from typing import List, Optional, Dict, Any
@@ -40,6 +41,7 @@ class DeviceManager:
     def __init__(self) -> None:
         try:
             import sounddevice as _sd
+
             self._sd = _sd
         except Exception as exc:
             raise SoundDeviceUnavailableError(

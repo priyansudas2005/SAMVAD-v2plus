@@ -3,6 +3,7 @@ cache.py
 Multi-level (L1 Memory / L2 Disk) Cache System for SAMVAD V2.0.
 Supports TTL expiration, LRU evictions, and maximum storage bounds.
 """
+
 import time
 import pickle
 import hashlib
@@ -15,6 +16,7 @@ from src.utils.config import load_config
 
 logger = get_logger(__name__)
 
+
 class MultiLevelCache:
     """
     Combines in-memory L1 LRU caching with on-disk L2 persistent caching.
@@ -25,14 +27,18 @@ class MultiLevelCache:
         cfg = load_config()
         perf = cfg.get("performance", {})
         cache_cfg = perf.get("cache", {})
-        
-        self.max_memory_items = cache_cfg.get("l1_max_memory_mb", 256) # simple threshold of items
+
+        self.max_memory_items = cache_cfg.get(
+            "l1_max_memory_mb", 256
+        )  # simple threshold of items
         self.ttl = cache_cfg.get("ttl_seconds", 3600)
-        
-        self.l1_cache: OrderedDict[str, tuple] = OrderedDict() # key -> (val, expire_time)
+
+        self.l1_cache: OrderedDict[str, tuple] = (
+            OrderedDict()
+        )  # key -> (val, expire_time)
         self.l2_dir = Path("backend/data/cache") / namespace
         self.l2_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Stats tracking
         self.hits = 0
         self.misses = 0
@@ -98,12 +104,12 @@ class MultiLevelCache:
     def cleanup(self) -> None:
         """Removes expired items from memory and disk."""
         now = time.time()
-        
+
         # Cleanup L1
         expired_l1 = [k for k, (_, exp) in self.l1_cache.items() if exp <= now]
         for k in expired_l1:
             del self.l1_cache[k]
-            
+
         # Cleanup L2
         for f in self.l2_dir.glob("*"):
             try:
@@ -118,6 +124,10 @@ class MultiLevelCache:
         return {
             "hits": self.hits,
             "misses": self.misses,
-            "hit_ratio": (self.hits / (self.hits + self.misses)) if (self.hits + self.misses) > 0 else 0.0,
-            "l1_count": len(self.l1_cache)
+            "hit_ratio": (
+                (self.hits / (self.hits + self.misses))
+                if (self.hits + self.misses) > 0
+                else 0.0
+            ),
+            "l1_count": len(self.l1_cache),
         }

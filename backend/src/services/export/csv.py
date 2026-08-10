@@ -4,16 +4,23 @@ Multi-section tabular CSV exporter for SAMVAD V2.0.
 Produces separate CSV sections for transcript, action items, decisions,
 risks, entities, and topics in a single file.
 """
+
 import io
 import csv as csv_module
 from typing import Dict, Any
 from .base import BaseExporter, get_export_config
 
+
 class CsvExporter(BaseExporter):
 
-    def export(self, meeting_title: str, date_str: str, segments: list,
-               memo: Dict[str, Any] = None,
-               intelligence: Dict[str, Any] = None) -> bytes:
+    def export(
+        self,
+        meeting_title: str,
+        date_str: str,
+        segments: list,
+        memo: Dict[str, Any] = None,
+        intelligence: Dict[str, Any] = None,
+    ) -> bytes:
         cfg = get_export_config()
         output = io.StringIO()
         writer = csv_module.writer(output)
@@ -26,16 +33,20 @@ class CsvExporter(BaseExporter):
         # === TRANSCRIPT ===
         if cfg.get("include_transcript", True) and segments:
             writer.writerow(["# SECTION: TRANSCRIPT"])
-            writer.writerow(["Start", "End", "Speaker", "Speaker_ID", "Confidence", "Text"])
+            writer.writerow(
+                ["Start", "End", "Speaker", "Speaker_ID", "Confidence", "Text"]
+            )
             for seg in segments:
-                writer.writerow([
-                    seg.get("start", "00:00"),
-                    seg.get("end", "00:00"),
-                    seg.get("speaker_label", "UNKNOWN"),
-                    seg.get("speaker_id", 0),
-                    f"{seg.get('speaker_confidence', 1.0):.2f}",
-                    seg.get("text", "")
-                ])
+                writer.writerow(
+                    [
+                        seg.get("start", "00:00"),
+                        seg.get("end", "00:00"),
+                        seg.get("speaker_label", "UNKNOWN"),
+                        seg.get("speaker_id", 0),
+                        f"{seg.get('speaker_confidence', 1.0):.2f}",
+                        seg.get("text", ""),
+                    ]
+                )
             writer.writerow([])
 
         if not intelligence:
@@ -47,13 +58,15 @@ class CsvExporter(BaseExporter):
             writer.writerow(["# SECTION: ACTION ITEMS"])
             writer.writerow(["Task", "Assignee", "Priority", "Deadline", "Status"])
             for item in actions:
-                writer.writerow([
-                    item.get("task", ""),
-                    item.get("owner", ""),
-                    item.get("priority", ""),
-                    item.get("deadline", ""),
-                    item.get("status", "")
-                ])
+                writer.writerow(
+                    [
+                        item.get("task", ""),
+                        item.get("owner", ""),
+                        item.get("priority", ""),
+                        item.get("deadline", ""),
+                        item.get("status", ""),
+                    ]
+                )
             writer.writerow([])
 
         # === DECISIONS ===
@@ -104,12 +117,14 @@ class CsvExporter(BaseExporter):
             writer.writerow(["# SECTION: ENTITIES"])
             writer.writerow(["Name", "Type", "Frequency", "Confidence"])
             for ent in entities:
-                writer.writerow([
-                    ent.get("name", ""),
-                    ent.get("type", ""),
-                    ent.get("frequency", 1),
-                    f"{ent.get('confidence', 0):.2f}"
-                ])
+                writer.writerow(
+                    [
+                        ent.get("name", ""),
+                        ent.get("type", ""),
+                        ent.get("frequency", 1),
+                        f"{ent.get('confidence', 0):.2f}",
+                    ]
+                )
             writer.writerow([])
 
         # === TOPICS ===

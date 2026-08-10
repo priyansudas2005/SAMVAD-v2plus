@@ -2,6 +2,7 @@
 transcriber.py
 Wrapper for Faster-Whisper execution.
 """
+
 from typing import Dict, List, Optional, Tuple, Any
 
 from .config import STTConfig
@@ -11,11 +12,12 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class FasterWhisperTranscriber:
     """
     Executes raw transcriptions against Faster-Whisper using configuration mappings.
     """
-    
+
     def __init__(self, config: STTConfig):
         self.config = config
         self.model = ModelLoader.load_model(config)
@@ -25,15 +27,17 @@ class FasterWhisperTranscriber:
         self,
         audio_path: str,
         language: Optional[str] = None,
-        custom_vocabulary: Optional[List[str]] = None
+        custom_vocabulary: Optional[List[str]] = None,
     ) -> Tuple[List[Dict[str, Any]], Any]:
         """
         Executes Faster-Whisper model transcription.
         """
         prompt = self.vocab_mgr.get_initial_prompt(custom_vocabulary)
-        
-        logger.info(f"Starting raw Whisper transcription on {audio_path} with vad_filter={self.config.vad_filter}")
-        
+
+        logger.info(
+            f"Starting raw Whisper transcription on {audio_path} with vad_filter={self.config.vad_filter}"
+        )
+
         segments, info = self.model.transcribe(
             audio_path,
             language=language,
@@ -47,28 +51,23 @@ class FasterWhisperTranscriber:
             vad_parameters=self.config.vad_parameters,
             repetition_penalty=self.config.repetition_penalty,
             no_speech_threshold=self.config.no_speech_threshold,
-            log_prob_threshold=self.config.log_prob_threshold
+            log_prob_threshold=self.config.log_prob_threshold,
         )
-        
+
         # Pull segments into materialised lists to support post-processing without generator stalls
         segment_list = []
         for s in segments:
-            seg_data = {
-                "start": s.start,
-                "end": s.end,
-                "text": s.text,
-                "words": []
-            }
+            seg_data = {"start": s.start, "end": s.end, "text": s.text, "words": []}
             if hasattr(s, "words") and s.words:
                 seg_data["words"] = [
                     {
                         "word": w.word,
                         "start": w.start,
                         "end": w.end,
-                        "probability": w.probability
+                        "probability": w.probability,
                     }
                     for w in s.words
                 ]
             segment_list.append(seg_data)
-            
+
         return segment_list, info

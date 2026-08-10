@@ -3,6 +3,7 @@ recorder.py
 Upgrade to a professional-grade, fault-tolerant Audio Recording Engine.
 Handles hot-swapping, periodic disk flushes, automatic rotation, and crash recovery.
 """
+
 import os
 import time
 import uuid
@@ -27,11 +28,13 @@ logger = get_logger(__name__)
 
 try:
     import sounddevice as sd
+
     SOUNDDEVICE_AVAILABLE = True
     NATIVE_AUDIO_AVAILABLE = True
 except Exception:
     SOUNDDEVICE_AVAILABLE = False
     NATIVE_AUDIO_AVAILABLE = False
+
 
 class AudioRecorder:
     """
@@ -40,28 +43,28 @@ class AudioRecorder:
     Recovers unclosed temp captures on start.
     Rotates files automatically to stay within file size boundaries.
     """
-    
+
     def __init__(self, config: Optional[RecorderConfig] = None):
         self.config = config or RecorderConfig()
         self.output_dir = Path(self.config.output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.is_recording = False
         self._paused = False
         self.stream = None
         self.start_time = None
-        
+
         self._session_id = ""
         self._device_info = {}
         self._frames_buffer = []
         self._temp_raw_file = None
         self._total_samples_written = 0
-        
+
         # Max segment duration: default to 2 hours per file rotation (approx 230MB at 16k 16-bit mono)
         self._max_samples_per_file = self.config.sample_rate * 3600 * 2
-        
+
         self._store = RecordingStore()
-        
+
         # Auto-recover previous crashes on initialization
         self.recover_previous_sessions()
 
@@ -75,17 +78,21 @@ class AudioRecorder:
         try:
             for idx, dev in enumerate(sd.query_devices()):
                 if dev.get("max_input_channels", 0) > 0:
-                    devices.append({
-                        "index": idx,
-                        "name": dev["name"],
-                        "channels": dev["max_input_channels"],
-                        "default_samplerate": dev["default_samplerate"]
-                    })
+                    devices.append(
+                        {
+                            "index": idx,
+                            "name": dev["name"],
+                            "channels": dev["max_input_channels"],
+                            "default_samplerate": dev["default_samplerate"],
+                        }
+                    )
         except Exception as e:
             logger.error(f"Error querying audio devices: {e}")
         return devices
 
-    def start_recording(self, device_index: Optional[int] = None, meeting_id: Optional[str] = None) -> bool:
+    def start_recording(
+        self, device_index: Optional[int] = None, meeting_id: Optional[str] = None
+    ) -> bool:
         """Start recording with automatic fallback device selection."""
         if self.is_recording:
             logger.warning("Recording already running.")
@@ -96,18 +103,22 @@ class AudioRecorder:
         if not devices:
             raise DeviceNotFoundError("No audio input devices found on system.")
 
-        target_idx = device_index if device_index is not None else self.config.device_index
+        target_idx = (
+            device_index if device_index is not None else self.config.device_index
+        )
         selected_dev = next((d for d in devices if d["index"] == target_idx), None)
-        
+
         if not selected_dev:
             # Fallback to default system input device
             try:
                 default_idx = sd.default.device[0]
-                selected_dev = next((d for d in devices if d["index"] == default_idx), None)
+                selected_dev = next(
+                    (d for d in devices if d["index"] == default_idx), None
+                )
             except Exception:
                 pass
             if not selected_dev:
-                selected_dev = devices[0] # Select first available
+                selected_dev = devices[0]  # Select first available
 
         self._device_info = selected_dev
         self._session_id = str(uuid.uuid4())
@@ -147,7 +158,7 @@ class AudioRecorder:
                 channels=self.config.channels,
                 dtype="float32",
                 device=self._device_info["index"],
-                callback=callback
+                callback=callback,
             )
             self.stream.start()
             logger.info(f"Recording started on {self._device_info['name']}")
@@ -189,25 +200,28 @@ class AudioRecorder:
             self._temp_raw_file.close()
 
         duration = time.time() - self.start_time
-        
+
         # Read back raw float frames and convert to configured WAV
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         wav_filename = f"meeting_{timestamp}.wav"
         wav_path = self.output_dir / wav_filename
 
         try:
-            if not self._temp_raw_path.exists() or self._temp_raw_path.stat().st_size == 0:
+            if (
+                not self._temp_raw_path.exists()
+                or self._temp_raw_path.stat().st_size == 0
+            ):
                 logger.error("No audio frames written to temp storage.")
                 return None
 
             raw_data = np.fromfile(self._temp_raw_path, dtype=np.float32)
-            
+
             # Save using configured bit depth
             sf.write(
                 str(wav_path),
                 raw_data,
                 self.config.sample_rate,
-                subtype=self.config.sf_subtype
+                subtype=self.config.sf_subtype,
             )
 
             # Metadata sidecar write
@@ -223,14 +237,14 @@ class AudioRecorder:
                 channels=self.config.channels,
                 duration_s=duration,
                 peak_db=0.0,  # placeholder
-                clip_count=0
+                clip_count=0,
             )
 
             # Clean up raw temp file
             self._temp_raw_path.unlink(missing_ok=True)
             logger.info(f"Recording successfully saved to {wav_path}")
             return str(wav_path), duration
-            
+
         except Exception as e:
             logger.error(f"Failed to write destination WAV file: {e}")
             return None
@@ -239,7 +253,9 @@ class AudioRecorder:
         """Looks for orphaned temp_rec_*.raw files and compiles them to WAV."""
         temp_files = glob.glob(str(self.output_dir / "temp_rec_*.raw"))
         for tf in temp_files:
-            logger.info(f"Found orphaned recording temp file: {tf}. Starting recovery...")
+            logger.info(
+                f"Found orphaned recording temp file: {tf}. Starting recovery..."
+            )
             try:
                 raw_data = np.fromfile(tf, dtype=np.float32)
                 if len(raw_data) > 0:
@@ -248,7 +264,7 @@ class AudioRecorder:
                         str(recovered_path),
                         raw_data,
                         self.config.sample_rate,
-                        subtype=self.config.sf_subtype
+                        subtype=self.config.sf_subtype,
                     )
                     logger.info(f"Successfully recovered {tf} -> {recovered_path}")
                 os.remove(tf)
@@ -262,7 +278,7 @@ class AudioRecorder:
             "is_paused": self._paused,
             "duration": elapsed,
             "device": self._device_info.get("name", "None"),
-            "session_id": self._session_id
+            "session_id": self._session_id,
         }
 
     def get_audio_data(self) -> Optional[np.ndarray]:
