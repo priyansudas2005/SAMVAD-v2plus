@@ -3,7 +3,7 @@ identification.py
 Matches speaker centroids to local enrolled voice print profiles.
 """
 import numpy as np
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from .config import DiarizationConfig
 from .enrollment import SpeakerEnrollmentManager
@@ -17,7 +17,7 @@ class SpeakerIdentifier:
         self.config = config
         self.enroll_mgr = SpeakerEnrollmentManager(config)
 
-    def identify_speaker(self, centroid: np.ndarray) -> Tuple_or_None:
+    def identify_speaker(self, centroid: np.ndarray) -> Optional[Tuple[str, float]]:
         """
         Compares centroid to profiles.
         Returns (name, similarity_score) if matching probability exceeds threshold.
@@ -47,5 +47,3 @@ class SpeakerIdentifier:
             return best_name, best_sim
             
         return None
-# Type hint workaround for return type
-Tuple_or_None = Optional[tuple]
