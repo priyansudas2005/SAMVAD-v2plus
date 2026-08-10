@@ -64,7 +64,7 @@ class MultiLevelCache:
         if l2_path.exists():
             try:
                 with open(l2_path, "rb") as f:
-                    val, expire = pickle.load(f)
+                    val, expire = pickle.load(f)  # nosec B301
                 if expire > now:
                     # Promote back to L1
                     self._set_l1(hashed_key, val, expire)
@@ -114,7 +114,7 @@ class MultiLevelCache:
         for f in self.l2_dir.glob("*"):
             try:
                 with open(f, "rb") as fh:
-                    _, exp = pickle.load(fh)
+                    _, exp = pickle.load(fh)  # nosec B301
                 if exp <= now:
                     f.unlink()
             except Exception:

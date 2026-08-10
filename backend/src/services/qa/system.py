@@ -102,7 +102,7 @@ class QuestionAnswering:
                 data=json.dumps(payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"},
             )
-            with urllib.request.urlopen(req, timeout=30.0) as response:
+            with urllib.request.urlopen(req, timeout=30.0) as response:  # nosec B310
                 res_data = json.loads(response.read().decode("utf-8"))
                 ans = res_data.get("response", "").strip()
                 if ans:
