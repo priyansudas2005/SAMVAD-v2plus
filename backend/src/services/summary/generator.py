@@ -246,8 +246,12 @@ class MemoGenerator:
         if not self.model_loaded:
             try:
                 logger.info(f"Loading summarization model: {self.model_name}...")
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)  # nosec B615
-                self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)  # nosec B615
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.model_name
+                )  # nosec B615
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(
+                    self.model_name
+                )  # nosec B615
                 if self.device == "cuda":
                     self.model = self.model.to("cuda")
                 test_decode = self.tokenizer.decode([0], skip_special_tokens=True)

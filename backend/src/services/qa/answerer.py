@@ -28,9 +28,13 @@ class AnswerExtractor:
             for model_name in qa_models:
                 try:
                     logger.info(f"Loading QA model: {model_name}...")
-                    self.tokenizer = AutoTokenizer.from_pretrained(model_name)  # nosec B615
-                    self.qa_model = AutoModelForQuestionAnswering.from_pretrained(  # nosec B615
+                    self.tokenizer = AutoTokenizer.from_pretrained(
                         model_name
+                    )  # nosec B615
+                    self.qa_model = (
+                        AutoModelForQuestionAnswering.from_pretrained(  # nosec B615
+                            model_name
+                        )
                     )
                     self.qa_model.to(self.device)
                     self.model_name = model_name
