@@ -36,13 +36,15 @@ RUN pip install --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining production runtime packages; skip test/lint/dev tools.
-RUN pip install --no-cache-dir \
-        $(grep -v '^\s*#' requirements.txt | \
-          grep -v -e 'torch' -e 'torchaudio' -e 'pytest' -e 'pytest-cov' -e 'pytest-mock' \
-                  -e 'httpx' -e 'black' -e 'flake8' -e 'isort') \
+# Clean CRLF carriage returns to prevent Windows line-ending issues in Linux shell subcommands.
+RUN tr -d '\r' < requirements.txt > requirements.clean.txt \
+    && pip install --no-cache-dir \
+         $(grep -v '^\s*#' requirements.clean.txt | \
+           grep -v -e 'torch' -e 'torchaudio' -e 'pytest' -e 'pytest-cov' -e 'pytest-mock' \
+                   -e 'httpx' -e 'black' -e 'flake8' -e 'isort') \
+    && rm requirements.clean.txt \
     && apt-get purge -y --auto-remove gcc g++ \
-    && rm -rf /var/lib/apt/lists/* \
-    && find /usr/local/lib/python3.11/site-packages -type d \( -name "tests" -o -name "testing" \) -exec rm -rf {} + 2>/dev/null || true
+    && rm -rf /var/lib/apt/lists/*
 
 # ── Application code ─────────────────────────────────────────────────────────
 # Copied AFTER dependency install so that code edits don't invalidate the
@@ -68,8 +70,8 @@ RUN groupadd --gid 1001 samvad \
 USER samvad
 
 # ── Runtime environment ──────────────────────────────────────────────────────
-# Consolidated into a single ENV layer.
-ENV PYTHONPATH=/app \
+ENV PATH="/usr/local/bin:${PATH}" \
+    PYTHONPATH=/app \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/app/models/huggingface \
     TORCH_HOME=/app/models/hub \
@@ -79,7 +81,7 @@ ENV PYTHONPATH=/app \
 
 # ── Health check ─────────────────────────────────────────────────────────────
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 EXPOSE 8000
 
@@ -89,6 +91,6 @@ EXPOSE 8000
 CMD ["uvicorn", "src.app:app", \
      "--host", "0.0.0.0", \
      "--port", "8000", \
-     "--workers", "1", \
+     "--workers", "2", \
      "--timeout-keep-alive", "600"]
 

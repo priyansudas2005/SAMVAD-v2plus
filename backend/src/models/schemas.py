@@ -61,6 +61,7 @@ class MeetingResponse(BaseModel):
     duration: Optional[float] = None
     audio_path: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = {}
+    word_count: Optional[int] = 0
     transcript: Optional[List[TranscriptSegmentSchema]] = []
     memo: Optional[MemoSchema] = None
     qa_history: Optional[List[QAHistorySchema]] = []

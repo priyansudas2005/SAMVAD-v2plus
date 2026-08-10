@@ -36,7 +36,7 @@ from src.services.audio.recorder_exceptions import SoundDeviceUnavailableError
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/audio", tags=["audio"])
+router = APIRouter(prefix="/api/v1/audio", tags=["audio"])
 
 # Broadcast interval for WebSocket / SSE frames (seconds)
 _STREAM_INTERVAL = 0.1   # 10 Hz

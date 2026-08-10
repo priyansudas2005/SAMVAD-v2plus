@@ -52,18 +52,18 @@ app.add_middleware(
 )
 
 # Register routers
-app.include_router(meetings.router, prefix="/api")
-app.include_router(qa.router, prefix="/api")
-app.include_router(settings.router, prefix="/api")
-app.include_router(analytics.router, prefix="/api")
-app.include_router(stats.router, prefix="/api")
+app.include_router(meetings.router, prefix="/api/v1")
+app.include_router(qa.router, prefix="/api/v1")
+app.include_router(settings.router, prefix="/api/v1")
+app.include_router(analytics.router, prefix="/api/v1")
+app.include_router(stats.router, prefix="/api/v1")
 
 # Optional recording API (WebSocket + SSE + REST device listing)
 # Registered with try/except so a missing sounddevice does not crash startup
 try:
     from src.api import recording as recording_api
     app.include_router(recording_api.router)
-    logger.info("Recording API router registered (/api/audio)")
+    logger.info("Recording API router registered (/api/v1/audio)")
 except Exception as _rec_err:
     logger.warning(f"Recording API router not registered: {_rec_err}")
 

@@ -6,6 +6,7 @@ transformers>=4.30.0
 fastapi>=0.100.0
 uvicorn>=0.22.0
 python-multipart>=0.0.6
+sentence-transformers>=2.2.2
 
 # Audio processing
 # pyaudio is optional (microphone recording) and may require C++ Build Tools on Windows

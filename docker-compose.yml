@@ -39,7 +39,6 @@ services:
       - samvad-db:/app/data/database
       - samvad-recordings:/app/data/recordings
       - samvad-models:/app/models
-      - samvad-logs:/app/logs
 
     # Backend is NOT exposed on the host — all external traffic routes through
     # the Nginx frontend proxy. Avoids accidental direct API access.
@@ -71,7 +70,7 @@ services:
         - "CMD"
         - "python"
         - "-c"
-        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
       interval: 30s
       timeout: 10s
       start_period: 15s
@@ -110,6 +109,9 @@ services:
       - ALL
     cap_add:
       - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
 
     # Resource limits for frontend proxy
     deploy:
@@ -143,6 +145,4 @@ volumes:
     # Uploaded and processed audio recordings
   samvad-models:
     # Whisper / diarization model weights (downloaded on first run)
-  samvad-logs:
-    # Application log files
 

@@ -17,11 +17,21 @@ interface StatsPageProps {
   currentMeeting: Meeting;
   onUpdateMeeting?: (meeting: Meeting) => void;
   onNavigateToTimestamp?: (timestamp: string) => void;
+  isProcessing?: boolean;
+  setActivePage?: (page: string) => void;
+  onCancelProcessing?: () => void;
 }
 
 type TabType = 'overview' | 'speakers' | 'conversation' | 'audio_ai' | 'pipeline';
 
-export const StatsPage: React.FC<StatsPageProps> = ({ currentMeeting, onUpdateMeeting, onNavigateToTimestamp }) => {
+export const StatsPage: React.FC<StatsPageProps> = ({ 
+  currentMeeting, 
+  onUpdateMeeting, 
+  onNavigateToTimestamp,
+  isProcessing = false,
+  setActivePage,
+  onCancelProcessing,
+}) => {
   const [stats, setStats] = useState<MeetingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +185,30 @@ export const StatsPage: React.FC<StatsPageProps> = ({ currentMeeting, onUpdateMe
     );
   };
 
+  if (isProcessing) {
+    return (
+      <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">
+        <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#0e1016]/90 border border-violet-500/20 backdrop-blur-xl rounded-2xl max-w-md w-full shadow-2xl text-center">
+          <div className="w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400 mb-2">
+            <BrainCircuit className="w-6 h-6 animate-spin" style={{ animationDuration: '3s' }} />
+          </div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-widest">Running AI Transcription...</h3>
+          <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed">
+            Audio processing is active in the background. Stats and speaker analytics will populate automatically once the Whisper pipeline completes.
+          </p>
+          {onCancelProcessing && (
+            <button
+              onClick={onCancelProcessing}
+              className="mt-4 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+            >
+              Cancel Transcription
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono">
@@ -201,6 +235,32 @@ export const StatsPage: React.FC<StatsPageProps> = ({ currentMeeting, onUpdateMe
   }
 
   if (!stats) return null;
+
+  const hasTranscript = currentMeeting.transcript && currentMeeting.transcript.length > 0;
+  if (!hasTranscript || stats.total_transcript_segments === 0) {
+
+    return (
+      <div className="flex-1 p-6 overflow-y-auto bg-slate-950 flex flex-col items-center justify-center font-mono select-none">
+        <div className="flex flex-col items-center justify-center gap-4 p-8 bg-[#0e1016]/90 border border-white/[0.08] rounded-2xl max-w-md w-full shadow-2xl text-center">
+          <div className="w-12 h-12 rounded-xl bg-slate-900/60 border border-white/[0.06] flex items-center justify-center text-[#98A2B3] mb-2">
+            <Activity className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-widest">No Stats Available</h3>
+          <p className="text-xs text-[#98A2B3] max-w-xs leading-relaxed">
+            This meeting has not been transcribed yet. Go to the Transcript tab to run the speech-to-text pipeline and generate telemetry stats.
+          </p>
+          {setActivePage && (
+            <button 
+              onClick={() => setActivePage('transcript')}
+              className="mt-2 px-5 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-violet-600/25 transition-all duration-300 transform active:scale-[0.98]"
+            >
+              Go to Transcript
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const sp = stats.speaker_statistics;
   const health = stats.meeting_health;
@@ -427,29 +487,56 @@ export const StatsPage: React.FC<StatsPageProps> = ({ currentMeeting, onUpdateMe
               <div className="space-y-2 text-xs font-mono">
                 {highlights.biggest_decision && (
                   <div className="p-2.5 bg-[#030305] border border-white/[0.05] rounded-lg">
-                    <div className="text-[9px] text-[#10B981] font-bold uppercase mb-0.5">Top Decision</div>
+                    <div className="text-[9px] text-[#10B981] font-bold uppercase mb-0.5 flex items-center justify-between">
+                      <span>Top Decision</span>
+                      <span className="text-[8px] text-[#10B981]/70 font-mono">CONFIRMED</span>
+                    </div>
                     <div className="text-[#C4C9D4] font-sans">{highlights.biggest_decision}</div>
                   </div>
                 )}
                 {highlights.most_important_action_item && (
                   <div className="p-2.5 bg-[#030305] border border-white/[0.05] rounded-lg">
-                    <div className="text-[9px] text-[#06B6D4] font-bold uppercase mb-0.5">Top Action Item</div>
+                    <div className="text-[9px] text-[#06B6D4] font-bold uppercase mb-0.5 flex items-center justify-between">
+                      <span>Top Action Item</span>
+                      <span className="text-[8px] text-[#06B6D4]/70 font-mono">HIGH PRIORITY</span>
+                    </div>
                     <div className="text-[#C4C9D4] font-sans">{highlights.most_important_action_item}</div>
                   </div>
                 )}
                 {highlights.biggest_risk && (
-                  <div className="p-2.5 bg-[#030305] border border-white/[0.05] rounded-lg">
-                    <div className="text-[9px] text-amber-400 font-bold uppercase mb-0.5">Top Operational Risk</div>
+                  <div className="p-2.5 bg-[#030305] border border-amber-500/20 rounded-lg bg-amber-500/[0.02]">
+                    <div className="text-[9px] text-amber-400 font-bold uppercase mb-0.5 flex items-center justify-between">
+                      <span>Top Operational Risk</span>
+                      <span className="text-[8px] text-amber-400/80 font-mono">REQUIRES MITIGATION</span>
+                    </div>
                     <div className="text-[#C4C9D4] font-sans">{highlights.biggest_risk}</div>
+                  </div>
+                )}
+                {highlights.biggest_blocker && (
+                  <div className="p-2.5 bg-[#030305] border border-rose-500/20 rounded-lg bg-rose-500/[0.02]">
+                    <div className="text-[9px] text-rose-400 font-bold uppercase mb-0.5 flex items-center justify-between">
+                      <span>Critical Blocker</span>
+                      <span className="text-[8px] text-rose-400/80 font-mono">CRITICAL</span>
+                    </div>
+                    <div className="text-[#C4C9D4] font-sans">{highlights.biggest_blocker}</div>
+                  </div>
+                )}
+                {highlights.top_open_question && (
+                  <div className="p-2.5 bg-[#030305] border border-indigo-500/20 rounded-lg bg-indigo-500/[0.02]">
+                    <div className="text-[9px] text-indigo-400 font-bold uppercase mb-0.5 flex items-center justify-between">
+                      <span>Top Open Question</span>
+                      <span className="text-[8px] text-indigo-400/80 font-mono">UNRESOLVED</span>
+                    </div>
+                    <div className="text-[#C4C9D4] font-sans">{highlights.top_open_question}</div>
                   </div>
                 )}
                 {highlights.meeting_outcome && (
                   <div className="p-2.5 bg-[#030305] border border-white/[0.05] rounded-lg">
-                    <div className="text-[9px] text-[#8B5CF6] font-bold uppercase mb-0.5">Meeting Summary & Outcome</div>
+                    <div className="text-[9px] text-[#8B5CF6] font-bold uppercase mb-0.5">Meeting Summary &amp; Outcome</div>
                     <div className="text-[#C4C9D4] font-sans leading-relaxed">{highlights.meeting_outcome}</div>
                   </div>
                 )}
-                {!highlights.biggest_decision && !highlights.most_important_action_item && !highlights.biggest_risk && !highlights.meeting_outcome && (
+                {!highlights.biggest_decision && !highlights.most_important_action_item && !highlights.biggest_risk && !highlights.biggest_blocker && !highlights.meeting_outcome && (
                   <div className="p-4 bg-[#030305] border border-white/[0.05] rounded-lg text-center font-mono">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto mb-1 opacity-70" />
                     <div className="text-[10px] text-[#98A2B3]">Run "Process Transcript" on Transcript page to extract executive highlights.</div>

@@ -48,11 +48,17 @@ import { RenameSpeakerModal, SPEAKER_COLORS } from '../components/SpeakerManager
 interface TranscriptPageProps {
   currentMeeting: Meeting;
   onUpdateMeeting: (meeting: Meeting) => void;
+  isProcessing?: boolean;
+  onStartProcessing?: (options: { modelSize: string; language?: string; vadEnabled: boolean }) => void;
+  onCancelProcessing?: () => void;
 }
 
 export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   currentMeeting,
   onUpdateMeeting,
+  isProcessing = false,
+  onStartProcessing,
+  onCancelProcessing,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [speakerFilter, setSpeakerFilter] = useState<string>('all');
@@ -99,7 +105,8 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   // Bookmarks state
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
 
-  const [processing, setProcessing] = useState(false);
+  const [localProcessing, setLocalProcessing] = useState(false);
+  const processing = localProcessing || isProcessing;
   const [error, setError] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
@@ -117,6 +124,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollTop(e.currentTarget.scrollTop);
   };
+  
+  // Sync VAD & language from meeting metadata if present
+  useEffect(() => {
+    if (currentMeeting.metadata) {
+      if (currentMeeting.metadata.model_size) setModelSize(currentMeeting.metadata.model_size);
+      if (currentMeeting.metadata.language) setLanguage(currentMeeting.metadata.language);
+      if (currentMeeting.metadata.vad_filter !== undefined) setVadEnabled(currentMeeting.metadata.vad_filter);
+    }
+  }, [currentMeeting]);
   
   // Processing settings
   const [modelSize, setModelSize] = useState('base');
@@ -149,7 +165,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
   }, [volume, playbackSpeed]);
 
   const handleProcess = async () => {
-    setProcessing(true);
+    if (onStartProcessing) {
+      onStartProcessing({
+        modelSize,
+        language: language === 'auto' ? undefined : language,
+        vadEnabled,
+      });
+      return;
+    }
+    setLocalProcessing(true);
     setError(null);
     try {
       const updated = await api.processMeeting(currentMeeting.meeting_id, {
@@ -162,7 +186,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       console.error(err);
       setError(err.message || 'Failed to process meeting. Please check model download or RAM capacity.');
     } finally {
-      setProcessing(false);
+      setLocalProcessing(false);
     }
   };
 
@@ -331,14 +355,30 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     return speakerColors[raw] ?? SPEAKER_COLORS[index % SPEAKER_COLORS.length];
   }, [speakerColors]);
 
-  // Get filtered segments with sorting and query matches
-  const getFilteredSegments = useMemo(() => {
+  const mappedTranscript = useMemo(() => {
     if (!currentMeeting.transcript) return [];
-    let list = currentMeeting.transcript.map((seg) => {
-      // Standardize empty or null labels to SPEAKER_00 fallback without mutating valid labels
+    return currentMeeting.transcript.map(seg => {
       const label = seg.speaker_label && seg.speaker_label !== 'UNKNOWN' ? seg.speaker_label : 'SPEAKER_00';
       return { ...seg, speaker_label: label };
     });
+  }, [currentMeeting.transcript]);
+
+  const uniqueSpeakers = useMemo(() => {
+    return Array.from(new Set(mappedTranscript.map(s => s.speaker_label)));
+  }, [mappedTranscript]);
+
+  const speakerSegmentCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    mappedTranscript.forEach(seg => {
+      const spk = seg.speaker_label;
+      counts[spk] = (counts[spk] || 0) + 1;
+    });
+    return counts;
+  }, [mappedTranscript]);
+
+  // Get filtered segments with sorting and query matches
+  const getFilteredSegments = useMemo(() => {
+    let list = [...mappedTranscript];
     
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -428,23 +468,11 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     return (total / currentMeeting.transcript.length) * 100;
   }, [currentMeeting.transcript]);
 
-  const uniqueSpeakers = useMemo(() => {
-    if (!currentMeeting.transcript) return [];
-    return Array.from(new Set(currentMeeting.transcript.map(s => s.speaker_label || 'UNKNOWN')));
-  }, [currentMeeting.transcript]);
 
-  const speakerSegmentCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    currentMeeting.transcript?.forEach(seg => {
-      const spk = seg.speaker_label || 'UNKNOWN';
-      counts[spk] = (counts[spk] || 0) + 1;
-    });
-    return counts;
-  }, [currentMeeting.transcript]);
 
   // Precompute per-speaker stats & profile info for SpeakerBadge popovers
   const allSpeakerStats = useMemo(() => {
-    const totalDuration = (currentMeeting.transcript || []).reduce((sum, seg) => {
+    const totalDuration = mappedTranscript.reduce((sum, seg) => {
       const parts = seg.start.split(':');
       const start = parts.length === 2 ? parseInt(parts[0], 10) * 60 + parseFloat(parts[1]) : parseFloat(parts[0]);
       const end = seg.end_seconds ?? start + 5;
@@ -452,7 +480,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
     }, 0);
 
     return uniqueSpeakers.reduce<Record<string, import('../components/SpeakerBadge').ExtendedSpeakerStats>>((acc, label, idx) => {
-      const segs = (currentMeeting.transcript || []).filter(s => (s.speaker_label || 'UNKNOWN') === label);
+      const segs = mappedTranscript.filter(s => s.speaker_label === label);
       const totalSeconds = segs.reduce((sum, seg) => {
         const parts = seg.start.split(':');
         const start = parts.length === 2 ? parseInt(parts[0], 10) * 60 + parseFloat(parts[1]) : parseFloat(parts[0]);
@@ -491,7 +519,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       };
       return acc;
     }, {});
-  }, [uniqueSpeakers, currentMeeting.transcript, speakerNames, speakerColors, speakerProfiles, resolveSpeakerColor]);
+  }, [uniqueSpeakers, mappedTranscript, speakerNames, speakerColors, speakerProfiles, resolveSpeakerColor]);
 
   // Audio Playback Actions
   const togglePlayPause = () => {
@@ -550,7 +578,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       {/* HTML Audio Engine */}
       <audio
         ref={audioRef}
-        src={`/api/meetings/${currentMeeting.meeting_id}/audio`}
+        src={`/api/v1/meetings/${currentMeeting.meeting_id}/audio`}
         onTimeUpdate={handleAudioTimeUpdate}
         onLoadedMetadata={handleAudioLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
@@ -649,7 +677,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
         {/* Speaker Manager Panel — slides in from right */}
         {showSpeakerManager && hasTranscript && (
           <SpeakerManagerPanel
-            transcript={currentMeeting.transcript || []}
+            transcript={mappedTranscript}
             speakerNames={speakerNames}
             speakerColors={speakerColors}
             speakerProfiles={speakerProfiles}
@@ -738,6 +766,14 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                 <p className="text-xs text-[#98A2B3] mt-2 max-w-sm">
                   Transcribing local audio stream...
                 </p>
+                {onCancelProcessing && (
+                  <button
+                    onClick={onCancelProcessing}
+                    className="mt-4 px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+                  >
+                    Cancel Transcription
+                  </button>
+                )}
               </div>
 
               <div className="flex-1 p-4 space-y-2 animate-pulse overflow-y-auto">
@@ -1333,13 +1369,16 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                       <div className="flex gap-1.5 items-start">
                         <span className="text-[#8B5CF6]">■</span>
                         <span>
-                          Diarization identified {detectedSpeakers.length} speaker{detectedSpeakers.length > 1 ? 's' : ''} across {currentMeeting.transcript?.length || 0} transcript dialogue turns.
+                          {(() => {
+                            const count = new Set(currentMeeting.transcript?.map(t => t.speaker_label) || []).size;
+                            return `Diarization identified ${count} speaker${count !== 1 ? 's' : ''} across ${currentMeeting.transcript?.length || 0} transcript dialogue turns.`;
+                          })()}
                         </span>
                       </div>
                       <div className="flex gap-1.5 items-start">
                         <span className="text-[#8B5CF6]">■</span>
                         <span>
-                          {currentMeeting.summary?.overview?.executive_summary
+                          {currentMeeting.memo?.summary
                             ? 'Executive meeting memo and action items compiled locally.'
                             : 'Audio processed via Faster-Whisper ASR engine.'}
                         </span>
@@ -1397,6 +1436,15 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
                       <div className="flex justify-between">
                         <span>DIARIZATION:</span>
                         <span className="text-[#06B6D4]">ENABLED</span>
+                      </div>
+                      <div className="pt-2 border-t border-white/[0.05]">
+                        <button
+                          onClick={handleProcess}
+                          disabled={processing}
+                          className="w-full py-1 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/30 disabled:opacity-50 border border-[#8B5CF6]/30 text-[#8B5CF6] rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <span>{processing ? 'Processing...' : 'Re-process Meeting'}</span>
+                        </button>
                       </div>
                     </div>
                   )}

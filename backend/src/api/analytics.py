@@ -34,21 +34,22 @@ def get_analytics_summary(db: Session = Depends(get_db)):
         all_words = []
         
         # Sort meetings by date ascending for charts
-        sorted_meetings = sorted(meetings, key=lambda x: x.date)
+        sorted_meetings = sorted(meetings, key=lambda x: x.date or "")
         
         for m in sorted_meetings:
             m_words_count = 0
-            for seg in m.transcript:
-                word_list = re.findall(r"\b\w+\b", seg.text.lower())
-                m_words_count += len(word_list)
-                all_words.extend(word_list)
+            for seg in (m.transcript or []):
+                if seg.text:
+                    word_list = re.findall(r"\b\w+\b", seg.text.lower())
+                    m_words_count += len(word_list)
+                    all_words.extend(word_list)
                 
             words_total += m_words_count
             
             # Action items count
-            if m.memo and m.memo.action_items:
+            if m.memo and m.memo.action_items_json:
                 try:
-                    items = json.loads(m.memo.action_items)
+                    items = json.loads(m.memo.action_items_json)
                     action_items_total += len(items)
                 except Exception:
                     pass
@@ -65,7 +66,8 @@ def get_analytics_summary(db: Session = Depends(get_db)):
                 model_counts["base"] += 1
                 
             # Date formatting
-            short_date = m.date.split("T")[0] if "T" in m.date else m.date.split(" ")[0]
+            m_date = m.date or ""
+            short_date = m_date.split("T")[0] if "T" in m_date else (m_date.split(" ")[0] if m_date else "Unknown")
             timeline.append(TimelineStat(
                 date=short_date,
                 duration=round((m.duration or 0.0) / 60, 1),

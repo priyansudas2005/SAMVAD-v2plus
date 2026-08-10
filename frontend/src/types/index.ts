@@ -88,15 +88,15 @@ export interface ActionItemObj {
 }
 
 export interface PendingDecisionItem {
-  id: string;
+  id?: string;
   topic: string;
-  status: string;
+  status?: string;
   current_status?: string;
   related_discussion?: string;
   suggested_follow_up?: string;
   priority?: string;
   severity?: string;
-  confidence: number;
+  confidence?: number;
   needs_human_review?: boolean;
   references?: TranscriptRef[];
 }
@@ -140,6 +140,7 @@ export interface IntelligenceSection {
   dependencies?: IntelligenceItem[];
   open_questions?: IntelligenceItem[];
   missing_information?: IntelligenceItem[];
+  pending_decisions?: PendingDecisionItem[];
 }
 
 export interface AIRecommendationItem {
@@ -226,6 +227,7 @@ export interface Meeting {
   date: string;
   duration: number;
   audio_path?: string;
+  word_count?: number;
   metadata?: Record<string, any>;
   transcript?: TranscriptSegment[];
   memo?: Memo;
@@ -294,6 +296,11 @@ export interface MeetingHighlights {
   most_important_action_item: string | null;
   biggest_risk: string | null;
   biggest_blocker: string | null;
+  top_open_question?: string | null;
+  risks_count?: number;
+  blockers_count?: number;
+  open_questions_count?: number;
+  followups_count?: number;
   key_deadline: string | null;
   critical_discussion: string | null;
   meeting_outcome: string | null;
@@ -349,6 +356,15 @@ export interface AudioDiagnostics {
   estimated_snr_db: number | null;
 }
 
+export interface LowConfidenceRegion {
+  segment_id: number;
+  speaker: string;
+  timestamp: string;
+  start_seconds: number;
+  confidence: number;
+  text: string;
+}
+
 export interface TranscriptionDiagnostics {
   average_confidence: number;
   highest_confidence: number;
@@ -357,14 +373,14 @@ export interface TranscriptionDiagnostics {
   corrected_words: number;
   speaker_detection_accuracy: number;
   total_speaker_changes: number;
-  word_error_rate: number | null;
-  character_error_rate: number | null;
-  low_confidence_regions: any[];
+  word_error_rate: number;
+  character_error_rate: number;
+  low_confidence_regions: LowConfidenceRegion[];
 }
 
 export interface PipelineStage {
   name: string;
-  status: string;
+  status: 'completed' | 'pending' | 'failed';
   start_time: string | null;
   finish_time: string | null;
   duration_ms: number | null;
@@ -384,6 +400,9 @@ export interface MeetingHealth {
   ai_reliability: number;
   productivity_score: number;
   meeting_effectiveness: number;
+  risks_count?: number;
+  blockers_count?: number;
+  open_questions_count?: number;
   recommendations: string[];
 }
 
@@ -424,6 +443,7 @@ export interface MeetingStats {
   meeting_highlights: MeetingHighlights;
   action_item_breakdown: ActionItemBreakdown;
   decision_summary: DecisionSummary;
+  intelligence_summary?: Record<string, any>;
   topics_entities: TopicsEntities;
   audio_diagnostics: AudioDiagnostics;
   transcription_diagnostics: TranscriptionDiagnostics;

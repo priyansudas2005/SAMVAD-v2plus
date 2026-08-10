@@ -58,7 +58,7 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('30d');
   const [customStartDate, setCustomStartDate] = useState<string>('2026-06-01');
-  const [customEndDate, setCustomEndDate] = useState<string>('2026-07-24');
+  const [customEndDate, setCustomEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchAnalytics = async () => {
@@ -88,25 +88,25 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
   const filteredMeetings = useMemo(() => {
     if (!meetings || meetings.length === 0) return [];
     
-    const now = new Date('2026-07-24T19:55:00').getTime(); // Baseline current date
+    const now = Date.now();
+    const todayStart = new Date().setHours(0, 0, 0, 0);
 
-    return meetings.filter((m) => {
+    const periodFiltered = meetings.filter((m) => {
       if (!m.date) return true;
       const mDate = new Date(m.date).getTime();
       if (isNaN(mDate)) return true;
 
       if (filterPeriod === 'today') {
-        const todayStr = '2026-07-24';
-        return m.date.startsWith(todayStr);
+        return mDate >= todayStart;
       }
       if (filterPeriod === '7d') {
-        return (now - mDate) <= 7 * 24 * 60 * 60 * 1000;
+        return mDate >= (now - 7 * 24 * 60 * 60 * 1000);
       }
       if (filterPeriod === '30d') {
-        return (now - mDate) <= 30 * 24 * 60 * 60 * 1000;
+        return mDate >= (now - 30 * 24 * 60 * 60 * 1000);
       }
       if (filterPeriod === '90d') {
-        return (now - mDate) <= 90 * 24 * 60 * 60 * 1000;
+        return mDate >= (now - 90 * 24 * 60 * 60 * 1000);
       }
       if (filterPeriod === 'custom') {
         const start = new Date(customStartDate).getTime();
@@ -115,6 +115,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
       }
       return true;
     });
+
+    return periodFiltered.length > 0 ? periodFiltered : meetings;
   }, [meetings, filterPeriod, customStartDate, customEndDate]);
 
   // Generate compact trend chart dataset
@@ -189,8 +191,10 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
 
     filteredMeetings.forEach(m => {
       if (m.memo) {
-        if (m.memo.action_items) totalActionItems += m.memo.action_items.length;
-        if (m.memo.decisions) totalDecisions += m.memo.decisions.length;
+        const actions = m.memo.action_items || (m.memo as any).execution?.action_items || [];
+        const decs = m.memo.decisions || (m.memo as any).execution?.decisions || [];
+        if (actions) totalActionItems += actions.length;
+        if (decs) totalDecisions += decs.length;
         if (m.memo.intelligence?.risks) totalRisks += m.memo.intelligence.risks.length;
         if (m.memo.intelligence?.open_questions) totalOpenQuestions += m.memo.intelligence.open_questions.length;
       }
@@ -219,11 +223,11 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
 
     filteredMeetings.forEach(m => {
       if (m.memo) {
-        if (m.memo.execution?.decisions) decisionCount += m.memo.execution.decisions.length;
-        if (m.memo.execution?.action_items) {
-          actionCount += m.memo.execution.action_items.length;
-          completedActionCount += Math.round(m.memo.execution.action_items.length * 0.82);
-        }
+        const decs = m.memo.decisions || (m.memo as any).execution?.decisions || [];
+        const actions = m.memo.action_items || (m.memo as any).execution?.action_items || [];
+        decisionCount += decs.length;
+        actionCount += actions.length;
+        completedActionCount += Math.round(actions.length * 0.82);
       }
     });
 
@@ -355,59 +359,54 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = () => {
       // 2. Process Memo & Intelligence Items
       if (m.memo) {
         // Topics
-        if (m.memo.overview?.key_topics) {
-          m.memo.overview.key_topics.forEach((kt: any) => {
-            const title = typeof kt === 'string' ? kt : kt.title;
-            if (title) {
-              if (!topicsMap[title]) topicsMap[title] = { count: 0, category: 'Meeting Topic' };
-              topicsMap[title].count += 1;
-            }
-          });
-        }
+        const topics = m.memo.key_points || (m.memo as any).overview?.key_topics || [];
+        topics.forEach((kt: any) => {
+          const title = typeof kt === 'string' ? kt : (kt.title || kt.point);
+          if (title) {
+            if (!topicsMap[title]) topicsMap[title] = { count: 0, category: 'Meeting Topic' };
+            topicsMap[title].count += 1;
+          }
+        });
 
         // Decisions
-        if (m.memo.execution?.decisions) {
-          m.memo.execution.decisions.forEach((d: any) => {
-            const decText = typeof d === 'string' ? d : (d.decision || d.title);
-            if (decText) {
-              if (!decisionsCountMap[decText]) decisionsCountMap[decText] = { text: decText, count: 0, category: 'Consensus' };
-              decisionsCountMap[decText].count += 1;
-            }
-          });
-        }
+        const decisions = m.memo.decisions || (m.memo as any).execution?.decisions || [];
+        decisions.forEach((d: any) => {
+          const decText = typeof d === 'string' ? d : (d.decision || d.title || d.topic);
+          if (decText) {
+            if (!decisionsCountMap[decText]) decisionsCountMap[decText] = { text: decText, count: 0, category: 'Consensus' };
+            decisionsCountMap[decText].count += 1;
+          }
+        });
 
         // Action Items
-        if (m.memo.execution?.action_items) {
-          m.memo.execution.action_items.forEach((a: any) => {
-            const taskText = typeof a === 'string' ? a : (a.task || a.title);
-            const ownerName = typeof a.owner === 'string' ? a.owner : (a.owner?.display_name || 'Assigned');
-            if (taskText) {
-              if (!actionsCountMap[taskText]) actionsCountMap[taskText] = { task: taskText, count: 0, owner: ownerName };
-              actionsCountMap[taskText].count += 1;
-            }
-          });
-        }
+        const actionItems = m.memo.action_items || (m.memo as any).execution?.action_items || [];
+        actionItems.forEach((a: any) => {
+          const taskText = typeof a === 'string' ? a : (a.task || a.title);
+          const ownerName = typeof a.owner === 'string' ? a.owner : (a.owner?.display_name || 'Assigned');
+          if (taskText) {
+            if (!actionsCountMap[taskText]) actionsCountMap[taskText] = { task: taskText, count: 0, owner: ownerName };
+            actionsCountMap[taskText].count += 1;
+          }
+        });
 
         // Blockers & Risks
-        if (m.memo.intelligence?.blockers) {
-          m.memo.intelligence.blockers.forEach((b: any) => {
-            const bText = typeof b === 'string' ? b : (b.blocker || b.title || b.item);
-            if (bText) {
-              if (!blockersCountMap[bText]) blockersCountMap[bText] = { text: bText, count: 0, severity: b.severity || 'High' };
-              blockersCountMap[bText].count += 1;
-            }
-          });
-        }
+        const blockers = m.memo.intelligence?.blockers || [];
+        blockers.forEach((b: any) => {
+          const bText = typeof b === 'string' ? b : (b.blocker || b.title || b.item || b.text);
+          if (bText) {
+            if (!blockersCountMap[bText]) blockersCountMap[bText] = { text: bText, count: 0, severity: b.severity || 'High' };
+            blockersCountMap[bText].count += 1;
+          }
+        });
 
-        if (m.memo.intelligence?.risks) {
-          m.memo.intelligence.risks.forEach((r: any) => {
-            const rText = typeof r === 'string' ? r : (r.risk || r.title || r.item);
-            if (rText) {
-              if (!risksCountMap[rText]) risksCountMap[rText] = { text: rText, count: 0, riskLevel: r.severity || 'Medium' };
-              risksCountMap[rText].count += 1;
-            }
-          });
-        }
+        const risks = m.memo.intelligence?.risks || [];
+        risks.forEach((r: any) => {
+          const rText = typeof r === 'string' ? r : (r.risk || r.title || r.item || r.text);
+          if (rText) {
+            if (!risksCountMap[rText]) risksCountMap[rText] = { text: rText, count: 0, riskLevel: r.severity || 'Medium' };
+            risksCountMap[rText].count += 1;
+          }
+        });
       }
     });
 

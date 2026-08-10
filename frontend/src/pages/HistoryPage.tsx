@@ -276,7 +276,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     if (e) e.stopPropagation();
     try {
       setSaving(true);
-      const res = await fetch(`/api/meetings`, {
+      const res = await fetch(`/api/v1/meetings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -340,7 +340,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   useEffect(() => {
     if (!playingMeeting) return;
     audioRef.current?.pause();
-    const audio = new Audio(`/api/meetings/${playingMeeting.meeting_id}/audio`);
+    const audio = new Audio(`/api/v1/meetings/${playingMeeting.meeting_id}/audio`);
     audioRef.current = audio;
     audio.volume = isMuted ? 0 : volume;
     const onTime  = () => setCurrentTime(audio.currentTime);
