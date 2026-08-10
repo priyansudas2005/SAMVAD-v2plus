@@ -578,7 +578,7 @@ export const TranscriptPage: React.FC<TranscriptPageProps> = ({
       {/* HTML Audio Engine */}
       <audio
         ref={audioRef}
-        src={`/api/meetings/${currentMeeting.meeting_id}/audio`}
+        src={`/api/v1/meetings/${currentMeeting.meeting_id}/audio`}
         onTimeUpdate={handleAudioTimeUpdate}
         onLoadedMetadata={handleAudioLoadedMetadata}
         onPlay={() => setIsPlaying(true)}

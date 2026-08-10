@@ -44,7 +44,7 @@ def test_health():
 
 def test_settings_endpoints():
     # Test GET settings
-    response = client.get("/api/settings")
+    response = client.get("/api/v1/settings")
     assert response.status_code == 200
     data = response.json()
     assert "model_size" in data
@@ -57,14 +57,14 @@ def test_settings_endpoints():
         "vad_enabled": False,
         "ollama_url": "http://localhost:11434"
     }
-    response = client.post("/api/settings", json=payload)
+    response = client.post("/api/v1/settings", json=payload)
     assert response.status_code == 200
     assert response.json()["model_size"] == "small"
     assert response.json()["default_language"] == "hi"
 
 def test_meetings_and_qa_endpoints():
     # Test GET meetings list
-    response = client.get("/api/meetings")
+    response = client.get("/api/v1/meetings")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
@@ -91,7 +91,7 @@ def test_meetings_and_qa_endpoints():
     db.close()
 
     # Verify meeting list has 1 item
-    response = client.get("/api/meetings")
+    response = client.get("/api/v1/meetings")
     assert response.status_code == 200
     meetings = response.json()
     assert len(meetings) >= 1
@@ -102,13 +102,13 @@ def test_meetings_and_qa_endpoints():
     assert test_meeting["title"] == "Test Meeting Title"
 
     # Test GET individual meeting
-    response = client.get("/api/meetings/test-meeting-123")
+    response = client.get("/api/v1/meetings/test-meeting-123")
     assert response.status_code == 200
     assert response.json()["title"] == "Test Meeting Title"
 
     # Test Q&A asking question
     payload = {"question": "What did they say about marketing budgets?"}
-    response = client.post("/api/meetings/test-meeting-123/qa", json=payload)
+    response = client.post("/api/v1/meetings/test-meeting-123/qa", json=payload)
     assert response.status_code == 200
     qa_data = response.json()
     assert "couldn't find evidence" in qa_data["answer"].lower()
@@ -116,7 +116,7 @@ def test_meetings_and_qa_endpoints():
     # Test submit feedback
     qa_id = qa_data.get("id", 1)
     feedback_payload = {"was_helpful": True}
-    response = client.post(f"/api/meetings/test-meeting-123/qa/{qa_id}/feedback", json=feedback_payload)
+    response = client.post(f"/api/v1/meetings/test-meeting-123/qa/{qa_id}/feedback", json=feedback_payload)
     assert response.status_code == 200
 
 def test_update_transcript_segment():
@@ -154,7 +154,7 @@ def test_update_transcript_segment():
         "text": "The project manager decided that we will ship the alpha release of SAMVAD next Monday. [EDITED]",
         "speaker_label": "SPEAKER_01"
     }
-    response = client.patch(f"/api/meetings/test-meeting-123/transcript/{seg_id}", json=payload)
+    response = client.patch(f"/api/v1/meetings/test-meeting-123/transcript/{seg_id}", json=payload)
     assert response.status_code == 200
     
     data = response.json()

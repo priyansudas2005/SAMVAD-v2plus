@@ -1,6 +1,6 @@
 import { Meeting, SystemSettings, AnalyticsSummary, QAEntry, MeetingStats } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = '/api/v1';
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${endpoint}`, options);

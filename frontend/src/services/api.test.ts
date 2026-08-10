@@ -15,13 +15,13 @@ export function testApiClientSuite(): boolean {
 
   // Test 2: Export URL generation
   const meetingId = 'MEET_12345';
-  if (api.getExportUrl(meetingId, 'pdf') !== '/api/meetings/MEET_12345/export/pdf') {
+  if (api.getExportUrl(meetingId, 'pdf') !== '/api/v1/meetings/MEET_12345/export/pdf') {
     throw new Error('PDF export URL mismatch');
   }
-  if (api.getExportUrl(meetingId, 'docx') !== '/api/meetings/MEET_12345/export/docx') {
+  if (api.getExportUrl(meetingId, 'docx') !== '/api/v1/meetings/MEET_12345/export/docx') {
     throw new Error('DOCX export URL mismatch');
   }
-  if (api.getStatsExportUrl(meetingId, 'csv') !== '/api/meetings/MEET_12345/stats/export/csv') {
+  if (api.getStatsExportUrl(meetingId, 'csv') !== '/api/v1/meetings/MEET_12345/stats/export/csv') {
     throw new Error('CSV stats export URL mismatch');
   }
 
