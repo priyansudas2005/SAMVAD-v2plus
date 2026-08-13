@@ -34,4 +34,4 @@ This document outlines the strategic product roadmap and future technical enhanc
 
 ## 💬 Feature Requests & Feedback
 
-Have an idea or feature request? We welcome community input! Please feel free to open a [GitHub Issue](https://github.com/priyansudas2005/SAMVAD-v2plus/issues) or start a discussion.
+Have an idea or feature request? We welcome community input! Please feel free to open a [GitHub Issue](https://github.com/priyansudas07/SAMVAD-v2plus/issues) or start a discussion.
