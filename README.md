@@ -319,7 +319,7 @@ Use this method if you have cloned the source code and want to compile the conta
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/priyansudas2005/SAMVAD-v2plus.git
+   git clone https://github.com/priyansudas07/SAMVAD-v2plus.git
    cd SAMVADv2
    ```
 

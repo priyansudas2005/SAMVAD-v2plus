@@ -34,7 +34,7 @@ If you encounter a bug or have a feature request, please open an issue using the
 
 1. **Fork & Clone**:
    ```bash
-   git clone https://github.com/priyansudas2005/SAMVAD-v2plus.git
+   git clone https://github.com/priyansudas07/SAMVAD-v2plus.git
    cd SAMVADv2
    ```
 
